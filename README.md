@@ -31,6 +31,7 @@ Simple ARPG with rogue like game elements:
 [^7]: [Roadside Picnic](https://en.wikipedia.org/wiki/Roadside_Picnic)
 [^8]: [Annihilation ](https://en.wikipedia.org/wiki/Annihilation_(VanderMeer_novel))
 [^9]: [Debris ](https://en.wikipedia.org/wiki/Debris_(TV_series))
+[^11]: [Clash of Clans](https://en.wikipedia.org/wiki/Clash_of_Clans)
 [^10]: [Doctor Who](https://pt.wikipedia.org/wiki/Doctor_Who)
 [^12]: [Brogue - Weapons](https://brogue.fandom.com/wiki/Category:Weapon)
 [^13]: [Pokemon Moves](https://bulbapedia.bulbagarden.net/wiki/Field_move)
@@ -40,7 +41,7 @@ Simple ARPG with rogue like game elements:
 [^17]: [ANSI Escape Codes](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
 [^18]: [Rogue Like with Rust](https://bfnightly.bracketproductions.com/chapter_0.html)
 [^19]: [Darker than Black](https://en.wikipedia.org/wiki/Darker_than_Black)
-[^11]: [Clash of Clans](https://en.wikipedia.org/wiki/Clash_of_Clans)
+
 
 
 
@@ -57,11 +58,11 @@ Simple ARPG with rogue like game elements:
 [^29]: [Dijkstra map](http://www.roguebasin.com/index.php?title=The_Incredible_Power_of_Dijkstra_Maps)
 [^30]: [Dijkstra map - Rogue Basin](http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized)
 
-[^31]: [Pygame](https://www.pygame.org/news)
+[^32]: [Pygame](https://www.pygame.org/news)
 
 ## Detalhes de Implementação
 
-Dependência: pygame [^31].
+Dependência: pygame [^32].
 
 ## TODO
 
@@ -76,3 +77,4 @@ Dependência: pygame [^31].
 - [ ] Map Levels
 
 
+## Progresso

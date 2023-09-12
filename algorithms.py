@@ -26,7 +26,7 @@ class Direction(Enum):
 
     def next(self, position: Tuple[int, int]) -> Tuple[int, int]:
         return (position[0] + self.value[0], position[1] + self.value[1])
-    
+
     def __str__(self):
         return str(self.name)
 
@@ -126,6 +126,7 @@ class Random:
         return self.rand.randint(min, max-1)
 
     T = TypeVar("T")
+
     def choice(self, elements: List[T]) -> T:
         index = self.choiceIndex(elements)
         return elements[index]
@@ -138,20 +139,28 @@ class Random:
 
 
 class RandomWalker:
-    def __init__(self, iterations:int, length: int, center: Tuple[int, int]):
+    # TODO star algorithm (two directions)
+    # TODO forward algorithm (whitout reposition)
+    # TODO make tree (recursive on last point)
+    def __init__(self, iterations: int, length: int, center: Tuple[int, int]):
         self.iterations = iterations
         self.length = length
         self.center = center
         self.restartAtCenter = True
-    
-    def run(self, rand:Random) -> Set[Tuple[int, int]]:
+        self.withReposition = False
+
+    def run(self, rand: Random) -> Set[Tuple[int, int]]:
         positions = set()
         current = self.center
         cardinals = Direction.cardinals()
+        lastChoice = None
         for _ in range(self.iterations):
             for _ in range(self.length):
                 positions.add(current)
-                dir = rand.choice(cardinals)
+                index = rand.choiceIndex(cardinals)
+                if not self.withReposition and index == lastChoice:
+                    index = (index + 1) % len(cardinals)
+                dir = cardinals[index]
                 current = dir.next(current)
             if self.restartAtCenter:
                 current = self.center

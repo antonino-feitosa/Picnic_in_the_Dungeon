@@ -25,20 +25,12 @@ class Rectangle:
         return not (x < self.x or x >= self.x2 or y < self.y or y >= self.y2)
 
 
-class Camera:  # TODO
+class Camera:
     def __init__(self):
-        self.changed = False
-        self._translate = (0, 0)
-        self._scale = 1.0
-
-    def visible(self) -> Rectangle:
-        return Rectangle(0, 0, 0, 0)
+        self.translateVector = (0, 0)
 
     def translate(self, x: int, y: int) -> None:
-        self._translate = (x, y)
-
-    def zoom(self, scale: float) -> None:
-        self._scale = scale
+        self.translateVector = (x, y)
 
 
 class Image:
@@ -48,7 +40,7 @@ class Image:
         self.dimension = (image.get_width(), image.get_height())
 
     def draw(self, position: Tuple[int, int] = (0, 0)) -> None:
-        self.device.screen.blit(self.image, position)
+        self.device.drawImage(self, position, self.dimension)
 
 
 class SpriteSheet:
@@ -71,14 +63,14 @@ class Canvas:
         self.canvas = pygame.Surface(dimension)
         self.dimension = dimension
 
-    def draw(self, image: Image, dest: Rectangle, source: Rectangle | None = None):
+    def drawAtCanvas(self, image: Image, dest: Rectangle) -> None:
         destRect = pygame.Rect(dest.position, dest.endPosition)
-        if source is None:
-            sourceRect = pygame.Rect((0, 0), image.dimension)
-        else:
-            sourceRect = pygame.Rect(source.position, source.endPosition)
-        self.canvas.blit(image.image, destRect, sourceRect)
-
+        self.canvas.blit(image.image, destRect)
+    
+    def draw(self, position: Tuple[int, int], dimension: Tuple[int, int] | None = None) -> None:
+        dimension = dimension or self.dimension
+        self.device.drawImage(self.toImage(), position, dimension)
+    
     def toImage(self):
         return Image(self.device, self.canvas)
 
@@ -87,9 +79,10 @@ class Device:
     def __init__(self, title: str = '', dimension=(800, 600)):
         pygame.init()
         pygame.display.set_caption(title)
+        self.dimension = dimension
         self.screen = pygame.display.set_mode(dimension)
         self.running = True
-        pass
+        self.camera = Camera()
 
     def loadCanvas(self, dimension: Tuple[int, int]) -> Canvas:
         return Canvas(self, dimension)
@@ -107,11 +100,16 @@ class Device:
         sheet = SpriteSheet(image, dimension)
         return sheet
 
+    def drawImage(self, image:Image, position: Tuple[int, int], dimension: Tuple[int, int]) -> None:
+        translate = self.camera.translateVector
+        translatedPosition = (position[0] - translate[0], position[0] - translate[1])
+        dest = pygame.Rect(translatedPosition, dimension)
+        self.screen.blit(image.image, dest)
+
     def reload(self) -> None:
         pygame.display.flip()
-
-    def run(self) -> None:
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
+    
+    def update(self) -> None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False

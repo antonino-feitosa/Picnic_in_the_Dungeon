@@ -1,9 +1,8 @@
 
-from algorithms import Random
-from algorithms import RandomWalker
 from device import Device
 from roguelike import Ground
-
+from algorithms import Random
+from algorithms import RandomWalker
 
 def main():
     pixelsUnit = 32
@@ -25,13 +24,14 @@ def main():
     ground.paintGround(positions, groundSheet)
     ground.paintWalls(positions, wallsSheet)
 
-    canvas.toImage().draw()
+    device.camera.translate(400,0)
 
-    #groundSheet.images[3].draw()
+    canvas.draw((0,0))
 
     device.reload()
-    device.run()
-    pass
+
+    while device.running:
+        device.update()
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ class Ground:
             dy = y * self.pixelsUnit
             id = self.rand.choiceIndex(sheet.images)
             dest = Rectangle(dx, dy, self.pixelsUnit, self.pixelsUnit)
-            self.canvas.draw(sheet.images[id], dest)
+            self.canvas.drawAtCanvas(sheet.images[id], dest)
             self.groundPositions.add((x, y))
 
     def paintWalls(self, groundPositions: Set[Tuple[int, int]], sheet: SpriteSheet) -> None:
@@ -41,7 +41,7 @@ class Ground:
             dy = y * self.pixelsUnit
             id = Ground.calculateWallIndexInSheet((x, y), walls)
             dest = Rectangle(dx, dy, self.pixelsUnit, self.pixelsUnit)
-            self.canvas.draw(sheet.images[id], dest)
+            self.canvas.drawAtCanvas(sheet.images[id], dest)
             self.wallsPositions.add((x, y))
     
     @staticmethod

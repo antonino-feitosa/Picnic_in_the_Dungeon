@@ -1,5 +1,6 @@
 
 from device import Device
+from device import KeyboardListener
 from roguelike import Ground
 from algorithms import Random
 from algorithms import RandomWalker
@@ -43,8 +44,22 @@ def main():
     for pos in ground.groundPositions:
         minimap.addGround(pos)
     minimap.computeWalls()
-    
-    minimapCanvas.draw((300,300))
+
+    showingMinimap = False
+    def showMinimap(key: str) -> None:
+        nonlocal showingMinimap
+        device.clear()
+        canvas.draw((0,0))
+        if showingMinimap:
+            showingMinimap = False
+        else:
+            showingMinimap = True
+            minimapCanvas.draw((100,100))
+        device.reload()
+
+    listenTap = KeyboardListener({'tab'})
+    listenTap.onKeyUp = showMinimap
+    device.addListener(listenTap)
 
     device.reload()
 

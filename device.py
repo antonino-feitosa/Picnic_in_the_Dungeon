@@ -2,8 +2,10 @@
 import os
 import pygame
 
+from typing import Set
 from typing import List
 from typing import Tuple
+from typing import Callable
 
 
 class DeviceError(Exception):
@@ -66,23 +68,75 @@ class Canvas:
     def drawAtCanvas(self, image: Image, dest: Rectangle) -> None:
         destRect = pygame.Rect(dest.position, dest.endPosition)
         self.canvas.blit(image.image, destRect)
-    
+
     def draw(self, position: Tuple[int, int], dimension: Tuple[int, int] | None = None) -> None:
         dimension = dimension or self.dimension
         self.device.drawImage(self.toImage(), position, dimension)
-    
+
     def toImage(self):
         return Image(self.device, self.canvas)
 
 
+class InputListener:
+    def __init__(self):
+        self.device: Device
+
+    def update(self, event) -> None: pass
+
+
+class KeyboardListener(InputListener):
+    def __init__(self, keys: Set[str]):
+        self.onKeyUp: Callable[[str], None] = lambda _: None
+        self.onKeyDown: Callable[[str], None] = lambda _: None
+        self.keys = keys
+        self.keys_code = set()
+        for key_name in keys:
+            self.keys_code.add(pygame.key.key_code(key_name))
+
+    def update(self, event) -> None:
+        if event.type == pygame.KEYUP and event.key in self.keys_code:
+            key_name = pygame.key.name(event.key)
+            self.onKeyUp(key_name)
+        if event.type == pygame.KEYDOWN and event.key in self.keys_code:
+            key_name = pygame.key.name(event.key)
+            self.onKeyDown(key_name)
+
+
+class MouseClickListener(InputListener):
+    def __init__(self):
+        self.onMouseUp: Callable[[Tuple[int, int]], None] = lambda _: None
+        self.onMouseDown: Callable[[Tuple[int, int]], None] = lambda _: None
+
+    def update(self, event):
+        # left(1), middle(2), right(3)
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            position = pygame.mouse.get_pos()
+            translate = self.device.camera.translateVector
+            self.onMouseUp((position[0] + translate[0],
+                           position[1] + translate[1]))
+        # left(1), middle(2), right(3)
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            position = pygame.mouse.get_pos()
+            translate = self.device.camera.translateVector
+            self.onMouseDown(
+                (position[0] + translate[0], position[1] + translate[1]))
+
+
 class Device:
-    def __init__(self, title: str = '', dimension=(800, 600)):
+    def __init__(self, title: str = '', dimension=(800, 600), tick=60):
         pygame.init()
         pygame.display.set_caption(title)
         self.dimension = dimension
         self.screen = pygame.display.set_mode(dimension)
         self.running = True
         self.camera = Camera()
+        self.listeners: Set[InputListener] = set()
+        self.tick = tick
+        self.clock = pygame.time.Clock()
+    
+    def addListener(self, listener: InputListener)-> None:
+        listener.device = self
+        self.listeners.add(listener)
 
     def loadCanvas(self, dimension: Tuple[int, int]) -> Canvas:
         return Canvas(self, dimension)
@@ -100,16 +154,23 @@ class Device:
         sheet = SpriteSheet(image, dimension)
         return sheet
 
-    def drawImage(self, image:Image, position: Tuple[int, int], dimension: Tuple[int, int]) -> None:
+    def drawImage(self, image: Image, position: Tuple[int, int], dimension: Tuple[int, int]) -> None:
         translate = self.camera.translateVector
-        translatedPosition = (position[0] - translate[0], position[0] - translate[1])
+        translatedPosition = (
+            position[0] - translate[0], position[0] - translate[1])
         dest = pygame.Rect(translatedPosition, dimension)
         self.screen.blit(image.image, dest)
 
     def reload(self) -> None:
         pygame.display.flip()
     
+    def clear(self, color = (0,0,0)) -> None:
+        self.screen.fill(color, pygame.Rect((0,0), self.dimension))
+
     def update(self) -> None:
+        self.clock.tick(self.tick)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            for listener in self.listeners:
+                listener.update(event)

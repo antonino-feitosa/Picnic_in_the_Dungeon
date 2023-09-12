@@ -51,7 +51,7 @@ class SpriteSheet:
         for y in range(0, sheet.dimension[1], dimension[1]):
             for x in range(0, sheet.dimension[0], dimension[0]):
                 rect = pygame.Rect((x, y), dimension)
-                image = pygame.Surface(rect.size).convert()
+                image = pygame.Surface(rect.size, pygame.SRCALPHA)
                 image.blit(self.sheet.image, (0, 0), rect)
                 self.images.append(Image(sheet.device, image))
         pass
@@ -60,7 +60,7 @@ class SpriteSheet:
 class Canvas:
     def __init__(self, device: 'Device', dimension: Tuple[int, int]):
         self.device = device
-        self.canvas = pygame.Surface(dimension)
+        self.canvas = pygame.Surface(dimension, pygame.SRCALPHA)
         self.dimension = dimension
 
     def drawAtCanvas(self, image: Image, dest: Rectangle) -> None:

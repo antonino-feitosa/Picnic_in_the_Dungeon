@@ -22,6 +22,39 @@ Simple ARPG with rogue like game elements:
 - [ ] Monster Capture (like Pokemon[^4]).
 
 
+## Progresso
+
+### Geração aleatória de mapas simples através do algoritmo de passeio aleatório.
+
+<img src="docs/readme_images/procedural_map1.png" width="300">
+<img src="docs/readme_images/procedural_map2.png" width="300">
+
+### Geração de minimapa acessado pela tecla 'tab'.
+
+<img src="docs/readme_images/procedural_map_minimap1.png" width="300">
+<img src="docs/readme_images/procedural_map_minimap2.png" width="300">
+
+## Detalhes de Implementação
+
+Dependência: pygame [^32].
+
+## TODO
+
+- [x] Ground System
+- [x] Random Walk
+- [x] Camera
+- [x] Camera Translate
+- [x] Mini Map
+- [ ] Mini Map Controls
+- [ ] Player Position
+- [ ] Mini Map Player Position
+- [ ] Wave Collapse Function
+- [ ] Map Geration (Random Walk + Wave Collapse Function)
+- [ ] Player Directional Controls
+- [ ] Map Levels
+
+
+
 [^1]: [Daemon Powers](https://wiki.daemon.com.br/index.php?title=Supers_RPG)
 [^2]: [Diablo 3 - Monters](https://www.reddit.com/r/Diablo/comments/tuhcc/whats_the_difference_between_champion_rare_and/)
 [^3]: [Zelda - Puzzles](https://gamerant.com/zelda-hardest-puzzles-how-to-solve/)
@@ -42,6 +75,7 @@ Simple ARPG with rogue like game elements:
 [^18]: [Rogue Like with Rust](https://bfnightly.bracketproductions.com/chapter_0.html)
 [^19]: [Darker than Black](https://en.wikipedia.org/wiki/Darker_than_Black)
 
+[^32]: [Pygame](https://www.pygame.org/news)
 
 
 
@@ -58,23 +92,3 @@ Simple ARPG with rogue like game elements:
 [^29]: [Dijkstra map](http://www.roguebasin.com/index.php?title=The_Incredible_Power_of_Dijkstra_Maps)
 [^30]: [Dijkstra map - Rogue Basin](http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized)
 
-[^32]: [Pygame](https://www.pygame.org/news)
-
-## Detalhes de Implementação
-
-Dependência: pygame [^32].
-
-## TODO
-
-- [x] Ground System
-- [x] Random Walk
-- [ ] Camera
-- [ ] Camera Translate
-- [ ] Camera Zoom
-- [ ] Wave Collapse Function
-- [ ] Map Geration (Random Walk + Wave Collapse Function)
-- [ ] Player Directional Controls
-- [ ] Map Levels
-
-
-## Progresso

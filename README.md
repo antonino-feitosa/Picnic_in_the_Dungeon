@@ -22,21 +22,18 @@ Simple ARPG with rogue like game elements:
 - [ ] Monster Capture (like Pokemon[^4]).
 
 
+[//]: # "Monster formation"
+[//]: # "Monster patrol"
+[//]: # "Guild missions (explore, escort)"
+[//]: # "Procedural missions"
+
 ## Progresso
 
-### Geração aleatória de mapas simples através do algoritmo de passeio aleatório.
-
-<p float="left">
-    <img src="docs/readme_images/procedural_map1.png" width="300">
-    <img src="docs/readme_images/procedural_map2.png" width="300">
-</p>
-
-### Geração de minimapa acessado pela tecla 'tab'.
-
-<p float="left">
-    <img src="docs/readme_images/procedural_map_minimap1.png" width="100">
-    <img src="docs/readme_images/procedural_map_minimap2.png" width="100">
-</p>
+1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório. <p float="left"><img src="docs/readme_images/procedural_map1.png" width="300"><img src="docs/readme_images/procedural_map2.png" width="300"></p>
+2. Geração de minimapa acessado pela tecla 'tab'. <p float="left"><img src="docs/readme_images/procedural_map_minimap1.png" width="100"><img src="docs/readme_images/procedural_map_minimap2.png" width="100"></p>
+3. Movimentação do Personagem
+4. Câmera com Foco no Personagem
+5. Minimapa com Posição do Personagem
 
 ## Detalhes de Implementação
 

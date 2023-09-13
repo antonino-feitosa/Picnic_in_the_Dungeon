@@ -7,6 +7,10 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import TypeVar
+from typing import NamedTuple
+
+
+Point = NamedTuple("Point", [('x', int), ('y', int)])
 
 
 class ApplicationError(Exception):
@@ -246,7 +250,7 @@ class RandomWalker:
     def starAlgorithm(self,
                       startPoint: Tuple[int, int],
                       positions: Set[Tuple[int, int]],
-                      lastDirection: Tuple[Direction, Direction] | None = None
+                      lastDirection: Tuple[Direction, Direction] | Direction | None = None
                       ) -> Tuple[int, int]:
 
         validPair = [
@@ -255,7 +259,7 @@ class RandomWalker:
             (Direction.DOWN, Direction.LEFT),
             (Direction.DOWN, Direction.RIGHT),
         ]
-        if lastDirection is not None:
+        if lastDirection is not None and type(lastDirection) is Tuple[Direction, Direction]:
             validPair.remove(
                 (lastDirection[0].opposite(), lastDirection[1].opposite()))
         

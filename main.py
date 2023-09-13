@@ -1,9 +1,7 @@
 
-from typing import Tuple
+from functools import partial
 
 from device import Device
-from device import KeyboardListener
-from device import MouseDragListener
 from roguelike import RogueLike
 from algorithms import Random
 from algorithms import RandomWalker
@@ -11,13 +9,14 @@ from algorithms import RandomWalker
 
 def main():
     rand = Random(7)
-    device = Device()    
+    device = Device()
 
-    walker = RandomWalker(iterations=10, length=10, rand=rand)
+    walker = RandomWalker(iterations=10, length=20, rand=rand)
+    walker.algorithm = walker.starAlgorithm
     walker.center = (20, 20)
     positions = walker.run()
 
-    game = RogueLike(gridSize=40, device=device, rand= rand)
+    game = RogueLike(gridSize=40, device=device, rand=rand)
 
     for pos in positions:
         game.ground.addGround(pos)
@@ -28,6 +27,9 @@ def main():
     game.minimap.ground.computeWalls()
 
     game.registerListeners()
+    game.initializeSystems()
+    game.createPlayer((20,20))
+
     game.redraw()
     while device.running:
         device.update()

@@ -14,7 +14,7 @@ class DeviceError(Exception):
 
 
 class Rectangle:
-    def __init__(self, x: float, y: float, x2: float, y2: float):
+    def __init__(self, x: int, y: int, x2: int, y2: int):
         self.x = x
         self.y = y
         self.x2 = x2
@@ -23,7 +23,7 @@ class Rectangle:
         self.endPosition = (x2, y2)
         self.dimension = (x2 - x, y2 - y)
 
-    def contains(self, x: float, y: float):
+    def contains(self, x: int, y: int):
         return not (x < self.x or x >= self.x2 or y < self.y or y >= self.y2)
 
 
@@ -31,7 +31,7 @@ class Camera:
     def __init__(self):
         self.translateVector = (0, 0)
 
-    def position(self) -> Tuple[int,int]:
+    def position(self) -> Tuple[int, int]:
         return self.translateVector
 
     def translate(self, x: int, y: int) -> None:
@@ -46,7 +46,7 @@ class Image:
 
     def draw(self, position: Tuple[int, int] = (0, 0)) -> None:
         self.device.drawImage(self, position, self.dimension)
-    
+
     def drawAtScreen(self, position: Tuple[int, int] = (0, 0)) -> None:
         self.device.drawImageAtScreen(self, position, self.dimension)
 
@@ -70,15 +70,18 @@ class Canvas:
         self.device = device
         self.canvas = pygame.Surface(dimension, pygame.SRCALPHA)
         self.dimension = dimension
+    
+    def clearRegion(self, rect: Rectangle) -> None:
+        area = pygame.Rect(rect.position[0], rect.position[1], rect.dimension[0], rect.dimension[1])
+        self.canvas.fill((0,0,0), area)
 
-    def drawAtCanvas(self, image: Image, dest: Rectangle) -> None:
-        destRect = pygame.Rect(dest.position, dest.endPosition)
-        self.canvas.blit(image.image, destRect)
+    def drawAtCanvas(self, image: Image, dest: Tuple[int,int]) -> None:
+        self.canvas.blit(image.image, dest)
 
     def draw(self, position: Tuple[int, int], dimension: Tuple[int, int] | None = None) -> None:
         dimension = dimension or self.dimension
         self.device.drawImage(self.toImage(), position, dimension)
-    
+
     def drawAtScreen(self, position: Tuple[int, int], dimension: Tuple[int, int] | None = None) -> None:
         dimension = dimension or self.dimension
         self.device.drawImageAtScreen(self.toImage(), position, dimension)
@@ -89,9 +92,17 @@ class Canvas:
 
 class InputListener:
     def __init__(self):
-        self.device: Device
+        self.device: 'Device'
 
     def update(self, event) -> None: pass
+
+
+class UpdateListener(InputListener):
+    def __init__(self):
+        self.onUpdate: Callable[[], None] = lambda: None
+
+    def update(self, event) -> None:
+        self.onUpdate()
 
 
 class KeyboardListener(InputListener):
@@ -135,8 +146,9 @@ class MouseClickListener(InputListener):
 class MouseDragListener(InputListener):
     def __init__(self):
         self.mouseDown = False
-        self.lastPosition = (0,0)
-        self.onMouseDrag: Callable[[Tuple[int, int], Tuple[int, int]], None] = lambda source,dest: None
+        self.lastPosition = (0, 0)
+        self.onMouseDrag: Callable[[
+            Tuple[int, int], Tuple[int, int]], None] = lambda source, dest: None
 
     def update(self, event):
         if self.mouseDown and event.type == pygame.MOUSEMOTION:
@@ -169,8 +181,8 @@ class Device:
         self.listeners: Set[InputListener] = set()
         self.tick = tick
         self.clock = pygame.time.Clock()
-    
-    def addListener(self, listener: InputListener)-> None:
+
+    def addListener(self, listener: InputListener) -> None:
         listener.device = self
         self.listeners.add(listener)
 
@@ -193,18 +205,18 @@ class Device:
     def drawImage(self, image: Image, position: Tuple[int, int], dimension: Tuple[int, int]) -> None:
         translate = self.camera.translateVector
         translatedPosition = (
-            position[0] - translate[0], position[0] - translate[1])
+            position[0] - translate[0], position[1] - translate[1])
         self.drawImageAtScreen(image, translatedPosition, dimension)
-    
+
     def drawImageAtScreen(self, image: Image, position: Tuple[int, int], dimension: Tuple[int, int]) -> None:
         dest = pygame.Rect(position, dimension)
         self.screen.blit(image.image, dest)
 
     def reload(self) -> None:
         pygame.display.flip()
-    
-    def clear(self, color = (0,0,0)) -> None:
-        self.screen.fill(color, pygame.Rect((0,0), self.dimension))
+
+    def clear(self, color=(0, 0, 0)) -> None:
+        self.screen.fill(color, pygame.Rect((0, 0), self.dimension))
 
     def update(self) -> None:
         self.clock.tick(self.tick)

@@ -27,6 +27,9 @@ class Direction(Enum):
     def next(self, position: Tuple[int, int]) -> Tuple[int, int]:
         return (position[0] + self.value[0], position[1] + self.value[1])
 
+    def opposite(self) -> 'Direction':
+        return Direction((-self.value[0], -self.value[1]))
+
     def __str__(self):
         return str(self.name)
 
@@ -139,29 +142,129 @@ class Random:
 
 
 class RandomWalker:
-    # TODO star algorithm (two directions)
-    # TODO forward algorithm (whitout reposition)
-    # TODO make tree (recursive on last point)
-    def __init__(self, iterations: int, length: int, center: Tuple[int, int]):
+    def __init__(self, iterations: int, length: int, rand: Random):
         self.iterations = iterations
         self.length = length
-        self.center = center
+        self.rand = rand
+        self.center: Tuple[int, int] = (0, 0)
         self.restartAtCenter = True
-        self.withReposition = False
+        self.algorithm = self.randomAlgorithm
 
-    def run(self, rand: Random) -> Set[Tuple[int, int]]:
+    def run(self) -> Set[Tuple[int, int]]:
         positions = set()
         current = self.center
-        cardinals = Direction.cardinals()
-        lastChoice = None
         for _ in range(self.iterations):
-            for _ in range(self.length):
-                positions.add(current)
-                index = rand.choiceIndex(cardinals)
-                if not self.withReposition and index == lastChoice:
-                    index = (index + 1) % len(cardinals)
-                dir = cardinals[index]
-                current = dir.next(current)
+            current = self.algorithm(current, positions)
             if self.restartAtCenter:
                 current = self.center
         return positions
+
+    def makeTree(self, depth: int) -> Set[Tuple[int, int]]:
+        positions: Set[Tuple[int, int]] = set()
+        if depth > 0:
+            if self.algorithm == self.starAlgorithm:
+                directions = [
+                    (Direction.UP, Direction.LEFT),
+                    (Direction.UP, Direction.RIGHT),
+                    (Direction.DOWN, Direction.LEFT),
+                    (Direction.DOWN, Direction.RIGHT),
+                ]
+                self._makeStarTree(depth, self.center, directions, None, positions)
+            else:
+                directions = Direction.cardinals()
+                self._makeTree(depth, self.center, directions, None, positions)
+
+        return positions
+
+    def _makeTree(self,
+                  depth: int,
+                  startPoint: Tuple[int, int],
+                  directions: List[Direction],
+                  lastDirection: Direction | None,
+                  positions: Set[Tuple[int, int]]
+                  ) -> None:
+        if depth > 0:
+            for dir in directions:
+                if dir != lastDirection:
+                    lastPoint = self.algorithm(startPoint, positions, dir) # type: ignore
+                    self._makeTree(depth - 1, lastPoint,
+                                   directions, dir, positions)
+        pass
+
+    def _makeStarTree(self,
+                  depth: int,
+                  startPoint: Tuple[int, int],
+                  directions: List[Tuple[Direction,Direction]],
+                  lastDirection: Tuple[Direction,Direction] | None,
+                  positions: Set[Tuple[int, int]]
+                  ) -> None:
+        if depth > 0:
+            for dir in directions:
+                if dir != lastDirection:
+                    lastPoint = self.algorithm(startPoint, positions, dir) # type: ignore
+                    self._makeStarTree(depth - 1, lastPoint,
+                                   directions, dir, positions)
+        pass
+
+    def randomAlgorithm(self,
+                        startPoint: Tuple[int, int],
+                        positions: Set[Tuple[int, int]],
+                        lastDirection: Direction | None = None
+                        ) -> Tuple[int, int]:
+
+        current = startPoint
+        cardinals = Direction.cardinals()
+        for _ in range(self.length-1):
+            positions.add(current)
+            index = self.rand.choiceIndex(cardinals)
+            dir = cardinals[index]
+            if dir.opposite() == lastDirection:
+                index = (index + 1) % len(cardinals)
+                dir = cardinals[index]
+            lastDirection = dir
+            current = dir.next(current)
+        positions.add(current)
+        return current
+
+    def forwardAlgorithm(self,
+                         startPoint: Tuple[int, int],
+                         positions: Set[Tuple[int, int]],
+                         lastDirection: Direction | None = None
+                         ) -> Tuple[int, int]:
+
+        validDirections = Direction.cardinals()
+        if lastDirection is not None:
+            validDirections.remove(lastDirection.opposite())
+        direction = self.rand.choice(validDirections)
+        current = startPoint
+        for _ in range(self.length-1):
+            positions.add(current)
+            current = direction.next(current)
+        positions.add(current)
+        return current
+
+    def starAlgorithm(self,
+                      startPoint: Tuple[int, int],
+                      positions: Set[Tuple[int, int]],
+                      lastDirection: Tuple[Direction, Direction] | None = None
+                      ) -> Tuple[int, int]:
+
+        validPair = [
+            (Direction.UP, Direction.LEFT),
+            (Direction.UP, Direction.RIGHT),
+            (Direction.DOWN, Direction.LEFT),
+            (Direction.DOWN, Direction.RIGHT),
+        ]
+        if lastDirection is not None:
+            validPair.remove(
+                (lastDirection[0].opposite(), lastDirection[1].opposite()))
+        
+        index = self.rand.choiceIndex(validPair)
+        directions = [validPair[index][0], validPair[index][1]]
+        current = startPoint
+        for _ in range(self.length-1):
+            positions.add(current)
+            dir = self.rand.choice(directions)
+            current = dir.next(current)
+        positions.add(current)
+        return current

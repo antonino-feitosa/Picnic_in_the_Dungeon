@@ -26,17 +26,32 @@ Simple ARPG with rogue like game elements:
 
 ### Geração aleatória de mapas simples através do algoritmo de passeio aleatório.
 
-<img src="docs/readme_images/procedural_map1.png" width="300">
-<img src="docs/readme_images/procedural_map2.png" width="300">
+<p float="left">
+    <img src="docs/readme_images/procedural_map1.png" width="300">
+    <img src="docs/readme_images/procedural_map2.png" width="300">
+</p>
 
 ### Geração de minimapa acessado pela tecla 'tab'.
 
-<img src="docs/readme_images/procedural_map_minimap1.png" width="300">
-<img src="docs/readme_images/procedural_map_minimap2.png" width="300">
+<p float="left">
+    <img src="docs/readme_images/procedural_map_minimap1.png" width="300">
+    <img src="docs/readme_images/procedural_map_minimap2.png" width="300">
+</p>
 
 ## Detalhes de Implementação
 
-Dependência: pygame [^32].
+### Algoritmo de Passeio Aleatório
+
+O algoritmo gera um conjunto de posições escolhendo aleatoriamente a próxima posição adjacente a posição atual. Utilizamos dois algoritmos, um para expansão em profundidade e outro em largura. Ambos algoritmos possuem como parâmetros a posição inicial, chamada de centro, a quantidade de iterações ou caminhos a serem gerados, o tamanho de cada caminho e um algoritmo de escolha das posições. A cada iteração é invocado o algoritmo de escolha para gerar um caminho do tamanho especificado iniciando numa posição que pode ser o centro a última gerada. Os três algoritmos são listados a seguir:
+
+- Algoritmo Aleatório: a próxima posição é escolhida entre as quatro direções cardinais evitando a última direção escolhida, por exemplo, se no último passo escolhemos a direção norte, então, nesta iteração, não devemos escolher a posição sul, pois estaríamos voltando para a mesma posição.
+- Algoritmo de Progresso: escolhe uma posição entre as cardinais e gera todas as posições como posições consecutivas nessa direção.
+- Algoritmo Estrela: similar ao algoritmo de Aleatório, porém as direções são fixas em apenas duas possíveis. Essas direções são escolhidas em pares (_a_, _b_) de modo que _a_ pode ser somente norte ou sul e _b_ somente leste ou oeste.
+
+
+### Dependências
+
+pygame [^32]: para implementação de recursos básicos como janela, tratamento de imagens, etc.
 
 ## TODO
 

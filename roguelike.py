@@ -9,21 +9,110 @@ from algorithms import Direction
 
 from device import Image
 from device import Canvas
+from device import Device
 from device import Rectangle
 from device import SpriteSheet
+from device import KeyboardListener
+from device import MouseDragListener
+
+
+class RogueLike:
+    def __init__(self, gridSize: int, device: Device, rand: Random):
+        self.device = device
+        self.rand = rand
+        self.gridSize = gridSize
+        self.pixelsUnit = 32
+        self.minimap = MiniMap(self.gridSize, self)
+        canvas = device.loadCanvas((gridSize * self.pixelsUnit, gridSize * self.pixelsUnit))
+        self.ground = Ground(canvas, self.pixelsUnit, self)
+    
+    def randomMap(self) -> None:
+        pass
+
+    def redraw(self):
+        self.device.clear()
+        self.ground.canvas.draw((0, 0))
+        if self.minimap.showing:
+            self.minimap.canvas.drawAtScreen(self.minimap.position)
+        self.device.reload()
+
+    def registerListeners(self):
+        listenSpace = KeyboardListener({'space'})
+        listenSpace.onKeyUp = self.listenerResetCamera
+        self.device.addListener(listenSpace)
+
+        listenTab = KeyboardListener({'tab'})
+        listenTab.onKeyUp = self.listenerShowMinimap
+        self.device.addListener(listenTab)
+
+        listenControls = KeyboardListener({'up', 'left', 'down', 'right'})
+        listenControls.onKeyUp = self.listenerControlMinimap
+        self.device.addListener(listenControls)
+
+        listenDrag = MouseDragListener()
+        listenDrag.onMouseDrag = self.listenerTranslateMap
+        self.device.addListener(listenDrag)
+
+    
+    def listenerControlMinimap(self, key: str) -> None:
+        if self.minimap.showing:
+            if key == 'down':
+                self.minimap.position = (self.minimap.position[0], self.minimap.position[1]+25)
+            if key == 'up':
+                self.minimap.position = (self.minimap.position[0], self.minimap.position[1]-25)
+            if key == 'left':
+                self.minimap.position = (self.minimap.position[0]-25, self.minimap.position[1])
+            if key == 'right':
+                self.minimap.position = (self.minimap.position[0]+25, self.minimap.position[1])
+            self.redraw()
+
+    def listenerShowMinimap(self, key: str) -> None:
+        self.minimap.showing = not self.minimap.showing
+        self.redraw()
+    
+    def listenerTranslateMap(self, source:Tuple[int,int], dest:Tuple[int,int]) -> None:
+        pos = self.device.camera.position()
+        diff = (dest[0] - source[0], dest[1] - source[1])
+        self.device.camera.translate(pos[0] - diff[0], pos[1] - diff[1])
+        self.redraw()
+    
+    def listenerResetCamera(self, key: str) -> None:
+        self.device.camera.translate(0, 0)
+        self.redraw()
+
+class MiniMap:
+    def __init__(self, gridSize: int, game: RogueLike):
+        self.pixelsUnit = 4
+        self.showing = False
+        self.position:Tuple[int,int] = (100, 100)
+        self.canvas = game.device.loadCanvas(
+            (gridSize * self.pixelsUnit, gridSize * self.pixelsUnit))
+        self.ground = Ground(self.canvas, self.pixelsUnit, game)
+        self.ground.groundSheet = game.device.loadSpriteSheet(
+            'Tileset - MiniMap - Ground.png', (self.pixelsUnit, self.pixelsUnit), 'resources')
+        self.ground.wallSheet = game.device.loadSpriteSheet(
+            'Tileset - MiniMap - Walls.png', (self.pixelsUnit, self.pixelsUnit), 'resources')
+
+    def addGround(self, position: Tuple[int, int]) -> None:
+        self.ground.addGround(position)
+
+    def addWall(self, position: Tuple[int, int]) -> None:
+        self.ground.addWall(position)
 
 
 class Ground:
-    def __init__(self, canvas: Canvas, pixelsUnit: int, rand: Random):
-        self.rand = rand
+    def __init__(self, canvas: Canvas, pixelsUnit: int, game: RogueLike):
+        self.rand = game.rand
         self.canvas = canvas
         self.pixelsUnit = pixelsUnit
         self.groundPositions: Set[Tuple[int, int]] = set()
         self.wallsPositions: Set[Tuple[int, int]] = set()
-        self.groundSheet: SpriteSheet
-        self.wallSheet: SpriteSheet
         dimension = self.canvas.dimension
         self.area = Rectangle(0, 0, dimension[0], dimension[1])
+        self.groundSheet = game.device.loadSpriteSheet(
+            'Tileset - Ground.png', (pixelsUnit, pixelsUnit), 'resources')
+        self.wallSheet = game.device.loadSpriteSheet(
+            'Tileset - Walls.png', (pixelsUnit, pixelsUnit), 'resources')
 
     def addTile(self, position: Tuple[int, int], image: Image) -> None:
         dx = position[0] * self.pixelsUnit

@@ -4,108 +4,31 @@ from typing import Tuple
 from device import Device
 from device import KeyboardListener
 from device import MouseDragListener
-from roguelike import Ground
+from roguelike import RogueLike
 from algorithms import Random
 from algorithms import RandomWalker
 
 
 def main():
-    pixelsUnit = 32
-    gridSize = 40
     rand = Random(7)
-
-    device = Device()
-    groundSheet = device.loadSpriteSheet(
-        'Tileset - Ground.png', (pixelsUnit, pixelsUnit), 'resources')
-    wallsSheet = device.loadSpriteSheet(
-        'Tileset - Walls.png', (pixelsUnit, pixelsUnit), 'resources')
+    device = Device()    
 
     walker = RandomWalker(iterations=10, length=10, rand=rand)
     walker.center = (20, 20)
     positions = walker.run()
 
-    canvas = device.loadCanvas((gridSize * pixelsUnit, gridSize * pixelsUnit))
+    game = RogueLike(gridSize=40, device=device, rand= rand)
 
-    ground = Ground(canvas, pixelsUnit, rand)
-    ground.groundSheet = groundSheet
-    ground.wallSheet = wallsSheet
     for pos in positions:
-        ground.addGround(pos)
-    ground.computeWalls()
+        game.ground.addGround(pos)
+    game.ground.computeWalls()
 
-    # device.camera.translate(400,0)
-    canvas.draw((0, 0))
+    for pos in positions:
+        game.minimap.addGround(pos)
+    game.minimap.ground.computeWalls()
 
-    # Mini map
-
-    minimapUnit = 4
-    minimapCanvas = device.loadCanvas(
-        (gridSize * minimapUnit, gridSize * minimapUnit))
-    minimap = Ground(minimapCanvas, minimapUnit, rand)
-    minimap.groundSheet = device.loadSpriteSheet(
-        'Tileset - MiniMap - Ground.png', (minimapUnit, minimapUnit), 'resources')
-    minimap.wallSheet = device.loadSpriteSheet(
-        'Tileset - MiniMap - Walls.png', (minimapUnit, minimapUnit), 'resources')
-    for pos in ground.groundPositions:
-        minimap.addGround(pos)
-    minimap.computeWalls()
-
-    showingMinimap = False
-    minimapPosition = (100,100)
-
-    def controlMinimap(key: str) -> None:
-        nonlocal showingMinimap
-        nonlocal minimapPosition
-        if showingMinimap:
-            if key == 'down':
-                minimapPosition = (minimapPosition[0], minimapPosition[1]+25)
-            if key == 'up':
-                minimapPosition = (minimapPosition[0], minimapPosition[1]-25)
-            if key == 'left':
-                minimapPosition = (minimapPosition[0]-25, minimapPosition[1])
-            if key == 'right':
-                minimapPosition = (minimapPosition[0]+25, minimapPosition[1])
-            redraw()
-
-
-    def redraw():
-        device.clear()
-        canvas.draw((0, 0))
-        nonlocal showingMinimap
-        nonlocal minimapPosition
-        if showingMinimap:
-            minimapCanvas.drawAtScreen(minimapPosition)
-        device.reload()
-
-    def showMinimap(key: str) -> None:
-        nonlocal showingMinimap
-        if showingMinimap:
-            showingMinimap = False
-        else:
-            showingMinimap = True
-        redraw()
-    
-    def translateMap(source:Tuple[int,int], dest:Tuple[int,int]) -> None:
-        pos = device.camera.position()
-        diff = (dest[0] - source[0], dest[1] - source[1])
-        device.camera.translate(pos[0] - diff[0], pos[1] - diff[1])
-        redraw()
-
-
-    listenTab = KeyboardListener({'tab'})
-    listenTab.onKeyUp = showMinimap
-    device.addListener(listenTab)
-
-    listenControls = KeyboardListener({'up', 'left', 'down', 'right'})
-    listenControls.onKeyUp = controlMinimap
-    device.addListener(listenControls)
-
-    listenDrag = MouseDragListener()
-    listenDrag.onMouseDrag = translateMap
-    device.addListener(listenDrag)
-
-    device.reload()
-
+    game.registerListeners()
+    game.redraw()
     while device.running:
         device.update()
 

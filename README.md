@@ -66,6 +66,7 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)
 - [ ] Player Directional Controls
+- [ ] Player Directions Sprites
 - [ ] Map Levels
 
 

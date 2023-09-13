@@ -1,6 +1,9 @@
 
+from typing import Tuple
+
 from device import Device
 from device import KeyboardListener
+from device import MouseDragListener
 from roguelike import Ground
 from algorithms import Random
 from algorithms import RandomWalker
@@ -49,20 +52,39 @@ def main():
 
     showingMinimap = False
 
-    def showMinimap(key: str) -> None:
-        nonlocal showingMinimap
+    def redraw():
         device.clear()
         canvas.draw((0, 0))
+        nonlocal showingMinimap
+        if showingMinimap:
+            minimapCanvas.drawAtScreen((100, 100))
+        device.reload()
+
+    def showMinimap(key: str) -> None:
+        nonlocal showingMinimap
         if showingMinimap:
             showingMinimap = False
         else:
             showingMinimap = True
-            minimapCanvas.draw((100, 100))
-        device.reload()
+        redraw()
+    
+    def translateMap(source:Tuple[int,int], dest:Tuple[int,int]) -> None:
+        pos = device.camera.position()
+        diff = (dest[0] - source[0], dest[1] - source[1])
+        print('Position', pos)
+        print('Diff', diff)
+        device.camera.translate(pos[0] - diff[0], pos[1] - diff[1])
+        redraw()
 
-    listenTap = KeyboardListener({'tab'})
-    listenTap.onKeyUp = showMinimap
-    device.addListener(listenTap)
+
+
+    listenTab = KeyboardListener({'tab'})
+    listenTab.onKeyUp = showMinimap
+    device.addListener(listenTab)
+
+    listenDrag = MouseDragListener()
+    listenDrag.onMouseDrag = translateMap
+    device.addListener(listenDrag)
 
     device.reload()
 

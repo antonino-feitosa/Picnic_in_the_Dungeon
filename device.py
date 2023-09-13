@@ -31,6 +31,9 @@ class Camera:
     def __init__(self):
         self.translateVector = (0, 0)
 
+    def position(self) -> Tuple[int,int]:
+        return self.translateVector
+
     def translate(self, x: int, y: int) -> None:
         self.translateVector = (x, y)
 
@@ -43,6 +46,9 @@ class Image:
 
     def draw(self, position: Tuple[int, int] = (0, 0)) -> None:
         self.device.drawImage(self, position, self.dimension)
+    
+    def drawAtScreen(self, position: Tuple[int, int] = (0, 0)) -> None:
+        self.device.drawImageAtScreen(self, position, self.dimension)
 
 
 class SpriteSheet:
@@ -72,6 +78,10 @@ class Canvas:
     def draw(self, position: Tuple[int, int], dimension: Tuple[int, int] | None = None) -> None:
         dimension = dimension or self.dimension
         self.device.drawImage(self.toImage(), position, dimension)
+    
+    def drawAtScreen(self, position: Tuple[int, int], dimension: Tuple[int, int] | None = None) -> None:
+        dimension = dimension or self.dimension
+        self.device.drawImageAtScreen(self.toImage(), position, dimension)
 
     def toImage(self):
         return Image(self.device, self.canvas)
@@ -122,6 +132,32 @@ class MouseClickListener(InputListener):
                 (position[0] + translate[0], position[1] + translate[1]))
 
 
+class MouseDragListener(InputListener):
+    def __init__(self):
+        self.mouseDown = False
+        self.lastPosition = (0,0)
+        self.onMouseDrag: Callable[[Tuple[int, int], Tuple[int, int]], None] = lambda source,dest: None
+
+    def update(self, event):
+        if self.mouseDown and event.type == pygame.MOUSEMOTION:
+            position = pygame.mouse.get_pos()
+            if position != self.lastPosition:
+                self.onMouseDrag(self.lastPosition, position)
+                self.lastPosition = position
+
+        if self.mouseDown and event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.mouseDown = False
+            position = pygame.mouse.get_pos()
+            if position != self.lastPosition:
+                self.onMouseDrag(self.lastPosition, position)
+                self.lastPosition = position
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if not self.mouseDown:
+                self.mouseDown = True
+                self.lastPosition = pygame.mouse.get_pos()
+
+
 class Device:
     def __init__(self, title: str = '', dimension=(800, 600), tick=60):
         pygame.init()
@@ -158,7 +194,10 @@ class Device:
         translate = self.camera.translateVector
         translatedPosition = (
             position[0] - translate[0], position[0] - translate[1])
-        dest = pygame.Rect(translatedPosition, dimension)
+        self.drawImageAtScreen(image, translatedPosition, dimension)
+    
+    def drawImageAtScreen(self, image: Image, position: Tuple[int, int], dimension: Tuple[int, int]) -> None:
+        dest = pygame.Rect(position, dimension)
         self.screen.blit(image.image, dest)
 
     def reload(self) -> None:

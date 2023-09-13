@@ -12,7 +12,7 @@ from algorithms import RandomWalker
 def main():
     pixelsUnit = 32
     gridSize = 40
-    rand = Random(4)
+    rand = Random(7)
 
     device = Device()
     groundSheet = device.loadSpriteSheet(
@@ -20,9 +20,9 @@ def main():
     wallsSheet = device.loadSpriteSheet(
         'Tileset - Walls.png', (pixelsUnit, pixelsUnit), 'resources')
 
-    walker = RandomWalker(iterations=10, length=20, rand=rand)
+    walker = RandomWalker(iterations=10, length=10, rand=rand)
     walker.center = (20, 20)
-    positions = walker.makeTree(2)
+    positions = walker.run()
 
     canvas = device.loadCanvas((gridSize * pixelsUnit, gridSize * pixelsUnit))
 
@@ -51,13 +51,30 @@ def main():
     minimap.computeWalls()
 
     showingMinimap = False
+    minimapPosition = (100,100)
+
+    def controlMinimap(key: str) -> None:
+        nonlocal showingMinimap
+        nonlocal minimapPosition
+        if showingMinimap:
+            if key == 'down':
+                minimapPosition = (minimapPosition[0], minimapPosition[1]+25)
+            if key == 'up':
+                minimapPosition = (minimapPosition[0], minimapPosition[1]-25)
+            if key == 'left':
+                minimapPosition = (minimapPosition[0]-25, minimapPosition[1])
+            if key == 'right':
+                minimapPosition = (minimapPosition[0]+25, minimapPosition[1])
+            redraw()
+
 
     def redraw():
         device.clear()
         canvas.draw((0, 0))
         nonlocal showingMinimap
+        nonlocal minimapPosition
         if showingMinimap:
-            minimapCanvas.drawAtScreen((100, 100))
+            minimapCanvas.drawAtScreen(minimapPosition)
         device.reload()
 
     def showMinimap(key: str) -> None:
@@ -71,16 +88,17 @@ def main():
     def translateMap(source:Tuple[int,int], dest:Tuple[int,int]) -> None:
         pos = device.camera.position()
         diff = (dest[0] - source[0], dest[1] - source[1])
-        print('Position', pos)
-        print('Diff', diff)
         device.camera.translate(pos[0] - diff[0], pos[1] - diff[1])
         redraw()
-
 
 
     listenTab = KeyboardListener({'tab'})
     listenTab.onKeyUp = showMinimap
     device.addListener(listenTab)
+
+    listenControls = KeyboardListener({'up', 'left', 'down', 'right'})
+    listenControls.onKeyUp = controlMinimap
+    device.addListener(listenControls)
 
     listenDrag = MouseDragListener()
     listenDrag.onMouseDrag = translateMap

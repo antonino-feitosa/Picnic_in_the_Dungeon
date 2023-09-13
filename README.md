@@ -34,8 +34,8 @@ Simple ARPG with rogue like game elements:
 ### Geração de minimapa acessado pela tecla 'tab'.
 
 <p float="left">
-    <img src="docs/readme_images/procedural_map_minimap1.png" width="300">
-    <img src="docs/readme_images/procedural_map_minimap2.png" width="300">
+    <img src="docs/readme_images/procedural_map_minimap1.png" width="100">
+    <img src="docs/readme_images/procedural_map_minimap2.png" width="100">
 </p>
 
 ## Detalhes de Implementação
@@ -60,7 +60,7 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Camera
 - [x] Camera Translate
 - [x] Mini Map
-- [ ] Mini Map Controls
+- [x] Mini Map Controls
 - [ ] Player Position
 - [ ] Mini Map Player Position
 - [ ] Wave Collapse Function

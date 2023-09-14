@@ -3,6 +3,7 @@ from functools import partial
 
 from device import Device
 from roguelike import RogueLike
+from algorithms import Point
 from algorithms import Random
 from algorithms import RandomWalker
 
@@ -11,12 +12,12 @@ def main():
     rand = Random(7)
     device = Device()
 
-    walker = RandomWalker(iterations=10, length=20, rand=rand)
+    walker = RandomWalker(iterations=20, length=50, rand=rand)
     walker.algorithm = walker.starAlgorithm
-    walker.center = (20, 20)
+    walker.center = Point(50, 50)
     positions = walker.run()
 
-    game = RogueLike(gridSize=40, device=device, rand=rand)
+    game = RogueLike(gridSize=100, device=device, rand=rand)
 
     for pos in positions:
         game.ground.addGround(pos)
@@ -28,7 +29,8 @@ def main():
 
     game.registerListeners()
     game.initializeSystems()
-    game.createPlayer((20,20))
+    game.createPlayer(Point(50,50))
+    game.listenerResetCamera()
 
     game.redraw()
     while device.running:

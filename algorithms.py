@@ -10,7 +10,8 @@ from typing import TypeVar
 from typing import NamedTuple
 
 
-Point = NamedTuple("Point", [('x', int), ('y', int)])
+Point = NamedTuple('Point', [('x', int), ('y', int)])
+Dimension = NamedTuple('Dimension', [('width', int), ('height', int)])
 
 
 class ApplicationError(Exception):
@@ -19,20 +20,20 @@ class ApplicationError(Exception):
 
 
 class Direction(Enum):
-    UP = (0, -1)
-    DOWN = (0, 1)
-    LEFT = (-1, 0)
-    RIGHT = (1, 0)
-    UP_LEFT = (-1, -1)
-    UP_RIGHT = (1, -1)
-    DOWN_LEFT = (-1, 1)
-    DOWN_RIGHT = (1, 1)
+    UP = Point(0, -1)
+    DOWN = Point(0, 1)
+    LEFT = Point(-1, 0)
+    RIGHT = Point(1, 0)
+    UP_LEFT = Point(-1, -1)
+    UP_RIGHT = Point(1, -1)
+    DOWN_LEFT = Point(-1, 1)
+    DOWN_RIGHT = Point(1, 1)
 
-    def next(self, position: Tuple[int, int]) -> Tuple[int, int]:
-        return (position[0] + self.value[0], position[1] + self.value[1])
+    def next(self, position: Point) -> Point:
+        return Point(position.x + self.value.x, position.y + self.value.y)
 
     def opposite(self) -> 'Direction':
-        return Direction((-self.value[0], -self.value[1]))
+        return Direction((-self.value.x, -self.value.y))
 
     def __str__(self):
         return str(self.name)
@@ -150,11 +151,11 @@ class RandomWalker:
         self.iterations = iterations
         self.length = length
         self.rand = rand
-        self.center: Tuple[int, int] = (0, 0)
+        self.center: Point = Point(0, 0)
         self.restartAtCenter = True
         self.algorithm = self.randomAlgorithm
 
-    def run(self) -> Set[Tuple[int, int]]:
+    def run(self) -> Set[Point]:
         positions = set()
         current = self.center
         for _ in range(self.iterations):
@@ -163,8 +164,8 @@ class RandomWalker:
                 current = self.center
         return positions
 
-    def makeTree(self, depth: int) -> Set[Tuple[int, int]]:
-        positions: Set[Tuple[int, int]] = set()
+    def makeTree(self, depth: int) -> Set[Point]:
+        positions: Set[Point] = set()
         if depth > 0:
             if self.algorithm == self.starAlgorithm:
                 directions = [
@@ -182,10 +183,10 @@ class RandomWalker:
 
     def _makeTree(self,
                   depth: int,
-                  startPoint: Tuple[int, int],
+                  startPoint: Point,
                   directions: List[Direction],
                   lastDirection: Direction | None,
-                  positions: Set[Tuple[int, int]]
+                  positions: Set[Point]
                   ) -> None:
         if depth > 0:
             for dir in directions:
@@ -197,10 +198,10 @@ class RandomWalker:
 
     def _makeStarTree(self,
                   depth: int,
-                  startPoint: Tuple[int, int],
+                  startPoint: Point,
                   directions: List[Tuple[Direction,Direction]],
                   lastDirection: Tuple[Direction,Direction] | None,
-                  positions: Set[Tuple[int, int]]
+                  positions: Set[Point]
                   ) -> None:
         if depth > 0:
             for dir in directions:
@@ -211,10 +212,10 @@ class RandomWalker:
         pass
 
     def randomAlgorithm(self,
-                        startPoint: Tuple[int, int],
-                        positions: Set[Tuple[int, int]],
+                        startPoint: Point,
+                        positions: Set[Point],
                         lastDirection: Direction | None = None
-                        ) -> Tuple[int, int]:
+                        ) -> Point:
 
         current = startPoint
         cardinals = Direction.cardinals()
@@ -231,10 +232,10 @@ class RandomWalker:
         return current
 
     def forwardAlgorithm(self,
-                         startPoint: Tuple[int, int],
-                         positions: Set[Tuple[int, int]],
+                         startPoint: Point,
+                         positions: Set[Point],
                          lastDirection: Direction | None = None
-                         ) -> Tuple[int, int]:
+                         ) -> Point:
 
         validDirections = Direction.cardinals()
         if lastDirection is not None:
@@ -248,10 +249,10 @@ class RandomWalker:
         return current
 
     def starAlgorithm(self,
-                      startPoint: Tuple[int, int],
-                      positions: Set[Tuple[int, int]],
+                      startPoint: Point,
+                      positions: Set[Point],
                       lastDirection: Tuple[Direction, Direction] | Direction | None = None
-                      ) -> Tuple[int, int]:
+                      ) -> Point:
 
         validPair = [
             (Direction.UP, Direction.LEFT),

@@ -58,12 +58,15 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Camera Translate
 - [x] Mini Map
 - [x] Mini Map Controls
-- [ ] Player Position
-- [ ] Mini Map Player Position
+- [x] Player Position
+- [x] Mini Map Player Position
+- [x] Player Directional Controls
+- [x] Refactor Position and Dimension
+- [ ] Centralize Minimap
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)
-- [ ] Player Directional Controls
 - [ ] Player Directions Sprites
+- [ ] Player Animations
 - [ ] Map Levels
 
 

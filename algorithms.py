@@ -7,6 +7,7 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import TypeVar
+from typing import Callable
 from typing import NamedTuple
 
 
@@ -174,7 +175,8 @@ class RandomWalker:
                     (Direction.DOWN, Direction.LEFT),
                     (Direction.DOWN, Direction.RIGHT),
                 ]
-                self._makeStarTree(depth, self.center, directions, None, positions)
+                self._makeStarTree(depth, self.center,
+                                   directions, None, positions)
             else:
                 directions = Direction.cardinals()
                 self._makeTree(depth, self.center, directions, None, positions)
@@ -191,24 +193,26 @@ class RandomWalker:
         if depth > 0:
             for dir in directions:
                 if dir != lastDirection:
-                    lastPoint = self.algorithm(startPoint, positions, dir) # type: ignore
+                    lastPoint = self.algorithm(
+                        startPoint, positions, dir)  # type: ignore
                     self._makeTree(depth - 1, lastPoint,
                                    directions, dir, positions)
         pass
 
     def _makeStarTree(self,
-                  depth: int,
-                  startPoint: Point,
-                  directions: List[Tuple[Direction,Direction]],
-                  lastDirection: Tuple[Direction,Direction] | None,
-                  positions: Set[Point]
-                  ) -> None:
+                      depth: int,
+                      startPoint: Point,
+                      directions: List[Tuple[Direction, Direction]],
+                      lastDirection: Tuple[Direction, Direction] | None,
+                      positions: Set[Point]
+                      ) -> None:
         if depth > 0:
             for dir in directions:
                 if dir != lastDirection:
-                    lastPoint = self.algorithm(startPoint, positions, dir) # type: ignore
+                    lastPoint = self.algorithm(
+                        startPoint, positions, dir)  # type: ignore
                     self._makeStarTree(depth - 1, lastPoint,
-                                   directions, dir, positions)
+                                       directions, dir, positions)
         pass
 
     def randomAlgorithm(self,
@@ -251,7 +255,8 @@ class RandomWalker:
     def starAlgorithm(self,
                       startPoint: Point,
                       positions: Set[Point],
-                      lastDirection: Tuple[Direction, Direction] | Direction | None = None
+                      lastDirection: Tuple[Direction,
+                                           Direction] | Direction | None = None
                       ) -> Point:
 
         validPair = [
@@ -263,7 +268,7 @@ class RandomWalker:
         if lastDirection is not None and type(lastDirection) is Tuple[Direction, Direction]:
             validPair.remove(
                 (lastDirection[0].opposite(), lastDirection[1].opposite()))
-        
+
         index = self.rand.choiceIndex(validPair)
         directions = [validPair[index][0], validPair[index][1]]
         current = startPoint
@@ -273,3 +278,96 @@ class RandomWalker:
             current = dir.next(current)
         positions.add(current)
         return current
+
+
+class BresenhamLineAlgorithm:
+    '''https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm'''
+
+    def __init__(self):
+        pass
+
+    def plotLine(self, start: Point, end: Point) -> List[Point]:
+        return self._plotLine(start.x, start.y, end.x, end.y)
+
+    def _plotLine(self, x0: int, y0: int, x1: int, y1: int) -> List[Point]:
+        if abs(y1 - y0) < abs(x1 - x0):
+            if x0 > x1:
+                result = self._plotLineLow(x1, y1, x0, y0)
+                result.reverse()
+                return result
+            else:
+                return self._plotLineLow(x0, y0, x1, y1)
+        else:
+            if y0 > y1:
+                result = self._plotLineHigh(x1, y1, x0, y0)
+                result.reverse()
+                return result
+            else:
+                return self._plotLineHigh(x0, y0, x1, y1)
+
+    def _plotLineHigh(self, x0: int, y0: int, x1: int, y1: int) -> List[Point]:
+        dx = x1 - x0
+        dy = y1 - y0
+        xi = 1
+        if dx < 0:
+            xi = -1
+            dx = -dx
+        D = (2 * dx) - dy
+        x = x0
+        points: List[Point] = []
+        for y in range(y0, y1):
+            points.append(Point(x, y))
+            if D > 0:
+                x = x + xi
+                D = D + (2 * (dx - dy))
+            else:
+                D = D + 2*dx
+        return points
+
+    def _plotLineLow(self, x0: int, y0: int, x1: int, y1: int) -> List[Point]:
+        dx = x1 - x0
+        dy = y1 - y0
+        yi = 1
+        if dy < 0:
+            yi = -1
+            dy = -dy
+        D = (2 * dy) - dx
+        y = y0
+
+        points: List[Point] = []
+        for x in range(x0, x1):
+            points.append(Point(x, y))
+            if D > 0:
+                y = y + yi
+                D = D + (2 * (dy - dx))
+            else:
+                D = D + 2*dy
+        return points
+
+
+class FieldOfView:
+    '''Ray Casting through BresenhamLineAlgorithm'''
+
+    def __init__(self):
+        self.line = BresenhamLineAlgorithm()
+
+    def calculate(self, center: Point, radius:int, isFree:Callable[[Point],bool]) -> Set[Point]:
+        visible: Set[Point] = set()
+        for line in self._getRays(center, radius):
+            i = 0
+            size = min(len(line), radius)
+            while i < size and isFree(line[i]):
+                visible.add(line[i])
+                i += 1
+        return visible
+
+    def _getRays(self, center:Point, radius:int) -> Set[List[Point]]:
+        rays:Set[List[Point]] = set()
+        line = BresenhamLineAlgorithm()
+        for y in range(center.y - radius, center.y + radius):
+            rays.add(line.plotLine(center, Point(center.x - radius, y)))
+            rays.add(line.plotLine(center, Point(center.x + radius-1, y)))
+        for x in range(center.x - radius, center.x + radius):
+            rays.add(line.plotLine(center, Point(x, center.y - radius)))
+            rays.add(line.plotLine(center, Point(x, center.y + radius-1)))
+        return rays

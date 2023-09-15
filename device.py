@@ -85,7 +85,7 @@ class Canvas:
                            rect.dimension.width, rect.dimension.height)
         self.canvas.fill((0, 0, 0), area)
 
-    def drawAtCanvas(self, image: Image, dest: Tuple[int, int]) -> None:
+    def drawAtCanvas(self, image: Image, dest: Point) -> None:
         self.canvas.blit(image.image, dest)
 
     def draw(self, position: Point, dimension: Dimension | None = None) -> None:

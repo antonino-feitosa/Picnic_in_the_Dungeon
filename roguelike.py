@@ -24,10 +24,37 @@ from algorithms import Random
 from algorithms import Overlap
 from algorithms import Direction
 from algorithms import Dimension
+from algorithms import FieldOfView
 from algorithms import ApplicationError
 
 
-class RenderComponent(Component):
+class FieldOfViewComponent(Component['FieldOfViewSystem']):
+    def __init__(self, system: 'FieldOfViewSystem', entity: 'Entity', radius: int):
+        super().__init__(system, entity)
+        self.radius = radius
+        self.center: Point = Point(0, 0)
+        self.visible:Set[Point] = set()
+        self.isFreePosition:Callable[[Point], bool] = lambda _: False
+
+
+class FieldOfViewSystem(Subsystem[FieldOfViewComponent]):
+    def __init__(self, isFreePosition:Callable[[Point], bool]):
+        self.isFreePosition:Callable[[Point], bool] = isFreePosition
+        self.changed : List[FieldOfViewComponent] = []
+        self.algorithm = FieldOfView()
+    
+    def setChanged(self, component:FieldOfViewComponent) -> None:
+        self.changed.append(component)
+    
+    def update(self):
+        for component in self.changed:
+            center = component.center
+            radius = component.radius
+            free = component.isFreePosition
+            component.visible = self.algorithm.calculate(center, radius, free)
+
+
+class RenderComponent(Component['RenderSystem']):
     def __init__(self, system: 'RenderSystem', entity: 'Entity', image: Image):
         super().__init__(system, entity)
         self.image = image
@@ -47,6 +74,7 @@ class RenderSystem(Subsystem[RenderComponent]):
         return component
 
     def update(self):
+        # TODO replace viewPort by fieldOfView
         unit = self.game.pixelsUnit
         cameraPos = self.game.device.camera.translateVector
         dimension = self.game.device.dimension
@@ -147,6 +175,9 @@ class RogueLike(Game):
         renderComponent.position = positionComponent.position
         self.minimap.addPlayer(dest)
         self.listenerResetCamera()
+        # TODO Update field of view
+        # TODO Update ground
+        # TODO Update mini map
 
     def randomMap(self) -> None:
         pass
@@ -277,6 +308,7 @@ class MiniMap:
         self.ground.canvas.drawAtCanvas(self.referenceImage, position)
 
     def clearGround(self, position: Point) -> None:
+        # TODO replace by clear position on ground
         oldPosition = Point(position.x * self.pixelsUnit,
                             position.y * self.pixelsUnit)
         self.ground.canvas.clearRegion(Rectangle(
@@ -301,7 +333,7 @@ class Ground:
     def addTile(self, position: Point, image: Image) -> None:
         dx = position.x * self.pixelsUnit
         dy = position.y * self.pixelsUnit
-        self.canvas.drawAtCanvas(image, (dx, dy))
+        self.canvas.drawAtCanvas(image, Point(dx, dy))
 
     def addGround(self, position: Point) -> None:
         if self.groundSheet is None:
@@ -312,6 +344,14 @@ class Ground:
             image = self.rand.choice(sheet.images)
             self.addTile(position, image)
             self.groundPositions.add(position)
+    
+    def clearPositions(self, positions:Set[Point]) -> None:
+        # TODO paint black
+        pass
+
+    def shadowPositions(self, positions:Set[Point]) -> None:
+        # TODO paint grey alpha
+        pass
 
     def addWall(self, position: Point) -> None:
         if self.wallSheet is None:

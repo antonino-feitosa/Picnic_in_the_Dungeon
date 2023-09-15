@@ -45,6 +45,11 @@ O algoritmo gera um conjunto de posições escolhendo aleatoriamente a próxima 
 - Algoritmo de Progresso: escolhe uma posição entre as cardinais e gera todas as posições como posições consecutivas nessa direção.
 - Algoritmo Estrela: similar ao algoritmo de Aleatório, porém as direções são fixas em apenas duas possíveis. Essas direções são escolhidas em pares (_a_, _b_) de modo que _a_ pode ser somente norte ou sul e _b_ somente leste ou oeste.
 
+### Algoritmo de Campo de Visão
+
+Avaliando o estudo efetuado em [^33], escolhemos o algoritmo básico (ray casting) para a implementação do campo de visão. O estudo conclui que o algoritmo é equivalente aos demais em tempo de processamento e gera campos plausíveis nos cenários de pilares e diagonais, além de apresentar boa simetria em mapas fechados com exceção das situações de cantos perpendiculares. No entanto, o estudo é de 2009 e não há referência disponível para a implementação utilizada.
+
+Nossa implementação utiliza o algoritmo de desenho de linhas de Bresenham [^34], traçando linhas a partir de um centro para cada posição de distância _radius_ considerando a distância de Manhattan. Os pontos em cada linha são ordenados, iniciando no centro considerando visíveis todos os pontos que não encontram obstáculos a partir do centro. Isto é, percorremos as linhas do centro até a borda, considerando todos os pontos visíveis até encontrar um obstáculo.
 
 ### Dependências
 
@@ -62,6 +67,8 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Mini Map Player Position
 - [x] Player Directional Controls
 - [x] Refactor Position and Dimension
+- [x] Field of View
+- [ ] Field of View Integration with Map
 - [ ] Centralize Minimap
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)
@@ -92,7 +99,8 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 [^19]: [Darker than Black](https://en.wikipedia.org/wiki/Darker_than_Black)
 
 [^32]: [Pygame](https://www.pygame.org/news)
-
+[^33]: [Comparative study of field of view algorithms for 2D grid based worlds](https://www.roguebasin.com/index.php/Comparative_study_of_field_of_view_algorithms_for_2D_grid_based_worlds)
+[^34]: [Bresenham's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
 
 
 [^31]: [Configure Key GIT](https://roelofjanelsinga.com/articles/how-to-setup-gpg-signing-keys-in-github/#:~:text=How%20to%20get%20the%20verified%20flag%20on%20your,use%20your%20GPG%20key%20to%20sign%20commits%20)

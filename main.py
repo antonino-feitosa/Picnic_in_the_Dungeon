@@ -1,8 +1,8 @@
 
 from functools import partial
 
+from game import RogueLike
 from device import Device
-from roguelike import RogueLike
 from algorithms import Point
 from algorithms import Random
 from algorithms import RandomWalker
@@ -29,7 +29,7 @@ def main():
 
     game.registerListeners()
     game.initializeSystems()
-    game.createPlayer(Point(50,50))
+    game.createPlayer(Point(50, 50))
     game.listenerResetCamera()
 
     game.redraw()

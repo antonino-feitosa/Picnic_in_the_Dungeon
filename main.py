@@ -18,14 +18,8 @@ def main():
     positions = walker.run()
 
     game = RogueLike(gridSize=100, device=device, rand=rand)
-
-    for pos in positions:
-        game.ground.addGround(pos)
-    game.ground.computeWalls()
-
-    for pos in positions:
-        game.minimap.addGround(pos)
-    game.minimap.ground.computeWalls()
+    game.map.ground.update(positions)
+    game.map.calculateWalls()
 
     game.registerListeners()
     game.initializeSystems()

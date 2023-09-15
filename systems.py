@@ -25,71 +25,88 @@ class FieldOfViewComponent(Component['FieldOfViewSystem']):
         self.center: Point = Point(0, 0)
         self.visible: Set[Point] = set()
         self.removed: Set[Point] = set()
-        self.inclued: Set[Point] = set()
-        self.isFreePosition: Callable[[Point], bool] = lambda _: False
+        self.included: Set[Point] = set()
+    
+    def setDirty(self) -> None:
+        self.system.setChanged(self)
 
 
 class FieldOfViewSystem(Subsystem[FieldOfViewComponent]):
-    def __init__(self, isFreePosition: Callable[[Point], bool]):
-        self.isFreePosition: Callable[[Point], bool] = isFreePosition
+    def __init__(self, ground: Set[Point]):
+        super().__init__()
+        self.ground: Set[Point] = ground
         self.changed: List[FieldOfViewComponent] = []
         self.algorithm = FieldOfView()
+    
+    def addEntity(self, entity: Entity, radius:int) -> 'FieldOfViewComponent':
+        component = FieldOfViewComponent(self, entity, radius)
+        self.changed.append(component)
+        entity.addComponent(component)
+        self.addComponent(component)
+        return component
 
     def setChanged(self, component: FieldOfViewComponent) -> None:
-        self.changed.append(component)
+        if component not in self.changed:
+            self.changed.append(component)
 
     def update(self):
         for component in self.changed:
             center = component.center
             radius = component.radius
-            free = component.isFreePosition
-            component.removed = component.visible
-            component.inclued.clear()
-            component.visible = self.algorithm.calculate(center, radius, free)
+            last = component.visible
+            component.removed.clear()
+            component.included.clear()
+            component.visible = self.algorithm.calculate(center, radius, self.ground)
             for pos in component.visible:
-                if pos in component.removed:
-                    component.removed.remove(pos)
-                else:
-                    component.inclued.add(pos)
-
+                if pos not in last:
+                    component.included.add(pos)
+            for pos in last:
+                if pos not in component.visible:
+                    component.removed.add(pos)
+        self.changed.clear()
 
 
 class RenderComponent(Component['RenderSystem']):
     def __init__(self, system: 'RenderSystem', entity: 'Entity', image: Image):
         super().__init__(system, entity)
         self.image = image
-        self.position: Point = Point(0, 0)
+        self._position: Point = Point(0, 0)
+    
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        self.system.updatePosition(self, value)
 
 
 class RenderSystem(Subsystem[RenderComponent]):
-    def __init__(self, pixelsUnit: int, device: Device):
+    def __init__(self, unitPixels: int):
         super().__init__()
-        self.device = device
-        self.pixelsUnit = pixelsUnit
+        self.unitPixels = unitPixels
+        self.positionToComponent:Dict[Point,RenderComponent] = dict()
+        self.visible:Set[Point] = set()
 
     def addEntity(self, entity: Entity, image: Image, position: Point) -> 'RenderComponent':
         component = RenderComponent(self, entity, image)
         component.position = position
+        self.positionToComponent[position] = component
         entity.addComponent(component)
         self.addComponent(component)
         return component
 
+    def updatePosition(self, component:RenderComponent, position:Point) -> None:
+        self.positionToComponent.pop(component.position, None)
+        self.positionToComponent[position] = component
+        component._position = position
+
     def update(self):
-        # TODO replace viewPort by fieldOfView
-        unit = self.pixelsUnit
-        cameraPos = self.device.camera.translateVector
-        dimension = self.device.dimension
-        self.viewPort = Rectangle(
-            cameraPos.x - unit,
-            cameraPos.y - unit,
-            cameraPos.x + dimension.width + unit,
-            cameraPos.y + dimension.height + unit)
-        pixelsUnit = self.pixelsUnit
-        for render in self.components:
-            position = Point(render.position.x * pixelsUnit,
-                             render.position.y * pixelsUnit)
-            if self.viewPort.contains(position.x, position.y):
-                render.image.draw(position)
+        for pos in self.visible:
+            if pos in self.positionToComponent:
+                render = self.positionToComponent[pos]
+                viewPosition = Point(pos.x * self.unitPixels, pos.y * self.unitPixels)
+                render.image.draw(viewPosition)
 
 
 class PositionComponent(Component['PositionSystem']):

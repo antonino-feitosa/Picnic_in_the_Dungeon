@@ -84,6 +84,13 @@ class Canvas:
         area = pygame.Rect(rect.position.x, rect.position.y,
                            rect.dimension.width, rect.dimension.height)
         self.canvas.fill((0, 0, 0), area)
+    
+    def shadowRegion(self, rect: Rectangle) -> None:
+        area = pygame.Rect(rect.position.x, rect.position.y,
+                           rect.dimension.width, rect.dimension.height)
+        image = pygame.Surface((rect.dimension.width,rect.dimension.height)).convert_alpha()
+        image.set_alpha(127)
+        self.canvas.blit(image, area)
 
     def drawAtCanvas(self, image: Image, dest: Point) -> None:
         self.canvas.blit(image.image, dest)

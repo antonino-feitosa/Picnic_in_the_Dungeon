@@ -16,10 +16,13 @@ Simple ARPG with rogue like game elements:
 - [ ] Races, Classes and Weapons (race customization by user choices);
 - [ ] Dialog and Conversation Strategies;
 - [ ] Environment Interaction (like Brogue[^14], Pokemon[^13] and Metroid[^15]);
+- [ ] Map Height, Walter, Caves (like Zelda[^3], Pokemon[^13] and Metroid[^15]);
 - [ ] Weapons Strategy (like Brogue[^12]);
 - [ ] Strange and Hostil Environment (like Roadside Picnic[^7] and Annihilation[^8] with elements of Debris[^9], Doctor Who[^10] and Darker than Black[^19]);
 - [ ] Tower Defense Elements (like traps and defenses in Clash of Clans[^11]);
-- [ ] Monster Capture (like Pokemon[^4]).
+- [ ] Monster Capture (like Pokemon[^4]);
+- [ ] Procedural Quests
+
 
 
 [//]: # "Monster formation"
@@ -68,7 +71,7 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Player Directional Controls
 - [x] Refactor Position and Dimension
 - [x] Field of View
-- [ ] Field of View Integration with Map
+- [x] Field of View Integration with Map
 - [ ] Centralize Minimap
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)

@@ -351,23 +351,23 @@ class FieldOfView:
     def __init__(self):
         self.line = BresenhamLineAlgorithm()
 
-    def calculate(self, center: Point, radius:int, isFree:Callable[[Point],bool]) -> Set[Point]:
+    def calculate(self, center: Point, radius:int, ground:Set[Point]) -> Set[Point]:
         visible: Set[Point] = set()
         for line in self._getRays(center, radius):
             i = 0
             size = min(len(line), radius)
-            while i < size and isFree(line[i]):
+            while i < size and line[i] in ground:
                 visible.add(line[i])
                 i += 1
         return visible
 
-    def _getRays(self, center:Point, radius:int) -> Set[List[Point]]:
-        rays:Set[List[Point]] = set()
+    def _getRays(self, center:Point, radius:int) -> List[List[Point]]:
+        rays:List[List[Point]] = []
         line = BresenhamLineAlgorithm()
         for y in range(center.y - radius, center.y + radius):
-            rays.add(line.plotLine(center, Point(center.x - radius, y)))
-            rays.add(line.plotLine(center, Point(center.x + radius-1, y)))
+            rays.append(line.plotLine(center, Point(center.x - radius, y)))
+            rays.append(line.plotLine(center, Point(center.x + radius-1, y)))
         for x in range(center.x - radius, center.x + radius):
-            rays.add(line.plotLine(center, Point(x, center.y - radius)))
-            rays.add(line.plotLine(center, Point(x, center.y + radius-1)))
+            rays.append(line.plotLine(center, Point(x, center.y - radius)))
+            rays.append(line.plotLine(center, Point(x, center.y + radius-1)))
         return rays

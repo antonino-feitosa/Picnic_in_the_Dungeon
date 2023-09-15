@@ -77,6 +77,3 @@ class Game:
             for entity in self.entitiesToDestroy:
                 entity._applyDestroy()
             self.entitiesToDestroy.clear()
-
-        for system in self.systems:
-            system.update()

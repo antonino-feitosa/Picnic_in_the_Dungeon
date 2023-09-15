@@ -26,24 +26,63 @@ from systems import RenderSystem
 from systems import RenderComponent
 from systems import PositionSystem
 from systems import PositionComponent
+from systems import FieldOfViewSystem
+from systems import FieldOfViewComponent
 
 from algorithms import Point
 from algorithms import Random
 from algorithms import Overlap
 from algorithms import Direction
 from algorithms import Dimension
-from algorithms import FieldOfView
 from algorithms import ApplicationError
 
+class Map:
+    def __init__(self):
+        self.ground:Set[Point] = set()
+        self.walls:Set[Point] = set()
+        self.groundToWalls:Dict[Point,Set[Point]] = dict()
+        self.wallToGround:Dict[Point,Set[Point]] = dict()
+    
+    def getWallsForGround(self, ground:Point) -> Set[Point]:
+        return self.groundToWalls[ground]
 
-class MiniMap:
+    def getWallsForArea(self, ground:Set[Point]) -> Set[Point]:
+        area = set()
+        for pos in ground:
+            area.update(self.groundToWalls[pos])
+        border = set()
+        for wall in area:
+            if len(self.neighborhood(wall, self.ground)) == len(self.wallToGround[wall]):
+                border.add(wall)
+        return border
+    
+    def neighborhood(self, position:Point, ground:Set[Point]) -> Set[Point]:
+        neigh = set()
+        for dir in Direction.directions():
+            pos = dir.next(position)
+            if pos in ground:
+                neigh.add(pos)
+        return neigh
+    
+    def calculateWalls(self) -> None:
+        for pos in self.ground:
+            self.groundToWalls[pos] = set()
+            for dir in Direction.directions():
+                wall = dir.next(pos)
+                self.wallToGround.setdefault(wall, set())
+                if wall not in self.ground:
+                    self.walls.add(wall)
+                    self.groundToWalls[pos].add(wall)
+                    self.wallToGround[wall].add(pos)
+
+class MiniMapRender:
     def __init__(self, gridSize: int, game: 'RogueLike'):
         self.pixelsUnit = 4
         self.showing = False
         self.position: Point = Point(100, 100)
         self.canvas = game.device.loadCanvas(
             Dimension(gridSize * self.pixelsUnit, gridSize * self.pixelsUnit))
-        self.ground = Ground(self.canvas, self.pixelsUnit, game)
+        self.ground = GroundRender(self.canvas, self.pixelsUnit, game)
         self.ground.groundSheet = game.device.loadSpriteSheet(
             'Tileset - MiniMap - Ground.png', Dimension(self.pixelsUnit, self.pixelsUnit), 'resources')
         self.ground.wallSheet = game.device.loadSpriteSheet(
@@ -54,11 +93,11 @@ class MiniMap:
             'Tileset - MiniMap - Reference.png', 'resources')
         self.playerPosition: Point | None = None
 
-    def addGround(self, position: Point) -> None:
-        self.ground.addGround(position)
+    def addGround(self, positions: Set[Point]) -> None:
+        self.ground.addGround(positions)
 
-    def addWall(self, position: Point) -> None:
-        self.ground.addWall(position)
+    def addWall(self, positions: Set[Point]) -> None:
+        self.ground.addWall(positions)
 
     def addPlayer(self, position: Point) -> None:
         if self.playerPosition is not None:
@@ -74,15 +113,11 @@ class MiniMap:
         self.ground.canvas.drawAtCanvas(self.referenceImage, position)
 
     def clearGround(self, position: Point) -> None:
-        # TODO replace by clear position on ground
-        oldPosition = Point(position.x * self.pixelsUnit,
-                            position.y * self.pixelsUnit)
-        self.ground.canvas.clearRegion(Rectangle(
-            oldPosition.x, oldPosition.y, oldPosition.x+self.pixelsUnit, oldPosition.y+self.pixelsUnit))
-        self.addGround(position)
+        self.ground.clearPositions({position})
+        self.addGround({position})
 
 
-class Ground:
+class GroundRender:
     def __init__(self, canvas: Canvas, pixelsUnit: int, game: 'RogueLike'):
         self.rand = game.rand
         self.canvas = canvas
@@ -101,46 +136,43 @@ class Ground:
         dy = position.y * self.pixelsUnit
         self.canvas.drawAtCanvas(image, Point(dx, dy))
 
-    def addGround(self, position: Point) -> None:
+    def addGround(self, ground : Set[Point]) -> None:
         if self.groundSheet is None:
             raise ApplicationError(
                 'Assign a sprite sheet to the ground first!')
+        for position in ground:
+            if self.area.contains(position.x, position.y):
+                sheet = self.groundSheet
+                image = self.rand.choice(sheet.images)
+                self.addTile(position, image)
+                self.groundPositions.add(position)
+
+    def addWall(self, wall : Set[Point]) -> None:
+        if self.wallSheet is None:
+            raise ApplicationError('Assign a sprite sheet to the walls first!')
+        sheet = self.wallSheet
+        for position in wall:
+            self.updateWall(position)
+            for dir in Direction.directions():
+                neigh = dir.next(position)
+                if neigh in self.wallsPositions:
+                    self.updateWall(neigh)
+    
+    def updateWall(self, position : Point) -> None:
         if self.area.contains(position.x, position.y):
-            sheet = self.groundSheet
-            image = self.rand.choice(sheet.images)
-            self.addTile(position, image)
-            self.groundPositions.add(position)
+            id = self.calculateWallIndexInSheet(position, self.wallsPositions)
+            self.addTile(position, self.wallSheet.images[id])
+            self.wallsPositions.add(position)
 
     def clearPositions(self, positions: Set[Point]) -> None:
-        # TODO paint black
-        pass
+        for position in positions:
+            position = Point(position.x * self.pixelsUnit, position.y * self.pixelsUnit)
+            self.canvas.clearRegion(Rectangle(position.x, position.y, position.x+self.pixelsUnit, position.y+self.pixelsUnit))
 
     def shadowPositions(self, positions: Set[Point]) -> None:
-        # TODO paint grey alpha
-        pass
-
-    def addWall(self, position: Point) -> None:
-        if self.wallSheet is None:
-            raise ApplicationError('Assign a sprite sheet to the walls first!')
-        sheet = self.wallSheet
-        if self.area.contains(position.x, position.y):
-            sheet = self.wallSheet
-            id = Ground.calculateWallIndexInSheet(
-                position, self.wallsPositions)
-            self.addTile(position, sheet.images[id])
-            self.wallsPositions.add(position)
-
-    def computeWalls(self) -> None:
-        if self.wallSheet is None:
-            raise ApplicationError('Assign a sprite sheet to the walls first!')
-        sheet = self.wallSheet
-        walls = Ground.calculateWalls(self.groundPositions)
-        walls = set(
-            filter(lambda pos: self.area.contains(pos.x, pos.y), walls))
-        for position in walls:
-            id = Ground.calculateWallIndexInSheet(position, walls)
-            self.addTile(position, sheet.images[id])
-            self.wallsPositions.add(position)
+        for position in positions:
+            position = Point(position.x * self.pixelsUnit, position.y * self.pixelsUnit)
+            self.canvas.shadowRegion(Rectangle(position.x, position.y, position.x+self.pixelsUnit, position.y+self.pixelsUnit))
 
     @staticmethod
     def calculateWallIndexInSheet(point: Point, walls: Set[Point]) -> int:
@@ -150,16 +182,6 @@ class Ground:
                 mask += Overlap.fromDirection(dir).value
         return mask
 
-    @staticmethod
-    def calculateWalls(ground: Set[Point]) -> Set[Point]:
-        border: Set[Point] = set()
-        for pos in ground:
-            for dir in Direction.directions():
-                wall = dir.next(pos)
-                if wall not in ground:
-                    border.add(wall)
-        return border
-
 
 class RogueLike(Game):
     def __init__(self, gridSize: int, device: Device, rand: Random):
@@ -168,25 +190,26 @@ class RogueLike(Game):
         self.rand = rand
         self.gridSize = gridSize
         self.pixelsUnit = 32
-        self.minimap = MiniMap(self.gridSize, self)
+        self.map = self.randomMap()
+        self.minimap = MiniMapRender(self.gridSize, self)
         canvas = device.loadCanvas(
             Dimension(gridSize * self.pixelsUnit, gridSize * self.pixelsUnit))
-        self.ground = Ground(canvas, self.pixelsUnit, self)
+        self.ground = GroundRender(canvas, self.pixelsUnit, self)
         self.onlineSystems: List[Subsystem] = []
 
     def initializeSystems(self) -> None:
+        self.systemFieldOfView = FieldOfViewSystem(self.map.ground)
         self.systemPosition = PositionSystem(self.ground.groundPositions)
-        dimension = self.device.dimension
-        self.systemRender = RenderSystem(self.pixelsUnit, self.device)
+        self.systemRender = RenderSystem(self.pixelsUnit)
         self.addSystem(self.systemPosition)
 
     def createPlayer(self, position: Point) -> Entity:
         self.player = Entity(self)
         avatar = self.device.loadImage('Avatar - White.png', 'resources')
-        positionComponent = self.systemPosition.addEntity(
-            self.player, position)
+        positionComponent = self.systemPosition.addEntity(self.player, position)
         positionComponent.onMove = self.updatePlayerPosition
         self.systemRender.addEntity(self.player, avatar, position)
+        self.systemFieldOfView.addEntity(self.player, 8)
         self.updatePlayerPosition(Point(0, 0), position)
         return self.player
 
@@ -194,14 +217,22 @@ class RogueLike(Game):
         positionComponent = self.player.getComponent(PositionComponent)
         renderComponent = self.player.getComponent(RenderComponent)
         renderComponent.position = positionComponent.position
+        fieldOfView = self.player.getComponent(FieldOfViewComponent)
+        fieldOfView.center = dest
+        fieldOfView.setDirty()
+        self.systemFieldOfView.update()
+        self.systemRender.visible = fieldOfView.visible
+        walls = self.map.getWallsForArea(fieldOfView.visible)
+        self.ground.shadowPositions(fieldOfView.removed)
+        self.ground.addGround(fieldOfView.included)
+        self.ground.addWall(walls)
+        self.minimap.addGround(fieldOfView.included)
+        self.minimap.addWall(walls)
         self.minimap.addPlayer(dest)
         self.listenerResetCamera()
-        # TODO Update field of view
-        # TODO Update ground
-        # TODO Update mini map
 
-    def randomMap(self) -> None:
-        pass
+    def randomMap(self) -> Map:
+        return Map()
 
     def redraw(self):
         self.device.clear()
@@ -251,6 +282,7 @@ class RogueLike(Game):
             case '[9]': direction = Direction.UP_RIGHT
         if direction is not None:
             self.player.getComponent(PositionComponent).move(direction)
+            self.systemPosition.update()
             self.update()
 
     def listenerControlMinimap(self, key: str) -> None:

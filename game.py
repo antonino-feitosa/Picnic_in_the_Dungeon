@@ -1,0 +1,419 @@
+
+from typing import Set
+from typing import Tuple
+
+from device import Image
+from device import Device
+from device import SpriteSheet
+from device import TiledCanvas
+from device import UpdateListener
+from device import KeyboardListener
+from device import MouseDragListener
+
+from algorithms import Set
+from algorithms import Dict
+from algorithms import List
+from algorithms import Point
+from algorithms import Random
+from algorithms import Overlap
+from algorithms import Dimension
+from algorithms import Direction
+from algorithms import RandomWalk
+from algorithms import Composition
+
+from algorithms import CARDINALS
+from algorithms import DIRECTIONS
+from algorithms import distanceManhattan
+from algorithms import fieldOfViewRayCasting
+
+
+class Loader:
+    def __init__(self, device:Device, pixelsUnit: Dimension):
+        self.device = device
+        self.pixelsUnit = pixelsUnit
+        self.groundSheet:SpriteSheet
+        self.wallSheet:SpriteSheet
+        self.minimapGroundSheet: SpriteSheet
+        self.minimapWallSheet: SpriteSheet
+        self.minimapPlayer: Image
+        self.minimapReference: Image
+        self.avatar: Image
+
+    def load(self) -> None:
+        self.groundSheet = self.loadSheet('Tileset - Ground.png')
+        self.wallSheet = self.loadSheet('Tileset - Walls.png')
+        self.minimapGroundSheet = self.loadSheet('Tileset - MiniMap - Ground.png')
+        self.minimapWallSheet = self.loadSheet('Tileset - MiniMap - Walls.png')
+        self.minimapPlayer = self.loadImage('Tileset - MiniMap - Avatar.png')
+        self.minimapReference = self.loadImage('Tileset - MiniMap - Reference.png')
+        self.avatar = self.loadImage('Tileset - MiniMap - Avatar.png')
+    
+    def loadSheet(self, name:str) -> SpriteSheet:
+        unit = self.pixelsUnit
+        return self.device.loadSpriteSheet(name, unit, 'resources')
+    
+    def loadImage(self, name:str) -> Image:
+        return self.device.loadImage(name,'resources')
+
+
+class Map:
+    def __init__ (self, dimension:Dimension, rand:Random):
+        self.rand = rand
+        self.dimension = dimension
+        self.endPoint:Point = Point(0,0)
+        self.startPoint:Point = Point(0,0)
+        self.groundPositions:Set[Point] = set()
+        self.wallPositions:Set[Point] = set()
+        self.groundToWalls:Dict[Point,Set[Point]] = dict()
+        self.wallToGround:Dict[Point,Set[Point]] = dict()
+    
+    def getWallsForGround(self, ground:Point) -> Set[Point]:
+        return self.groundToWalls[ground]
+
+    def getWallsForArea(self, ground:Set[Point]) -> Set[Point]:
+        area = set()
+        for pos in ground:
+            area.update(self.groundToWalls[pos])
+        border = set()
+        for wall in area:
+            if len(self._neighborhood(wall, self.groundPositions)) == len(self.wallToGround[wall]):
+                border.add(wall)
+        return border
+    
+    @staticmethod
+    def _neighborhood(position:Point, ground:Set[Point]) -> Set[Point]:
+        neigh = set()
+        for dir in DIRECTIONS:
+            pos = dir + position
+            if pos in ground:
+                neigh.add(pos)
+        return neigh
+    
+    def calculateWalls(self) -> None:
+        for pos in self.groundPositions:
+            self.groundToWalls[pos] = set()
+            for dir in DIRECTIONS:
+                wall = pos + dir
+                self.wallToGround.setdefault(wall, set())
+                if wall not in self.groundPositions:
+                    self.wallPositions.add(wall)
+                    self.groundToWalls[pos].add(wall)
+                    self.wallToGround[wall].add(pos)
+    
+    def makeIsland(self, iterations:int = 20) -> None:
+        width, height = self.dimension
+        steps = min(width, height)
+        center = Point(width // 2, height // 2)
+        self.startPoint = center
+        self.endPoint = center
+        distanceToEnd = 0
+        walker = RandomWalk(steps, CARDINALS, self.rand)
+        for _ in range(iterations):
+            walk = walker.makeRandom(center)
+            end = walker.lastPoint
+            self.groundPositions.update(walk)
+            distance = distanceManhattan(center, end)
+            if distance > distanceToEnd:
+                self.endPoint = end
+                distance = distanceToEnd
+        self.calculateWalls()
+
+    def makeArchipelago(self, iterations: int = 20) -> None:
+        pass
+
+    def _removeDisconnectedParts(self) -> None:
+        pass
+
+
+class Background:
+    def __init__(self, canvas: TiledCanvas, rand:Random):
+        self.rand = rand
+        self.canvas = canvas
+        self.wallSheet: SpriteSheet
+        self.groundSheet: SpriteSheet
+        self.wallsPositions: Set[Point] = set()
+    
+    def draw(self, position:Point):
+        self.canvas.draw(position)
+
+    def addGround(self, ground : Set[Point]) -> None:
+        dimension = self.canvas.dimension
+        sheet = self.groundSheet
+        for position in ground:
+            if position in dimension:
+                image = self.rand.choice(sheet.images)
+                self.canvas.drawAtCanvas(image, position)
+
+    def addWall(self, wall : Set[Point]) -> None:
+        for position in wall:
+            self.updateWall(position)
+            for dir in DIRECTIONS:
+                neigh = position + dir
+                if neigh in self.wallsPositions:
+                    self.updateWall(neigh)
+    
+    def updateWall(self, position : Point) -> None:
+        dimension = self.canvas.dimension
+        if position in dimension:
+            id = self.calculateWallIndexInSheet(position, self.wallsPositions)
+            image = self.wallSheet.images[id]
+            self.canvas.drawAtCanvas(image, position)
+            self.wallsPositions.add(position)
+
+    def clearPositions(self, positions: Set[Point]) -> None:
+        for position in positions:
+            self.canvas.clear(position)
+
+    def shadowPositions(self, positions: Set[Point]) -> None:
+        for position in positions:
+            self.canvas.shadow(position)
+    
+    def paintPosition(self, position:Point, image: Image) -> None:
+        self.canvas.drawAtCanvas(image, position)
+
+    @staticmethod
+    def calculateWallIndexInSheet(point: Point, walls: Set[Point]) -> int:
+        mask = 0
+        for dir in CARDINALS:
+            if dir + point in walls:
+                mask += Overlap.fromDirection(dir).value
+        return mask
+
+
+class PositionSystem:
+    def __init__(self, ground:Set[Point]):
+        self.ground:Set[Point] = ground
+        self.positionToComponent: Dict[Point,PositionComponent] = dict()
+        self.toMove: Set[Tuple[PositionComponent,Direction]] = set()
+    
+    def update(self): # TODO resolve dependencies
+        for component, direction in self.toMove:
+            destination = component.position + direction
+            if destination not in self.ground:
+                component.collided.append((None, destination))
+            elif destination in self.positionToComponent:
+                other = self.positionToComponent[destination].entity
+                component.collided.append((other, destination))
+            else:
+                position = component.position
+                self.positionToComponent.pop(position, None)
+                self.positionToComponent[destination] = component
+        self.toMove.clear()
+
+
+class RenderSystem:
+    def __init__(self, rand:Random, ground:TiledCanvas, minimap: TiledCanvas):
+        self.ground = Background(ground, rand)
+        self.minimap = Background(minimap, rand)
+        self.map: Map
+        self.minimapPlayerImage: Image
+        self._center:Point = Point(0,0)
+        self._visible: Set[Point] = set()
+        self.components: Set[RenderComponent] = set()
+        self.minimapVisible:bool = False
+        self.minimapPosition:Point = Point(100,100) # TODO centralize at player
+    
+    def draw(self):
+        self.ground.draw(Point(0,0))
+        for comp in self.components:
+            comp.draw()
+        if self.minimapVisible:
+            self.minimap.draw(self.minimapPosition) 
+        pass
+
+    def setView(self, center:Point, visible:Set[Point]) -> None:
+        self.ground.addGround(visible)
+        self.minimap.addGround(visible)
+        walls = self.map.getWallsForArea(visible)
+        self.ground.addWall(walls)
+        self.minimap.addWall(walls)
+        self.minimap.paintPosition(center, self.minimapPlayerImage)
+        self._visible = visible
+        self._center = center
+
+    def update(self, center:Point, visible:Set[Point]) -> None:
+        included = visible.difference(self._visible)
+        removed = self._visible.difference(visible)
+        walls = self.map.getWallsForArea(visible)
+        self.ground.shadowPositions(removed)
+        self.ground.addGround(included)
+        self.ground.addWall(walls)
+        self.minimap.addGround(included)
+        self.minimap.addWall(walls)
+        self.minimap.clearPositions({center})
+        self.minimap.paintPosition(center, self.minimapPlayerImage)
+        self._visible = visible
+        self._center = center
+
+
+class ControlSystem:
+    def __init__(self, game:'RogueLike'):
+        self.game = game
+        self.minimapOffset = 25
+
+    def registerListeners(self):
+        device = self.game.device
+
+        listenNumeric = KeyboardListener({'[1]', '[2]', '[3]', '[4]', '[5]', '[6]', '[7]', '[8]', '[9]'})
+        listenNumeric.onKeyUp = self.listenerControlPlayer
+        device.addListener(listenNumeric)
+
+        listenSpace = KeyboardListener({'space'})
+        listenSpace.onKeyUp = self.listenerResetCamera
+        device.addListener(listenSpace)
+
+        listenTab = KeyboardListener({'tab'})
+        listenTab.onKeyUp = self.listenerShowMinimap
+        device.addListener(listenTab)
+
+        listenControls = KeyboardListener({'up', 'left', 'down', 'right'})
+        listenControls.onKeyUp = self.listenerControlMinimap
+        device.addListener(listenControls)
+
+        listenDrag = MouseDragListener()
+        listenDrag.onMouseDrag = self.listenerTranslateMap
+        device.addListener(listenDrag)
+
+    def listenerControlPlayer(self, key: str) -> None:
+        direction = None
+        match key:
+            case '[1]': direction = Direction.DOWN_LEFT
+            case '[2]': direction = Direction.DOWN
+            case '[3]': direction = Direction.DOWN_RIGHT
+            case '[4]': direction = Direction.LEFT
+            case '[5]': pass
+            case '[6]': direction = Direction.RIGHT
+            case '[7]': direction = Direction.UP_LEFT
+            case '[8]': direction = Direction.UP
+            case '[9]': direction = Direction.UP_RIGHT
+        if direction is not None:
+            self.game.player[PositionComponent].move(direction)
+            self.game.update()
+
+    def listenerControlMinimap(self, key: str) -> None:
+        visible = self.game.renderSystem.minimapVisible
+        if visible:
+            off = self.minimapOffset
+            position = self.game.renderSystem.minimapPosition
+            if key == 'down': position = Point(position.x, position.y+off)
+            if key == 'up': position = Point(position.x, position.y-off)
+            if key == 'left': position = Point(position.x-off, position.y)
+            if key == 'right': position = Point(position.x+off, position.y)
+            self.game.renderSystem.minimapPosition = position
+            self.game.draw()
+
+    def listenerShowMinimap(self, key: str) -> None:
+        visible = self.game.renderSystem.minimapVisible
+        self.game.renderSystem.minimapVisible = not visible
+        self.game.draw()
+
+    def listenerTranslateMap(self, source: Point, dest: Point) -> None:
+        position = self.game.device.camera.translate
+        diff = Point(dest.x - source.x, dest.y - source.y)
+        position = Point(position.x - diff.x, position.y - diff.y)
+        self.game.device.camera.translate = position
+        self.game.draw()
+
+    def listenerResetCamera(self, key: str | None = None) -> None:
+        center = self.game.player[PositionComponent].position
+        width, height = self.game.pixelsUnit
+        center = Point(center.x * width, center.y * height)
+        self.game.device.camera.centralize(center)
+        self.game.draw()
+
+
+class RogueLike:
+    def __init__(self):
+        self.rand = Random(0)
+        self.device = Device('Picnic in the Dungeon')
+        self.pixelsUnit = Dimension(32,32)
+        self.loader = Loader(self.device, self.pixelsUnit)
+        self.loader.load()
+        self.map = self.createStartMap()
+        self.renderSystem: RenderSystem = self.configureRender()
+        self.positionSystem: PositionSystem = PositionSystem(self.map.groundPositions)
+        self.player: Composition = self.createPlayer()
+        self.player[FieldOfViewComponent].update()
+        position = self.player[PositionComponent].position
+        visible = self.player[FieldOfViewComponent].visible
+        self.renderSystem.setView(position, visible)
+
+    def createStartMap(self) -> Map:
+        dimension = Dimension(20,20)
+        startMap = Map(dimension, self.rand)
+        startMap.makeIsland()
+        return startMap
+    
+    def createPlayer(self) -> Composition:
+        player = Composition()
+        player.add(RenderComponent(self, player, self.loader.avatar))
+        player.add(PositionComponent(self, player, self.map.startPoint))
+        player.add(FieldOfViewComponent(self, player, 6))
+        return player
+    
+    def configureRender(self) -> RenderSystem:
+        current = self.map
+        groundCanvas = self.device.loadTiledCanvas(self.pixelsUnit, current.dimension)
+        minimapCanvas = self.device.loadTiledCanvas(self.pixelsUnit, current.dimension)
+        renderSystem = RenderSystem(self.rand, groundCanvas, minimapCanvas)
+        renderSystem.ground.groundSheet = self.loader.groundSheet
+        renderSystem.ground.wallSheet = self.loader.wallSheet
+        renderSystem.minimap.groundSheet = self.loader.minimapGroundSheet
+        renderSystem.minimap.wallSheet = self.loader.minimapWallSheet
+        renderSystem.map = self.map
+        renderSystem.minimapPlayerImage = self.loader.minimapPlayer
+        return renderSystem
+
+    def update(self):
+        self.positionSystem.update()
+        self.player[FieldOfViewComponent].update()
+        position = self.player[PositionComponent].position
+        visible = self.player[FieldOfViewComponent].visible
+        self.renderSystem.update(position, visible)
+        self.draw()
+
+    def draw(self):
+        self.device.clear()
+        self.renderSystem.draw()
+
+
+
+class RenderComponent:
+    def __init__(self, game:RogueLike, entity:Composition, image:Image):
+        self.game = game
+        self.image = image
+        self.entity = entity
+        game.renderSystem.components.add(self)
+    
+    def draw(self):
+        position = self.entity[PositionComponent].position
+        self.image.draw(position)
+    
+    def destroy(self):
+        self.game.renderSystem.components.remove(self)
+
+
+class PositionComponent:
+    def __init__(self, game:RogueLike, entity:Composition, position:Point):
+        self.game = game
+        self.entity = entity
+        self.position:Point = position
+        self.collided: List[Tuple[Composition|None,Point]] = []
+        self.game.positionSystem.positionToComponent[position] = self
+    
+    def move(self, direction:Direction) -> None:
+        self.game.positionSystem.toMove.add((self, direction))
+
+
+class FieldOfViewComponent:
+    def __init__(self, game:RogueLike, entity:Composition, radius:int):
+        self.game = game
+        self.radius = radius
+        self.entity = entity
+        self.visible: Set[Point] = set()
+    
+    def update(self):
+        radius = self.radius
+        center = self.entity[PositionComponent].position
+        ground = self.game.map.groundPositions
+        self.visible = fieldOfViewRayCasting(center, radius, ground)

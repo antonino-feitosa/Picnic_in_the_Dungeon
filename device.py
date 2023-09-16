@@ -58,7 +58,10 @@ class TiledCanvas:
         self.device = device
         self.dimension = dimension
         self.pixelsUnit = pixelsUnit
-        self.canvas = pygame.Surface(dimension, pygame.SRCALPHA)
+        sw, sh = self.pixelsUnit
+        width, height = dimension
+        screenDimension = Dimension(sw * width, sh * height)
+        self.canvas = pygame.Surface(screenDimension, pygame.SRCALPHA)
     
     def _scale(self, position:Point) -> Point:
         x, y = position

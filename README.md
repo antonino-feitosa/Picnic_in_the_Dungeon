@@ -32,12 +32,41 @@ Simple ARPG with rogue like game elements:
 
 ## Progresso
 
-1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório. <p float="left"><img src="docs/readme_images/procedural_map1.png" width="300"> &nbsp; <img src="docs/readme_images/procedural_map2.png" width="300"></p>
-2. Geração de minimapa acessado pela tecla 'tab'. <p float="left"><img src="docs/readme_images/procedural_map_minimap1.png" width="100"> &nbsp; <img src="docs/readme_images/procedural_map_minimap2.png" width="100"></p>
+1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório.
+<p float="left">
+    <img src="docs/readme_images/RandomWalk0.png" width="100"> &nbsp;
+    <img src="docs/readme_images/RandomWalk1.png" width="100"> &nbsp;
+    <img src="docs/readme_images/RandomWalk2.png" width="100">
+</p>
+2. Geração de minimapa acessado pela tecla 'tab'.
+<p float="left">
+    <img src="docs/readme_images/Minimap0.png" width="100"> &nbsp;
+    <img src="docs/readme_images/Minimap1.png" width="100"> &nbsp;
+    <img src="docs/readme_images/Minimap2.png" width="100">
+</p>
 3. Movimentação do Personagem
+<p float="left">
+    <img src="docs/readme_images/Player_Moviment.gif" width="300">
+</p>
 4. Câmera com Foco no Personagem
+<p float="left">
+    <img src="docs/readme_images/Camera.gif" width="300">
+</p>
 5. Minimapa com Posição do Personagem
-6. Campo de Visão e Integração com o Minimapa e Câmera <p float="left"><img src="docs/readme_images/Record_Minimap.gif" width="100"> &nbsp; <img src="docs/readme_images/Record_FOV.gif" width="100"></p>
+<p float="left">
+    <img src="docs/readme_images/CameraMinimap.gif" width="300">
+</p>
+6. Campo de Visão
+<p float="left">
+    <img src="docs/readme_images/FieldOfView.gif" width="300">
+</p>
+
+### Controles
+
+- Tabulação: ativa o minimapa
+- Espaço: centraliza a câmera
+- Botões direcionais: movimentam o minimapa quando ativo
+- Teclado numérico: movimentam o personagem
 
 ## Detalhes de Implementação
 
@@ -47,11 +76,24 @@ O algoritmo de passeio aleatório é aplicado para geração procedural de mapas
 
 Ele é aplicado na geração no mapa em formato de ilha que consiste em aplicar o passeio uma quantidade N de vezes a partir do centro do mapa de dimensões bidimensional. A quantidade de passos é escolhida como o mínimo entre a metade da largura e metade da altura do mapa. A posição inicial é configurada como o centro do mapa e a posição final como o ponto mais distante do início, considerando somente o passo final de cada passeio. Os mapas gerados por esse processo apresentam o formato de uma grande área concentrada no centro do mapa com ramificações radiais.
 
+Trabalho Futuro
+- [ ] Mapa em formato de arquipélago
+- [ ] Mapa em formato de continente
+- [ ] Mapa em formato de cavernas
+- [ ] Mapa em formato de estrela
+
 ### Algoritmo de Campo de Visão
 
-Avaliando o estudo efetuado em [^33], escolhemos o algoritmo básico (ray casting) para a implementação do campo de visão. O estudo conclui que o algoritmo é equivalente aos demais em tempo de processamento e gera campos plausíveis nos cenários de pilares e diagonais, além de apresentar boa simetria em mapas fechados com exceção das situações de cantos perpendiculares. No entanto, o estudo é de 2009 e não há referência disponível para a implementação utilizada.
+Avaliando o estudo efetuado em [^33], escolhemos o algoritmo básico (ray casting) para a implementação do campo de visão. O estudo conclui que o algoritmo é equivalente aos demais em tempo de processamento e gera campos plausíveis nos cenários de pilares e diagonais, além de apresentar boa simetria em mapas fechados, com exceção das situações de cantos perpendiculares. No entanto, o estudo é de 2009 e não há referência disponível para a implementação utilizada.
 
 Nossa implementação utiliza o algoritmo de desenho de linhas de Bresenham [^34], traçando linhas a partir de um centro para cada posição de distância _radius_ considerando a distância de Manhattan. Os pontos em cada linha são ordenados, iniciando no centro considerando visíveis todos os pontos que não encontram obstáculos a partir do centro. Isto é, percorremos as linhas do centro até a borda, considerando todos os pontos visíveis até encontrar um obstáculo.
+
+Trabalho Futuro
+- [ ] Alterar o raio do foco de visão
+    - [ ] Formato diamante
+    - [ ] Formato octogonal
+    - [ ] Formato frontal
+    - [ ] Formato periférico
 
 ### Dependências
 

@@ -1,13 +1,12 @@
-
 from game import RogueLike
 
-from algorithms import Point
 
 def main():
-    game = RogueLike()
+    game = RogueLike(33)
     game.draw()
     while game.device.running:
         game.device.update()
+
 
 if __name__ == "__main__":
     main()

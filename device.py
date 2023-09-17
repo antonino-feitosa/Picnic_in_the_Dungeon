@@ -1,4 +1,3 @@
-
 import os
 import pygame
 
@@ -17,17 +16,17 @@ class DeviceError(Exception):
 
 
 class Camera:
-    def __init__(self, dimension:Dimension):
+    def __init__(self, dimension: Dimension):
         self.dimension = dimension
         self.translate: Point = Point(0, 0)
-    
-    def centralize(self, position:Point) -> None:
+
+    def centralize(self, position: Point) -> None:
         width, height = self.dimension
-        self.translate = Point(position.x - width//2,position.y - height//2)
+        self.translate = Point(position.x - width // 2, position.y - height // 2)
 
 
 class Image:
-    def __init__(self, device: 'Device', image: pygame.Surface):
+    def __init__(self, device: "Device", image: pygame.Surface):
         self.device = device
         self.image = image
         self.dimension = Dimension(image.get_width(), image.get_height())
@@ -54,7 +53,7 @@ class SpriteSheet:
 
 
 class TiledCanvas:
-    def __init__(self, device: 'Device', pixelsUnit:Dimension, dimension: Dimension):
+    def __init__(self, device: "Device", pixelsUnit: Dimension, dimension: Dimension):
         self.device = device
         self.dimension = dimension
         self.pixelsUnit = pixelsUnit
@@ -62,32 +61,32 @@ class TiledCanvas:
         width, height = dimension
         screenDimension = Dimension(sw * width, sh * height)
         self.canvas = pygame.Surface(screenDimension, pygame.SRCALPHA)
-    
-    def _scale(self, position:Point) -> Point:
+
+    def _scale(self, position: Point) -> Point:
         x, y = position
         width, height = self.pixelsUnit
         return Point(x * width, y * height)
-    
-    def _getArea(self, position:Point):
+
+    def _getArea(self, position: Point):
         x, y = self._scale(position)
         width, height = self.pixelsUnit
         area = pygame.Rect(x, y, width, height)
         return area
 
-    def clear(self, position:Point, color:Tuple[int,int,int] = (0,0,0)) -> None:
+    def clear(self, position: Point, color: Tuple[int, int, int] = (0, 0, 0)) -> None:
         area = self._getArea(position)
         self.canvas.fill(color, area)
-    
-    def shadow(self, position:Point, dark:int = 127) -> None:
+
+    def shadow(self, position: Point, dark: int = 127) -> None:
         area = self._getArea(position)
-        image = pygame.Surface((area.width,area.height)).convert_alpha()
+        image = pygame.Surface((area.width, area.height)).convert_alpha()
         image.set_alpha(dark)
         self.canvas.blit(image, area)
 
     def draw(self, position: Point) -> None:
         position = self._scale(position)
         self.device.drawImage(self.toImage(), position)
-    
+
     def drawAtCanvas(self, image: Image, position: Point) -> None:
         position = self._scale(position)
         self.canvas.blit(image.image, position)
@@ -101,9 +100,10 @@ class TiledCanvas:
 
 class InputListener:
     def __init__(self):
-        self.device: 'Device'
+        self.device: "Device"
 
-    def update(self, event) -> None: pass
+    def update(self, event) -> None:
+        pass
 
 
 class UpdateListener(InputListener):
@@ -138,12 +138,14 @@ class MouseClickListener(InputListener):
         self.onMouseDown: Callable[[Point], None] = lambda _: None
 
     def update(self, event):
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1: # 1 for left button
-            x, y  = pygame.mouse.get_pos()
+        if (
+            event.type == pygame.MOUSEBUTTONUP and event.button == 1
+        ):  # 1 for left button
+            x, y = pygame.mouse.get_pos()
             offx, offy = self.device.camera.translate
             self.onMouseUp(Point(x + offx, y + offy))
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            x, y  = pygame.mouse.get_pos()
+            x, y = pygame.mouse.get_pos()
             offx, offy = self.device.camera.translate
             self.onMouseDown(Point(x + offx, y + offy))
 
@@ -152,8 +154,7 @@ class MouseDragListener(InputListener):
     def __init__(self):
         self.mouseDown = False
         self.lastPosition: Point = Point(0, 0)
-        self.onMouseDrag: Callable[[
-            Point, Point], None] = lambda source, dest: None
+        self.onMouseDrag: Callable[[Point, Point], None] = lambda source, dest: None
 
     def update(self, event):
         if self.mouseDown and event.type == pygame.MOUSEMOTION:
@@ -176,10 +177,10 @@ class MouseDragListener(InputListener):
 
 
 class Device:
-    def __init__(self, title: str = '', dimension=Dimension(800, 600), tick=60):
+    def __init__(self, title: str = "", dimension=Dimension(800, 600), tick=60):
         pygame.init()
         pygame.display.set_caption(title)
-        self.dimension:Dimension = dimension
+        self.dimension: Dimension = dimension
         self.screen = pygame.display.set_mode(dimension)
         self.running = True
         self.camera = Camera(dimension)
@@ -191,10 +192,12 @@ class Device:
         listener.device = self
         self.listeners.add(listener)
 
-    def loadTiledCanvas(self, pixelsUnit: Dimension, dimension: Dimension) -> TiledCanvas:
+    def loadTiledCanvas(
+        self, pixelsUnit: Dimension, dimension: Dimension
+    ) -> TiledCanvas:
         return TiledCanvas(self, pixelsUnit, dimension)
 
-    def loadImage(self, name: str, dir: str = '.') -> Image:
+    def loadImage(self, name: str, dir: str = ".") -> Image:
         try:
             path = os.path.join(dir, name)
             image = pygame.image.load(path)
@@ -202,7 +205,9 @@ class Device:
         except pygame.error as err:
             raise DeviceError(err)
 
-    def loadSpriteSheet(self, name: str, dimension: Dimension, dir: str = '.') -> SpriteSheet:
+    def loadSpriteSheet(
+        self, name: str, dimension: Dimension, dir: str = "."
+    ) -> SpriteSheet:
         image = self.loadImage(name, dir)
         sheet = SpriteSheet(image, dimension)
         return sheet
@@ -215,7 +220,7 @@ class Device:
     def drawImageAtScreen(self, image: Image, position: Point) -> None:
         width, height = self.dimension
         rect = pygame.Rect(position.x, position.y, width, height)
-        self.screen.blit(image.image, dest = rect)
+        self.screen.blit(image.image, dest=rect)
 
     def reload(self) -> None:
         pygame.display.flip()

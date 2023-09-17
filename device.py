@@ -208,13 +208,14 @@ class Device:
         return sheet
 
     def drawImage(self, image: Image, position: Point) -> None:
-        translate = self.camera.translate
-        translatedPosition = Point(
-            position.x - translate.x, position.y - translate.y)
+        x, y = self.camera.translate
+        translatedPosition = Point(position.x - x, position.y - y)
         self.drawImageAtScreen(image, translatedPosition)
 
     def drawImageAtScreen(self, image: Image, position: Point) -> None:
-        self.screen.blit(image.image, position)
+        width, height = self.dimension
+        rect = pygame.Rect(position.x, position.y, width, height)
+        self.screen.blit(image.image, dest = rect)
 
     def reload(self) -> None:
         pygame.display.flip()

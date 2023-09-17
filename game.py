@@ -40,16 +40,15 @@ class Loader:
         self.avatar: Image
 
     def load(self) -> None:
-        self.groundSheet = self.loadSheet('Tileset - Ground.png')
-        self.wallSheet = self.loadSheet('Tileset - Walls.png')
-        self.minimapGroundSheet = self.loadSheet('Tileset - MiniMap - Ground.png')
-        self.minimapWallSheet = self.loadSheet('Tileset - MiniMap - Walls.png')
+        self.groundSheet = self.loadSheet('Tileset - Ground.png', self.pixelsUnit)
+        self.wallSheet = self.loadSheet('Tileset - Walls.png', self.pixelsUnit)
+        self.minimapGroundSheet = self.loadSheet('Tileset - MiniMap - Ground.png', Dimension(4,4))
+        self.minimapWallSheet = self.loadSheet('Tileset - MiniMap - Walls.png', Dimension(4,4))
         self.minimapPlayer = self.loadImage('Tileset - MiniMap - Avatar.png')
         self.minimapReference = self.loadImage('Tileset - MiniMap - Reference.png')
-        self.avatar = self.loadImage('Tileset - MiniMap - Avatar.png')
+        self.avatar = self.loadImage('Avatar - White.png')
     
-    def loadSheet(self, name:str) -> SpriteSheet:
-        unit = self.pixelsUnit
+    def loadSheet(self, name:str, unit:Dimension) -> SpriteSheet:
         return self.device.loadSpriteSheet(name, unit, 'resources')
     
     def loadImage(self, name:str) -> Image:
@@ -91,7 +90,7 @@ class Map:
     
     def calculateWalls(self) -> None:
         for pos in self.groundPositions:
-            self.groundToWalls[pos] = set()
+            self.groundToWalls.setdefault(pos, set())
             for dir in DIRECTIONS:
                 wall = pos + dir
                 self.wallToGround.setdefault(wall, set())
@@ -102,7 +101,7 @@ class Map:
     
     def makeIsland(self, iterations:int = 20) -> None:
         width, height = self.dimension
-        steps = min(width, height)
+        steps = min(width - 1, height - 1) # -1 border to walls
         center = Point(width // 2, height // 2)
         self.startPoint = center
         self.endPoint = center
@@ -198,6 +197,7 @@ class PositionSystem:
                 position = component.position
                 self.positionToComponent.pop(position, None)
                 self.positionToComponent[destination] = component
+                component.position = destination
         self.toMove.clear()
 
 
@@ -218,8 +218,7 @@ class RenderSystem:
         for comp in self.components:
             comp.draw()
         if self.minimapVisible:
-            self.minimap.draw(self.minimapPosition) 
-        pass
+            self.minimap.draw(self.minimapPosition)
 
     def setView(self, center:Point, visible:Set[Point]) -> None:
         self.ground.addGround(visible)
@@ -245,13 +244,26 @@ class RenderSystem:
         self._visible = visible
         self._center = center
 
+class FieldOfViewSystem:
+    def __init__(self, game:'RogueLike', visible:bool):
+        self.visible = visible
+        self.game = game
+    
+    def update(self, component:'FieldOfViewComponent') -> None:
+        if self.visible:
+            component.visible = self.game.map.groundPositions
+        else:
+            radius = component.radius
+            center = component.entity[PositionComponent].position
+            ground = self.game.map.groundPositions
+            self.visible = fieldOfViewRayCasting(center, radius, ground)
+
+
 
 class ControlSystem:
     def __init__(self, game:'RogueLike'):
         self.game = game
         self.minimapOffset = 25
-
-    def registerListeners(self):
         device = self.game.device
 
         listenNumeric = KeyboardListener({'[1]', '[2]', '[3]', '[4]', '[5]', '[6]', '[7]', '[8]', '[9]'})
@@ -330,16 +342,21 @@ class RogueLike:
         self.loader = Loader(self.device, self.pixelsUnit)
         self.loader.load()
         self.map = self.createStartMap()
+        
         self.renderSystem: RenderSystem = self.configureRender()
         self.positionSystem: PositionSystem = PositionSystem(self.map.groundPositions)
+        self.fieldOfViewSystem: FieldOfViewSystem = FieldOfViewSystem(self, True)
+        self.controlSystem = ControlSystem(self)
+
         self.player: Composition = self.createPlayer()
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
         self.renderSystem.setView(position, visible)
+        
 
     def createStartMap(self) -> Map:
-        dimension = Dimension(20,20)
+        dimension = Dimension(200,200)
         startMap = Map(dimension, self.rand)
         startMap.makeIsland()
         return startMap
@@ -362,6 +379,9 @@ class RogueLike:
         renderSystem.minimap.wallSheet = self.loader.minimapWallSheet
         renderSystem.map = self.map
         renderSystem.minimapPlayerImage = self.loader.minimapPlayer
+        x, y = self.map.startPoint
+        ux, uy = self.pixelsUnit
+        self.device.camera.centralize(Point(x * ux, y * uy))
         return renderSystem
 
     def update(self):
@@ -369,13 +389,15 @@ class RogueLike:
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
+        ux, uy = self.pixelsUnit
+        self.device.camera.centralize(Point(position.x * ux, position.y * uy))
         self.renderSystem.update(position, visible)
         self.draw()
 
     def draw(self):
         self.device.clear()
         self.renderSystem.draw()
-
+        self.device.reload()
 
 
 class RenderComponent:
@@ -386,8 +408,9 @@ class RenderComponent:
         game.renderSystem.components.add(self)
     
     def draw(self):
-        position = self.entity[PositionComponent].position
-        self.image.draw(position)
+        width, height = self.entity[PositionComponent].position
+        unit = self.game.pixelsUnit
+        self.image.draw(Point(width * unit.width, height * unit.height))
     
     def destroy(self):
         self.game.renderSystem.components.remove(self)
@@ -413,7 +436,4 @@ class FieldOfViewComponent:
         self.visible: Set[Point] = set()
     
     def update(self):
-        radius = self.radius
-        center = self.entity[PositionComponent].position
-        ground = self.game.map.groundPositions
-        self.visible = fieldOfViewRayCasting(center, radius, ground)
+        self.game.fieldOfViewSystem.update(self)

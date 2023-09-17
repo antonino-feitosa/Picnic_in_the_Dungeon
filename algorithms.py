@@ -235,7 +235,7 @@ class RandomWalk:
         current = center
         lastDirection = None
         directions = self.directions
-        for _ in range(self.steps-1):
+        for _ in range(self.steps-2):
             positions.add(current)
             index = self.rand.choiceIndex(directions)
             dir = directions[index]

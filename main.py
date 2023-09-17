@@ -1,6 +1,8 @@
 
 from game import RogueLike
 
+from algorithms import Point
+
 def main():
     game = RogueLike()
     game.draw()

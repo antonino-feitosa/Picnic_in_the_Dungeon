@@ -45,7 +45,7 @@ Simple ARPG with rogue like game elements:
 
 O algoritmo de passeio aleatório é aplicado para geração procedural de mapas. Recebe a posição inicial do passeio, a quantidade de passos e um conjunto de possíveis direções a serem seguidas (geralmente as direções cardinais) e então efetua o passeio retornando um conjunto de posições representado os espaço em que os personagens podem se mover.
 
-Ele é aplicado na geração no mapa em formato de ilha que consiste em aplicar o passeio uma quantide N de vezes a partir do centro do mapa de dimensões bidimensional. A quantidade de passos é escolhida como o mínimo entre a metade da largura e metade da altura do mapa. A posição incial é configurada como o centro do mapa e a posição final como o ponto mais distante do início considerando somente o passo final de cada passeio. Os mapas gerados por esse processo apresentam o formato de uma grande área concentrada no centro do mapa com ramificações radiais.
+Ele é aplicado na geração no mapa em formato de ilha que consiste em aplicar o passeio uma quantidade N de vezes a partir do centro do mapa de dimensões bidimensional. A quantidade de passos é escolhida como o mínimo entre a metade da largura e metade da altura do mapa. A posição inicial é configurada como o centro do mapa e a posição final como o ponto mais distante do início, considerando somente o passo final de cada passeio. Os mapas gerados por esse processo apresentam o formato de uma grande área concentrada no centro do mapa com ramificações radiais.
 
 ### Algoritmo de Campo de Visão
 

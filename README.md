@@ -32,11 +32,12 @@ Simple ARPG with rogue like game elements:
 
 ## Progresso
 
-1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório. <p float="left"><img src="docs/readme_images/procedural_map1.png" width="300"><img src="docs/readme_images/procedural_map2.png" width="300"></p>
-2. Geração de minimapa acessado pela tecla 'tab'. <p float="left"><img src="docs/readme_images/procedural_map_minimap1.png" width="100"><img src="docs/readme_images/procedural_map_minimap2.png" width="100"></p>
+1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório. <p float="left"><img src="docs/readme_images/procedural_map1.png" width="300"> &nbsp; <img src="docs/readme_images/procedural_map2.png" width="300"></p>
+2. Geração de minimapa acessado pela tecla 'tab'. <p float="left"><img src="docs/readme_images/procedural_map_minimap1.png" width="100"> &nbsp; <img src="docs/readme_images/procedural_map_minimap2.png" width="100"></p>
 3. Movimentação do Personagem
 4. Câmera com Foco no Personagem
 5. Minimapa com Posição do Personagem
+6. Campo de Visão e Integração com o Minimapa e Câmera <p float="left"><img src="docs/readme_images/Record_Minimap.gif" width="100"> &nbsp; <img src="docs/readme_images/Record_FOV.gif" width="100"></p>
 
 ## Detalhes de Implementação
 
@@ -70,8 +71,6 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Refactor Position and Dimension
 - [x] Field of View
 - [x] Field of View Integration with Map
-- [ ] Minimap System
-- [ ] Background System
 - [ ] Motion System
 - [ ] Animation System
 - [ ] Collectable System

@@ -55,6 +55,12 @@ class Loader:
     def loadImage(self, name:str) -> Image:
         return self.device.loadImage(name,'resources')
 
+    def loadGroundCanvas(self, dimension:Dimension) -> TiledCanvas:
+        return self.device.loadTiledCanvas(self.pixelsUnit, dimension)
+
+    def loadMinimapCanvas(self, dimension:Dimension) -> TiledCanvas:
+        return self.device.loadTiledCanvas(self.pixelsUnitMinimap, dimension)
+
 
 class Map:
     def __init__ (self, dimension:Dimension, rand:Random):
@@ -207,16 +213,18 @@ class PositionSystem:
 
 
 class RenderSystem:
-    def __init__(self, rand:Random, ground:TiledCanvas, minimap: TiledCanvas):
-        self.ground = Background(ground, rand)
-        self.minimap = Background(minimap, rand)
-        self.map: Map
-        self.minimapPlayerImage: Image
+    def __init__(self, rand:Random, loader:Loader):
+        self.map:Map
+        self.ground: Background
+        self.minimap: Background
+        self.rand = rand
+        self.loader = loader
+        self.minimapPlayerImage:Image = loader.minimapPlayer
         self._center:Point = Point(0,0)
         self._visible: Set[Point] = set()
         self.components: Set[RenderComponent] = set()
         self.minimapVisible:bool = False
-        self.minimapPosition:Point = Point(100,100) # TODO centralize at player
+        self.minimapPosition:Point = Point(0,0)
     
     def draw(self):
         self.ground.draw(Point(0,0))
@@ -224,7 +232,22 @@ class RenderSystem:
             comp.draw()
         if self.minimapVisible:
             self.minimap.drawAtScreen(self.minimapPosition)
-        
+
+    def setMap(self, map:Map) -> None:
+        self.map = map
+        rand = self.rand
+        loader = self.loader
+
+        groundCanvas = loader.loadGroundCanvas(map.dimension)
+        self.ground = Background(groundCanvas, rand)
+        self.ground.groundSheet = loader.groundSheet
+        self.ground.wallSheet = loader.wallSheet
+
+        minimapCanvas = loader.loadMinimapCanvas(map.dimension)
+        self.minimap = Background(minimapCanvas, rand)
+        self.minimap.groundSheet = loader.minimapGroundSheet
+        self.minimap.wallSheet = loader.minimapWallSheet
+
 
     def setView(self, center:Point, visible:Set[Point]) -> None:
         self.ground.addGround(visible)
@@ -235,6 +258,7 @@ class RenderSystem:
         self.minimap.paintPosition(center, self.minimapPlayerImage)
         self._visible = visible
         self._center = center
+        self.resetMinimapPosition()
 
     def update(self, center:Point, visible:Set[Point]) -> None:
         included = visible.difference(self._visible)
@@ -250,6 +274,12 @@ class RenderSystem:
         self.minimap.paintPosition(center, self.minimapPlayerImage)
         self._visible = visible
         self._center = center
+        self.resetMinimapPosition()
+    
+    def resetMinimapPosition(self)->None:
+        w, h = self.minimap.canvas.pixelsUnit
+        x, y = self._center
+        self.minimapPosition = Point(100 - x * w, 100 - y * h)
 
 class FieldOfViewSystem:
     def __init__(self, game:'RogueLike', visible:bool):
@@ -323,7 +353,7 @@ class ControlSystem:
     def listenerShowMinimap(self, key: str) -> None:
         visible = self.game.renderSystem.minimapVisible
         self.game.renderSystem.minimapVisible = not visible
-        # TODO reset minimap position
+        self.game.renderSystem.resetMinimapPosition()
         self.game.draw()
 
     def listenerTranslateMap(self, source: Point, dest: Point) -> None:
@@ -334,11 +364,8 @@ class ControlSystem:
         self.game.draw()
 
     def listenerResetCamera(self, key: str | None = None) -> None:
-        center = self.game.player[PositionComponent].position
-        width, height = self.game.pixelsUnit
-        center = Point(center.x * width, center.y * height)
-        self.game.device.camera.centralize(center)
-        # TODO reset minimap position
+        self.game.centralizeCamera()
+        self.game.renderSystem.resetMinimapPosition()
         self.game.draw()
 
 
@@ -352,7 +379,7 @@ class RogueLike:
         self.loader.load()
         self.map = self.createStartMap()
         
-        self.renderSystem: RenderSystem = self.configureRender()
+        self.renderSystem: RenderSystem = RenderSystem(self.rand, self.loader)
         self.positionSystem: PositionSystem = PositionSystem(self.map.groundPositions)
         self.fieldOfViewSystem: FieldOfViewSystem = FieldOfViewSystem(self, False)
         self.controlSystem = ControlSystem(self)
@@ -361,11 +388,12 @@ class RogueLike:
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
+        self.renderSystem.setMap(self.map)
         self.renderSystem.setView(position, visible)
-        
+        self.centralizeCamera()
 
     def createStartMap(self) -> Map:
-        dimension = Dimension(20,20)
+        dimension = Dimension(200,200)
         startMap = Map(dimension, self.rand)
         startMap.makeIsland()
         return startMap
@@ -377,29 +405,17 @@ class RogueLike:
         player.add(FieldOfViewComponent(self, player, 6))
         return player
     
-    def configureRender(self) -> RenderSystem:
-        current = self.map
-        groundCanvas = self.device.loadTiledCanvas(self.pixelsUnit, current.dimension)
-        minimapCanvas = self.device.loadTiledCanvas(self.pixelsUnitMinimap, current.dimension)
-        renderSystem = RenderSystem(self.rand, groundCanvas, minimapCanvas)
-        renderSystem.ground.groundSheet = self.loader.groundSheet
-        renderSystem.ground.wallSheet = self.loader.wallSheet
-        renderSystem.minimap.groundSheet = self.loader.minimapGroundSheet
-        renderSystem.minimap.wallSheet = self.loader.minimapWallSheet
-        renderSystem.map = self.map
-        renderSystem.minimapPlayerImage = self.loader.minimapPlayer
-        x, y = self.map.startPoint
+    def centralizeCamera(self) -> None:
+        x, y = self.player[PositionComponent].position
         ux, uy = self.pixelsUnit
         self.device.camera.centralize(Point(x * ux, y * uy))
-        return renderSystem
 
     def update(self):
         self.positionSystem.update()
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
-        ux, uy = self.pixelsUnit
-        self.device.camera.centralize(Point(position.x * ux, position.y * uy))
+        self.centralizeCamera()
         self.renderSystem.update(position, visible)
         self.draw()
 

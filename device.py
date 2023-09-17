@@ -70,7 +70,7 @@ class TiledCanvas:
     
     def _getArea(self, position:Point):
         x, y = self._scale(position)
-        width, height = self.dimension
+        width, height = self.pixelsUnit
         area = pygame.Rect(x, y, width, height)
         return area
 

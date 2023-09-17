@@ -223,7 +223,6 @@ class RandomWalk:
         self.rand = rand
         self.steps = steps
         self.directions = directions
-        self.restartAtCenter:bool = True
         self._lastPoint: Point = Point(0,0)
     
     @property

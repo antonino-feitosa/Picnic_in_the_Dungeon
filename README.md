@@ -42,11 +42,9 @@ Simple ARPG with rogue like game elements:
 
 ### Algoritmo de Passeio Aleatório
 
-O algoritmo gera um conjunto de posições escolhendo aleatoriamente a próxima posição adjacente a posição atual. Utilizamos dois algoritmos, um para expansão em profundidade e outro em largura. Ambos algoritmos possuem como parâmetros a posição inicial, chamada de centro, a quantidade de iterações ou caminhos a serem gerados, o tamanho de cada caminho e um algoritmo de escolha das posições. A cada iteração é invocado o algoritmo de escolha para gerar um caminho do tamanho especificado iniciando numa posição que pode ser o centro a última gerada. Os três algoritmos são listados a seguir:
+O algoritmo de passeio aleatório é aplicado para geração procedural de mapas. Recebe a posição inicial do passeio, a quantidade de passos e um conjunto de possíveis direções a serem seguidas (geralmente as direções cardinais) e então efetua o passeio retornando um conjunto de posições representado os espaço em que os personagens podem se mover.
 
-- Algoritmo Aleatório: a próxima posição é escolhida entre as quatro direções cardinais evitando a última direção escolhida, por exemplo, se no último passo escolhemos a direção norte, então, nesta iteração, não devemos escolher a posição sul, pois estaríamos voltando para a mesma posição.
-- Algoritmo de Progresso: escolhe uma posição entre as cardinais e gera todas as posições como posições consecutivas nessa direção.
-- Algoritmo Estrela: similar ao algoritmo de Aleatório, porém as direções são fixas em apenas duas possíveis. Essas direções são escolhidas em pares (_a_, _b_) de modo que _a_ pode ser somente norte ou sul e _b_ somente leste ou oeste.
+Ele é aplicado na geração no mapa em formato de ilha que consiste em aplicar o passeio uma quantide N de vezes a partir do centro do mapa de dimensões bidimensional. A quantidade de passos é escolhida como o mínimo entre a metade da largura e metade da altura do mapa. A posição incial é configurada como o centro do mapa e a posição final como o ponto mais distante do início considerando somente o passo final de cada passeio. Os mapas gerados por esse processo apresentam o formato de uma grande área concentrada no centro do mapa com ramificações radiais.
 
 ### Algoritmo de Campo de Visão
 
@@ -72,12 +70,21 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Refactor Position and Dimension
 - [x] Field of View
 - [x] Field of View Integration with Map
+- [ ] Minimap System
+- [ ] Background System
+- [ ] Motion System
+- [ ] Animation System
+- [ ] Collectable System
 - [ ] Centralize Minimap
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)
 - [ ] Player Directions Sprites
 - [ ] Player Animations
 - [ ] Map Levels
+- [ ] Binary Spatial Partition Map
+- [ ] Cellular Automata Map
+- [ ] Voronoy Hive Map
+
 
 
 

@@ -28,9 +28,10 @@ from algorithms import fieldOfViewRayCasting
 
 
 class Loader:
-    def __init__(self, device:Device, pixelsUnit: Dimension):
+    def __init__(self, device:Device, pixelsUnit: Dimension, pixelsUnitMinimap: Dimension):
         self.device = device
         self.pixelsUnit = pixelsUnit
+        self.pixelsUnitMinimap = pixelsUnitMinimap
         self.groundSheet:SpriteSheet
         self.wallSheet:SpriteSheet
         self.minimapGroundSheet: SpriteSheet
@@ -42,8 +43,8 @@ class Loader:
     def load(self) -> None:
         self.groundSheet = self.loadSheet('Tileset - Ground.png', self.pixelsUnit)
         self.wallSheet = self.loadSheet('Tileset - Walls.png', self.pixelsUnit)
-        self.minimapGroundSheet = self.loadSheet('Tileset - MiniMap - Ground.png', Dimension(4,4))
-        self.minimapWallSheet = self.loadSheet('Tileset - MiniMap - Walls.png', Dimension(4,4))
+        self.minimapGroundSheet = self.loadSheet('Tileset - MiniMap - Ground.png', self.pixelsUnitMinimap)
+        self.minimapWallSheet = self.loadSheet('Tileset - MiniMap - Walls.png', self.pixelsUnitMinimap)
         self.minimapPlayer = self.loadImage('Tileset - MiniMap - Avatar.png')
         self.minimapReference = self.loadImage('Tileset - MiniMap - Reference.png')
         self.avatar = self.loadImage('Avatar - White.png')
@@ -135,12 +136,16 @@ class Background:
     def draw(self, position:Point):
         self.canvas.draw(position)
 
+    def drawAtScreen(self, position:Point):
+        self.canvas.drawAtScreen(position)
+
     def addGround(self, ground : Set[Point]) -> None:
         dimension = self.canvas.dimension
         sheet = self.groundSheet
         for position in ground:
             if position in dimension:
                 image = self.rand.choice(sheet.images)
+                self.clearPositions({position})
                 self.canvas.drawAtCanvas(image, position)
 
     def addWall(self, wall : Set[Point]) -> None:
@@ -218,7 +223,8 @@ class RenderSystem:
         for comp in self.components:
             comp.draw()
         if self.minimapVisible:
-            self.minimap.draw(self.minimapPosition)
+            self.minimap.drawAtScreen(self.minimapPosition)
+        
 
     def setView(self, center:Point, visible:Set[Point]) -> None:
         self.ground.addGround(visible)
@@ -239,7 +245,8 @@ class RenderSystem:
         self.ground.addWall(walls)
         self.minimap.addGround(included)
         self.minimap.addWall(walls)
-        self.minimap.clearPositions({center})
+        self.minimap.clearPositions({self._center})
+        self.minimap.addGround({self._center})
         self.minimap.paintPosition(center, self.minimapPlayerImage)
         self._visible = visible
         self._center = center
@@ -256,8 +263,7 @@ class FieldOfViewSystem:
             radius = component.radius
             center = component.entity[PositionComponent].position
             ground = self.game.map.groundPositions
-            self.visible = fieldOfViewRayCasting(center, radius, ground)
-
+            component.visible = fieldOfViewRayCasting(center, radius, ground)
 
 
 class ControlSystem:
@@ -317,6 +323,7 @@ class ControlSystem:
     def listenerShowMinimap(self, key: str) -> None:
         visible = self.game.renderSystem.minimapVisible
         self.game.renderSystem.minimapVisible = not visible
+        # TODO reset minimap position
         self.game.draw()
 
     def listenerTranslateMap(self, source: Point, dest: Point) -> None:
@@ -331,6 +338,7 @@ class ControlSystem:
         width, height = self.game.pixelsUnit
         center = Point(center.x * width, center.y * height)
         self.game.device.camera.centralize(center)
+        # TODO reset minimap position
         self.game.draw()
 
 
@@ -339,13 +347,14 @@ class RogueLike:
         self.rand = Random(0)
         self.device = Device('Picnic in the Dungeon')
         self.pixelsUnit = Dimension(32,32)
-        self.loader = Loader(self.device, self.pixelsUnit)
+        self.pixelsUnitMinimap = Dimension(4,4)
+        self.loader = Loader(self.device, self.pixelsUnit, self.pixelsUnitMinimap)
         self.loader.load()
         self.map = self.createStartMap()
         
         self.renderSystem: RenderSystem = self.configureRender()
         self.positionSystem: PositionSystem = PositionSystem(self.map.groundPositions)
-        self.fieldOfViewSystem: FieldOfViewSystem = FieldOfViewSystem(self, True)
+        self.fieldOfViewSystem: FieldOfViewSystem = FieldOfViewSystem(self, False)
         self.controlSystem = ControlSystem(self)
 
         self.player: Composition = self.createPlayer()
@@ -356,7 +365,7 @@ class RogueLike:
         
 
     def createStartMap(self) -> Map:
-        dimension = Dimension(200,200)
+        dimension = Dimension(20,20)
         startMap = Map(dimension, self.rand)
         startMap.makeIsland()
         return startMap
@@ -371,7 +380,7 @@ class RogueLike:
     def configureRender(self) -> RenderSystem:
         current = self.map
         groundCanvas = self.device.loadTiledCanvas(self.pixelsUnit, current.dimension)
-        minimapCanvas = self.device.loadTiledCanvas(self.pixelsUnit, current.dimension)
+        minimapCanvas = self.device.loadTiledCanvas(self.pixelsUnitMinimap, current.dimension)
         renderSystem = RenderSystem(self.rand, groundCanvas, minimapCanvas)
         renderSystem.ground.groundSheet = self.loader.groundSheet
         renderSystem.ground.wallSheet = self.loader.wallSheet

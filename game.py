@@ -40,6 +40,7 @@ class Loader:
         self.minimapPlayer: Image
         self.minimapReference: Image
         self.avatar: Image
+        self.avatarIdleRight: SpriteSheet
 
     def load(self) -> None:
         self.groundSheet = self.loadSheet("Tileset - Ground.png", self.pixelsUnit)
@@ -53,6 +54,7 @@ class Loader:
         self.minimapPlayer = self.loadImage("Tileset - MiniMap - Avatar.png")
         self.minimapReference = self.loadImage("Tileset - MiniMap - Reference.png")
         self.avatar = self.loadImage("Avatar - White.png")
+        self.avatarIdleRight = self.loadSheet("Avatar - White - Idle - Right.png", self.pixelsUnit)
 
     def loadSheet(self, name: str, unit: Dimension) -> SpriteSheet:
         return self.device.loadSpriteSheet(name, unit, "resources")
@@ -236,7 +238,9 @@ class RenderSystem:
     def draw(self):
         self.ground.draw(Point(0, 0))
         for comp in self.components:
-            comp.draw()
+            position = comp.entity[PositionComponent].position
+            if position in self._visible:
+                comp.draw()
         if self.minimapVisible:
             self.minimap.drawAtScreen(self.minimapPosition)
 
@@ -288,19 +292,31 @@ class RenderSystem:
         self.minimapPosition = Point(100 - x * w, 100 - y * h)
 
 
+class AnimationSystem:
+    def __init__(self):
+        self.visible: Set[Point] = set()
+        self.components: Set[AnimationComponent] = set()
+    
+    def update(self):
+        for component in self.components:
+            position = component.entity[PositionComponent].position
+            if position in self.visible:
+                component.update()
+    
+
 class FieldOfViewSystem:
-    def __init__(self, game: "RogueLike", visible: bool):
-        self.visible = visible
+    def __init__(self, game: "RogueLike", enableFOV: bool):
+        self.enableFOV = enableFOV
         self.game = game
 
     def update(self, component: "FieldOfViewComponent") -> None:
-        if self.visible:
-            component.visible = self.game.map.groundPositions
-        else:
+        if self.enableFOV:
             radius = component.radius
             center = component.entity[PositionComponent].position
             ground = self.game.map.groundPositions
             component.visible = fieldOfViewRayCasting(center, radius, ground)
+        else:
+            component.visible = self.game.map.groundPositions
 
 
 class ControlSystem:
@@ -392,19 +408,20 @@ class ControlSystem:
 
 
 class RogueLike:
-    def __init__(self, seed: int = 0):
+    def __init__(self, seed: int = 0, enableFOV = True):
         self.rand = Random(seed)
-        self.device = Device("Picnic in the Dungeon")
+        self.device = Device("Picnic in the Dungeon", tick = 32)
         self.pixelsUnit = Dimension(32, 32)
         self.pixelsUnitMinimap = Dimension(4, 4)
         self.loader = Loader(self.device, self.pixelsUnit, self.pixelsUnitMinimap)
         self.loader.load()
         self.map = self.createStartMap()
 
-        self.renderSystem: RenderSystem = RenderSystem(self.rand, self.loader)
-        self.positionSystem: PositionSystem = PositionSystem(self.map.groundPositions)
-        self.fieldOfViewSystem: FieldOfViewSystem = FieldOfViewSystem(self, False)
+        self.renderSystem = RenderSystem(self.rand, self.loader)
+        self.positionSystem = PositionSystem(self.map.groundPositions)
+        self.fieldOfViewSystem = FieldOfViewSystem(self, enableFOV)
         self.controlSystem = ControlSystem(self)
+        self.animationSystem = AnimationSystem()
 
         self.player: Composition = self.createPlayer()
         self.player[FieldOfViewComponent].update()
@@ -412,6 +429,7 @@ class RogueLike:
         visible = self.player[FieldOfViewComponent].visible
         self.renderSystem.setMap(self.map)
         self.renderSystem.setView(position, visible)
+        self.animationSystem.visible = visible
         self.centralizeCamera()
 
     def createStartMap(self) -> Map:
@@ -425,6 +443,7 @@ class RogueLike:
         player.add(RenderComponent(self, player, self.loader.avatar))
         player.add(PositionComponent(self, player, self.map.startPoint))
         player.add(FieldOfViewComponent(self, player, 6))
+        player.add(AnimationComponent(player[RenderComponent], self.loader.avatarIdleRight, 4))
         return player
 
     def centralizeCamera(self) -> None:
@@ -432,19 +451,28 @@ class RogueLike:
         ux, uy = self.pixelsUnit
         self.device.camera.centralize(Point(x * ux, y * uy))
 
-    def update(self):
+    def update(self) -> None:
         self.positionSystem.update()
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
         self.centralizeCamera()
+        self.animationSystem.visible = visible
         self.renderSystem.update(position, visible)
         self.draw()
 
-    def draw(self):
+    def draw(self) -> None:
         self.device.clear()
         self.renderSystem.draw()
         self.device.reload()
+    
+    def isRunning(self) -> bool:
+        return self.device.running
+
+    def loop(self) -> None:
+        self.animationSystem.update()
+        self.device.update()
+        self.draw()
 
 
 class RenderComponent:
@@ -484,3 +512,34 @@ class FieldOfViewComponent:
 
     def update(self):
         self.game.fieldOfViewSystem.update(self)
+
+
+class AnimationComponent:
+    def __init__(self, render:RenderComponent, animation: SpriteSheet, tick:int):
+        self.tick = tick
+        self.loop = True
+        self._tickCount = 0
+        self._frameIndex = 0
+        self.render = render
+        self.game = render.game
+        self.animation = animation
+        self.entity = render.entity
+        self.game.animationSystem.components.add(self)
+    
+    def reload(self):
+        self._tickCount = 0
+        self._frameIndex = 0
+    
+    def update(self):
+        if self._tickCount >= self.tick:
+            self._tickCount = 0
+            self.render.image = self.animation.images[self._frameIndex]
+            length = len(self.animation.images)
+            if self._frameIndex + 1 < length:
+                self._frameIndex += 1
+            else:
+                if self.loop:
+                    self._frameIndex = 0
+        else:
+            self._tickCount += 1
+    

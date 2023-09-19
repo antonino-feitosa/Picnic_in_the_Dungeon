@@ -2,10 +2,10 @@ from game import RogueLike
 
 
 def main():
-    game = RogueLike(33)
+    game = RogueLike(seed=1,enableFOV=False)
     game.draw()
-    while game.device.running:
-        game.device.update()
+    while game.isRunning():
+        game.loop()
 
 
 if __name__ == "__main__":

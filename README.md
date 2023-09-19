@@ -113,8 +113,10 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Refactor Position and Dimension
 - [x] Field of View
 - [x] Field of View Integration with Map
+- [x] Animation System
+- [ ] Animation Transition System
 - [ ] Motion System
-- [ ] Animation System
+- [ ] Player 8 Directional Sprites
 - [ ] Collectable System
 - [ ] Centralize Minimap
 - [ ] Wave Collapse Function

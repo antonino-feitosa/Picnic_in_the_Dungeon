@@ -204,6 +204,9 @@ class Random:
 
     def nextRange(self, min: int, max: int) -> int:
         return self.rand.randint(min, max - 1)
+    
+    def nextNormal(self, mean:float = 0, sigma:float = 1) -> float:
+        return self.rand.normalvariate(mean, sigma)
 
     T = TypeVar("T")
 

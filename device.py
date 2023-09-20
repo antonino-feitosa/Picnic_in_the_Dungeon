@@ -21,8 +21,11 @@ class Camera:
         self.translate: Point = Point(0, 0)
 
     def centralize(self, position: Point) -> None:
+        self.translate = self.referenceToCenter(position)
+
+    def referenceToCenter(self, position: Point) -> Point:
         width, height = self.dimension
-        self.translate = Point(position.x - width // 2, position.y - height // 2)
+        return Point(position.x - width // 2, position.y - height // 2)
 
 
 class Image:

@@ -1,4 +1,3 @@
-
 import math
 
 from typing import Set
@@ -23,8 +22,10 @@ from algorithms import Direction
 from algorithms import RandomWalk
 from algorithms import Composition
 
+from algorithms import sign
 from algorithms import CARDINALS
 from algorithms import DIRECTIONS
+from algorithms import relativeDirection
 from algorithms import distanceManhattan
 from algorithms import fieldOfViewRayCasting
 
@@ -57,7 +58,9 @@ class Loader:
         self.minimapPlayer = self.loadImage("Tileset - MiniMap - Avatar.png")
         self.minimapReference = self.loadImage("Tileset - MiniMap - Reference.png")
         self.avatar = self.loadImage("Avatar - White.png")
-        self.avatarIdleRight = self.loadSheet("Avatar - White - Idle - Right.png", self.pixelsUnit)
+        self.avatarIdleRight = self.loadSheet(
+            "Avatar - White - Idle - Right.png", self.pixelsUnit
+        )
 
     def loadSheet(self, name: str, unit: Dimension) -> SpriteSheet:
         return self.device.loadSpriteSheet(name, unit, "resources")
@@ -299,20 +302,20 @@ class AnimationSystem:
     def __init__(self):
         self.visible: Set[Point] = set()
         self.components: Set[AnimationComponent] = set()
-    
+
     def update(self):
         for component in self.components:
             position = component.entity[PositionComponent].position
             if position in self.visible:
                 component.update()
-    
+
 
 class FieldOfViewSystem:
-    def __init__(self, game: 'RogueLike', enableFOV: bool):
+    def __init__(self, game: "RogueLike", enableFOV: bool):
         self.enableFOV = enableFOV
         self.game = game
 
-    def update(self, component: 'FieldOfViewComponent') -> None:
+    def update(self, component: "FieldOfViewComponent") -> None:
         if self.enableFOV:
             radius = component.radius
             center = component.entity[PositionComponent].position
@@ -321,46 +324,84 @@ class FieldOfViewSystem:
         else:
             component.visible = self.game.map.groundPositions
 
+
 class CameraSystem:
-    def __init__(self, game: 'RogueLike'):
+    def __init__(self, game: "RogueLike", withDelay=False):
         self.game = game
-        self.offset: Point = Point(0,0)
-        self.countShake = 0
-        self.magnitude = 0
-        self.active:CameraComponent
-    
-    def focus(self, component: 'CameraComponent') -> None:
+        self.withDelay: bool = withDelay
+        self.active: CameraComponent
+        self._offset: Point = Point(0, 0)
+        self._countShake = 0
+        self._applying = False
+        self._current: Point = Point(0, 0)
+        self._waitingToApply = 0
+        self._destination: Point = Point(0, 0)
+        self._speed: Point = Point(0, 0)
+
+    def focus(self, component: "CameraComponent") -> None:
         self.active = component
-        self.centralize()
-    
+        if self.withDelay:
+            self._current = self.game.device.camera.translate
+            self._waitingToApply = component.delay
+            self._applying = True
+            position = self.active.entity[PositionComponent].position
+            position = self.toScreenUnit(position)
+            self._destination = self.game.device.camera.referenceToCenter(position)
+            direction = relativeDirection(self._current, self._destination)
+            sx, sy = component.speed
+            self._speed = Point(direction.x * sx, direction.y * sy)
+        else:
+            self.centralize()
+
     def centralize(self):
-        x, y = self.active.entity[PositionComponent].position
+        position = self.active.entity[PositionComponent].position
+        x, y = self.toScreenUnit(position)
+        offx, offy = self._offset
+        self.game.device.camera.centralize(Point(x + offx, y + offy))
+
+    def toScreenUnit(self, point: Point) -> Point:
         ux, uy = self.game.pixelsUnit
-        offx, offy = self.offset
-        self.game.device.camera.centralize(Point(x * ux + offx, y * uy + offy))
-    
-    def shake(self, ticks:int, magnitude = 3) -> None:
-        self.countShake = ticks
-        self.magnitude = magnitude
+        return Point(point.x * ux, point.y * uy)
+
+    def shake(self, component: "CameraComponent") -> None:
+        self.countShake = component.ticks
+        self.magnitude = component.magnitude
         self._applyShake()
-    
+
     def _applyShake(self) -> None:
         dx = self.game.rand.nextNormal(0, self.magnitude)
         dy = self.game.rand.nextNormal(0, self.magnitude)
-        self.offset = Point(math.ceil(dx), math.ceil(dy))
-    
+        self._offset = Point(math.ceil(dx), math.ceil(dy))
+
+    def _applyFocusWithDelay(self) -> bool:
+        source = self._current
+        dest = self._destination
+        sx, sy = self._speed
+        x = source.x + sx if abs(source.x - dest.x) >= abs(sx) else dest.x
+        y = source.y + sy if abs(source.y - dest.y) >= abs(sy) else dest.y
+        self._current = Point(x, y)
+        offx, offy = self._offset
+        self.game.device.camera.translate = Point(x + offx, y + offy)
+        return self._current != self._destination
+
     def update(self) -> None:
-        if self.countShake > 0:
+        if self._applying:
+            if self._waitingToApply > 0:
+                self._waitingToApply -= 1
+            else:
+                self._applying = self._applyFocusWithDelay()
+        if self._countShake > 0:
             self._applyShake()
             self.centralize()
-            self.countShake -= 1
-        else:
-            self.offset = Point(0,0)
+            self._countShake -= 1
+        elif self._countShake == 0:
+            self._offset = Point(0, 0)
+            self._countShake = -1
             self.centralize()
 
 
 class ControlSystem:
-    def __init__(self, game: 'RogueLike'):
+    def __init__(self, game: "RogueLike"):
         self.game = game
         self.minimapOffset = 25
         device = self.game.device
@@ -448,9 +489,9 @@ class ControlSystem:
 
 
 class RogueLike:
-    def __init__(self, seed: int = 0, enableFOV = True):
+    def __init__(self, seed: int = 0, enableFOV=True):
         self.rand = Random(seed)
-        self.device = Device("Picnic in the Dungeon", tick = 16)
+        self.device = Device("Picnic in the Dungeon", tick=16)
         self.pixelsUnit = Dimension(32, 32)
         self.pixelsUnitMinimap = Dimension(4, 4)
         self.loader = Loader(self.device, self.pixelsUnit, self.pixelsUnitMinimap)
@@ -462,10 +503,10 @@ class RogueLike:
         self.fieldOfViewSystem = FieldOfViewSystem(self, enableFOV)
         self.controlSystem = ControlSystem(self)
         self.animationSystem = AnimationSystem()
-        self.cameraSystem = CameraSystem(self)
+        self.cameraSystem = CameraSystem(self, withDelay=True)
 
         self.player: Composition = self.createPlayer()
-        self.player[CameraComponent].focus()
+        self.player[CameraComponent].centralize()
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
@@ -484,7 +525,9 @@ class RogueLike:
         player.add(RenderComponent(self, player, self.loader.avatar))
         player.add(PositionComponent(self, player, self.map.startPoint))
         player.add(FieldOfViewComponent(self, player, 6))
-        player.add(AnimationComponent(player[RenderComponent], self.loader.avatarIdleRight, 1))
+        player.add(
+            AnimationComponent(player[RenderComponent], self.loader.avatarIdleRight, 1)
+        )
         player.add(CameraComponent(self, player))
         return player
 
@@ -503,7 +546,7 @@ class RogueLike:
         self.cameraSystem.update()
         self.renderSystem.draw()
         self.device.reload()
-    
+
     def isRunning(self) -> bool:
         return self.device.running
 
@@ -518,7 +561,7 @@ class RenderComponent:
         self.game = game
         self.image = image
         self.entity = entity
-        self.offset:Point = Point(0,0)
+        self.offset: Point = Point(0, 0)
         game.renderSystem.components.add(self)
 
     def draw(self):
@@ -556,7 +599,7 @@ class FieldOfViewComponent:
 
 
 class AnimationComponent:
-    def __init__(self, render:RenderComponent, animation: SpriteSheet, tick:int):
+    def __init__(self, render: RenderComponent, animation: SpriteSheet, tick: int):
         self.tick = tick
         self.loop = True
         self._tickCount = 0
@@ -566,11 +609,11 @@ class AnimationComponent:
         self.animation = animation
         self.entity = render.entity
         self.game.animationSystem.components.add(self)
-    
+
     def reload(self):
         self._tickCount = 0
         self._frameIndex = 0
-    
+
     def update(self):
         if self._tickCount >= self.tick:
             self._tickCount = 0
@@ -589,10 +632,17 @@ class CameraComponent:
     def __init__(self, game: RogueLike, entity: Composition):
         self.game = game
         self.entity = entity
-        self.delay = 0
-    
+        self.delay = 5
+        self.speed: Point = Point(4, 4)
+        self.ticks = 3
+        self.magnitude = 3
+
     def focus(self) -> None:
         self.game.cameraSystem.focus(self)
 
-    def shake(self, ticks:int, magnitude = 3) -> None:
-        self.game.cameraSystem.shake(ticks, magnitude)
+    def centralize(self) -> None:
+        self.game.cameraSystem.active = self
+        self.game.cameraSystem.centralize()
+
+    def shake(self) -> None:
+        self.game.cameraSystem.shake(self)

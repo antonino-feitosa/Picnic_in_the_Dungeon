@@ -61,6 +61,18 @@ def distanceManhattan(first: Point, second: Point) -> int:
     return abs(first.x - second.x) + abs(first.y - second.y)
 
 
+def sign(x) -> int:
+    if x > 0:
+        return 1
+    if x < 0:
+        return -1
+    return 0
+
+
+def relativeDirection(source: Point, dest: Point) -> "Direction":
+    return Direction(Point(sign(dest.x - source.x), sign(dest.y - source.y)))
+
+
 Point.__add__ = _point__add__
 Point.__mul__ = _point__mul__
 Point.__rmul__ = _point__mul__
@@ -204,8 +216,8 @@ class Random:
 
     def nextRange(self, min: int, max: int) -> int:
         return self.rand.randint(min, max - 1)
-    
-    def nextNormal(self, mean:float = 0, sigma:float = 1) -> float:
+
+    def nextNormal(self, mean: float = 0, sigma: float = 1) -> float:
         return self.rand.normalvariate(mean, sigma)
 
     T = TypeVar("T")

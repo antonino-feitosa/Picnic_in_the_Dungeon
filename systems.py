@@ -1,4 +1,3 @@
-
 import math
 
 from typing import Set
@@ -10,29 +9,18 @@ from base import Background
 
 from device import Image
 from device import Camera
-from device import Device
 from device import SpriteSheet
-from device import TiledCanvas
-from device import UpdateListener
-from device import KeyboardListener
-from device import MouseDragListener
 
 from algorithms import Set
 from algorithms import Dict
 from algorithms import List
 from algorithms import Point
 from algorithms import Random
-from algorithms import Overlap
 from algorithms import Dimension
 from algorithms import Direction
-from algorithms import RandomWalk
 from algorithms import Composition
 
-from algorithms import sign
-from algorithms import CARDINALS
-from algorithms import DIRECTIONS
 from algorithms import relativeDirection
-from algorithms import distanceManhattan
 from algorithms import fieldOfViewRayCasting
 
 
@@ -129,24 +117,12 @@ class RenderSystem:
         self.minimapPosition = Point(100 - x * w, 100 - y * h)
 
 
-class AnimationSystem:
-    def __init__(self):
-        self.visible: Set[Point] = set()
-        self.components: Set[AnimationComponent] = set()
-
-    def update(self):
-        for component in self.components:
-            position = component.entity[PositionComponent].position
-            if position in self.visible:
-                component.update()
-
-
 class FieldOfViewSystem:
     def __init__(self, ground: set[Point], enableFOV: bool):
         self.enableFOV = enableFOV
         self.ground = ground
 
-    def update(self, component: 'FieldOfViewComponent') -> None:
+    def update(self, component: "FieldOfViewComponent") -> None:
         if self.enableFOV:
             radius = component.radius
             center = component.entity[PositionComponent].position
@@ -157,7 +133,7 @@ class FieldOfViewSystem:
 
 
 class CameraSystem:
-    def __init__(self, camera: Camera, rand:Random, pixelsUnit:Dimension):
+    def __init__(self, camera: Camera, rand: Random, pixelsUnit: Dimension):
         self.rand = rand
         self.camera = camera
         self.withDelay: bool = True
@@ -171,7 +147,7 @@ class CameraSystem:
         self._destination: Point = Point(0, 0)
         self._speed: Point = Point(0, 0)
 
-    def focus(self, component: 'CameraComponent') -> None:
+    def focus(self, component: "CameraComponent") -> None:
         self.active = component
         if self.withDelay:
             self._current = self.camera.translate
@@ -233,8 +209,33 @@ class CameraSystem:
             self.centralize()
 
 
-# Components
+class AnimationSystem:
+    def __init__(self):
+        self.visible: Set[Point] = set()
+        self.components: Set[AnimationComponent] = set()
 
+    def update(self):
+        for component in self.components:
+            position = component.entity[PositionComponent].position
+            if position in self.visible:
+                component.update()
+
+
+class AnimationControllerSystem:
+    def __init__(self):
+        self.visible: Set[Point] = set()
+        self.components: Set[AnimationControllerComponent] = set()
+
+    def update(self):
+        for component in self.components:
+            position = component.entity[PositionComponent].position
+            if position in self.visible:
+                component.update()
+
+
+##############################################################################
+# Components
+##############################################################################
 
 
 class RenderComponent:
@@ -280,7 +281,9 @@ class FieldOfViewComponent:
 
 
 class AnimationComponent:
-    def __init__(self, system:AnimationSystem, render: RenderComponent, animation: SpriteSheet):
+    def __init__(
+        self, system: AnimationSystem, render: RenderComponent, animation: SpriteSheet
+    ):
         self.tick = 1
         self.loop = True
         self._tickCount = 0
@@ -289,11 +292,21 @@ class AnimationComponent:
         self.system = system
         self.animation = animation
         self.entity = render.entity
+    
+    def play(self):
+        self.entity.add(self)
         self.system.components.add(self)
+
+    def destroy(self):
+        self.entity.remove(self)
+        self.system.components.remove(self)
 
     def reload(self):
         self._tickCount = 0
         self._frameIndex = 0
+
+    def finished(self):
+        return not self.loop and self._frameIndex == len(self.animation.images) - 1
 
     def update(self):
         if self._tickCount >= self.tick:
@@ -310,7 +323,7 @@ class AnimationComponent:
 
 
 class CameraComponent:
-    def __init__(self, system:CameraSystem, entity: Composition):
+    def __init__(self, system: CameraSystem, entity: Composition):
         self.system = system
         self.entity = entity
         self.delay = 5
@@ -329,3 +342,49 @@ class CameraComponent:
         self.system.shake(self)
 
 
+class AnimationControllerComponent:
+    def __init__(self, system: AnimationControllerSystem, entity: Composition):
+        self.system = system
+        self.entity = entity
+        self.animations: Dict[str, AnimationComponent] = dict()
+        self._stackContext: bool = False
+        self._baseAnimation: AnimationComponent
+        self._stackAnimation: AnimationComponent
+        self._baseAnimationName: str
+        self._stackAnimationName: str
+        system.components.add(self)
+
+    def addAnimation(self, name: str, animation: "AnimationComponent"):
+        self.animations[name] = animation
+
+    def getCurrentAnimation(self) -> str:
+        name = self._baseAnimationName
+        return name if not self._stackContext else self._stackAnimationName
+
+    def playAnimation(self, name: str) -> None:
+        self._baseAnimationName = name
+        self._baseAnimation = self.animations[name]
+        self._baseAnimation.loop = True
+        self._playAnimation(self._baseAnimation)
+
+    def playAnimationInStack(self, name: str) -> None:
+        self._stackAnimationName = name
+        self._stackAnimation = self.animations[name]
+        self._stackAnimation.loop = False
+        self._stackContext = True
+        self._playAnimation(self._stackAnimation)
+
+    def _restoreBaseAnimation(self) -> None:
+        self.entity[AnimationComponent].destroy()
+        self._baseAnimation.play()
+
+    def _playAnimation(self, animation: AnimationComponent) -> None:
+        self.entity[AnimationComponent].destroy()
+        animation.reload()
+        animation.play()
+
+    def update(self):
+        if self._stackContext:
+            if self._stackAnimation.finished():
+                self._restoreBaseAnimation()
+                self._stackContext = False

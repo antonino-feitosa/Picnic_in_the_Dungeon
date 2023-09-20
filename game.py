@@ -1,17 +1,8 @@
-import math
-
-from typing import Set
-from typing import Tuple
 
 from base import Map
 from base import Loader
-from base import Background
 
-from device import Image
 from device import Device
-from device import SpriteSheet
-from device import TiledCanvas
-from device import UpdateListener
 from device import KeyboardListener
 from device import MouseDragListener
 
@@ -25,26 +16,14 @@ from systems import FieldOfViewSystem
 from systems import FieldOfViewComponent
 from systems import CameraSystem
 from systems import CameraComponent
+from systems import AnimationControllerSystem
+from systems import AnimationControllerComponent
 
-
-
-from algorithms import Set
-from algorithms import Dict
-from algorithms import List
 from algorithms import Point
 from algorithms import Random
-from algorithms import Overlap
 from algorithms import Dimension
 from algorithms import Direction
-from algorithms import RandomWalk
 from algorithms import Composition
-
-from algorithms import sign
-from algorithms import CARDINALS
-from algorithms import DIRECTIONS
-from algorithms import relativeDirection
-from algorithms import distanceManhattan
-from algorithms import fieldOfViewRayCasting
 
 class ControlSystem:
     def __init__(self, game: 'RogueLike'):
@@ -151,6 +130,7 @@ class RogueLike:
         self.controlSystem = ControlSystem(self)
         self.animationSystem = AnimationSystem()
         self.cameraSystem = CameraSystem(self.device.camera, self.rand, self.pixelsUnit)
+        self.animationControllerSystem = AnimationControllerSystem()
 
         self.player: Composition = self.createPlayer()
         self.player[CameraComponent].centralize()
@@ -160,6 +140,7 @@ class RogueLike:
         self.renderSystem.setMap(self.map)
         self.renderSystem.setView(position, visible)
         self.animationSystem.visible = visible
+        self.animationControllerSystem.visible = visible
 
     def createStartMap(self) -> Map:
         dimension = Dimension(200, 200)
@@ -173,7 +154,14 @@ class RogueLike:
         player.add(PositionComponent(self.positionSystem, player, self.map.startPoint))
         player.add(FieldOfViewComponent(self.fieldOfViewSystem, player, 4))
         player.add(AnimationComponent(self.animationSystem, player[RenderComponent], self.loader.avatarIdleRight))
+        player[AnimationComponent].play()
         player.add(CameraComponent(self.cameraSystem, player))
+        controler = AnimationControllerComponent(self.animationControllerSystem, player)
+        render = player[RenderComponent]
+        for (key, sprite) in self.loader.avatarSprites.items():
+            animation = AnimationComponent(self.animationSystem, render, sprite)
+            controler.addAnimation(str(key), animation)
+        player.add(controler)
         return player
 
     def update(self) -> None:
@@ -183,12 +171,14 @@ class RogueLike:
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
         self.animationSystem.visible = visible
+        self.animationControllerSystem.visible = visible
         self.renderSystem.update(position, visible)
         self.draw()
 
     def draw(self) -> None:
         self.device.clear()
         self.cameraSystem.update()
+        self.animationControllerSystem.update()
         self.renderSystem.draw()
         self.device.reload()
 

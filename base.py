@@ -31,7 +31,7 @@ class Loader:
         ('idle', Direction.UP_LEFT): 'White - Idle - Up - Left.png',
         ('idle', Direction.UP_RIGHT): 'White - Idle - Up - Right.png',
         ('idle', Direction.DOWN_LEFT): 'White - Idle - Down - Left.png',
-        ('idle', Direction.DOWN_RIGHT): 'White - Idle - Down - Left.png',
+        ('idle', Direction.DOWN_RIGHT): 'White - Idle - Down - Right.png',
         ('walk', Direction.UP): 'White - Walk - Up.png',
         ('walk', Direction.DOWN): 'White - Walk - Down.png',
         ('walk', Direction.LEFT): 'White - Walk - Left.png',
@@ -39,7 +39,7 @@ class Loader:
         ('walk', Direction.UP_LEFT): 'White - Walk - Up - Left.png',
         ('walk', Direction.UP_RIGHT): 'White - Walk - Up - Right.png',
         ('walk', Direction.DOWN_LEFT): 'White - Walk - Down - Left.png',
-        ('walk', Direction.DOWN_RIGHT): 'White - Walk - Down - Left.png',
+        ('walk', Direction.DOWN_RIGHT): 'White - Walk - Down - Right.png',
         ('collision', Direction.UP): 'White - Collision - Up.png',
         ('collision', Direction.DOWN): 'White - Collision - Down.png',
         ('collision', Direction.LEFT): 'White - Collision - Left.png',
@@ -47,7 +47,7 @@ class Loader:
         ('collision', Direction.UP_LEFT): 'White - Collision - Up - Left.png',
         ('collision', Direction.UP_RIGHT): 'White - Collision - Up - Right.png',
         ('collision', Direction.DOWN_LEFT): 'White - Collision - Down - Left.png',
-        ('collision', Direction.DOWN_RIGHT): 'White - Collision - Down - Left.png',
+        ('collision', Direction.DOWN_RIGHT): 'White - Collision - Down - Right.png',
     }
 
     def __init__(

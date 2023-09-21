@@ -46,6 +46,50 @@ class PositionSystem:
         self.toMove.clear()
 
 
+class MotionSystem:
+    def __init__(self, unitPixels:Dimension):
+        self.unitPixels = unitPixels
+        self.lockControls = False
+        self.components: Set['MotionComponent'] = set()
+        self.toMove: Set[Tuple[MotionComponent, Direction]] = set()
+        self.moving: Set[Tuple[RenderComponent, Point, int]] = set()
+    
+    def update(self):
+        for (component, direction) in self.toMove:
+            positionComponent = component.entity[PositionComponent]
+            controller = component.entity[AnimationControllerComponent]
+            controller.playAnimation(str(('idle', direction)))
+            if len(positionComponent.collided) > 0:
+                controller.playAnimationInStack(str(('collision', direction)), lockControls=True)
+            else:
+                spd = component.speed
+                render = controller.getCurrentAnimation().render
+                controller.playAnimationInStack(str(('walk', direction)), lockControls=True)
+                x, y = self.unitPixels
+                delta = Point(x * direction.x // spd, y * direction.y // spd)
+                self.moving.add((render, delta, spd - 1))
+                render.offset = Point(x * -direction.x, y * -direction.y)
+        self.toMove.clear()
+    
+    def updateOnline(self):
+        lock = False
+        if len(self.moving) > 0:
+            moving:Set[Tuple[RenderComponent, Point, int]] = set()
+            for (render, delta, spd) in self.moving:
+                spd -= 1
+                if spd == 0:
+                    render.offset = Point(0,0)
+                else:
+                    lock = True
+                    x, y = render.offset
+                    render.offset = Point(x + delta.x, y + delta.y)
+                    moving.add((render, delta, spd))
+            self.moving = moving
+        self.lockControls = lock
+
+        
+
+
 class RenderSystem:
     def __init__(self, rand: Random, loader: Loader):
         self.map: Map
@@ -156,9 +200,10 @@ class CameraSystem:
             position = self.active.entity[PositionComponent].position
             position = self.toScreenUnit(position)
             self._destination = self.camera.referenceToCenter(position)
-            direction = relativeDirection(self._current, self._destination)
-            sx, sy = component.speed
-            self._speed = Point(direction.x * sx, direction.y * sy)
+            if self._current != self._destination:
+                direction = relativeDirection(self._current, self._destination)
+                sx, sy = component.speed
+                self._speed = Point(direction.x * sx, direction.y * sy)
         else:
             self.centralize()
 
@@ -223,14 +268,19 @@ class AnimationSystem:
 
 class AnimationControllerSystem:
     def __init__(self):
+        self.lockControls = False
         self.visible: Set[Point] = set()
         self.components: Set[AnimationControllerComponent] = set()
 
     def update(self):
+        lock = False
         for component in self.components:
             position = component.entity[PositionComponent].position
             if position in self.visible:
                 component.update()
+                if component.lockControls:
+                    lock = True
+        self.lockControls = lock
 
 
 ##############################################################################
@@ -266,6 +316,20 @@ class PositionComponent:
         system.positionToComponent[position] = self
 
     def move(self, direction: Direction) -> None:
+        self.collided.clear()
+        self.system.toMove.add((self, direction))
+
+
+class MotionComponent:
+    def __init__(self, system: MotionSystem, position:PositionComponent, controller:'AnimationControllerComponent'):
+        self.system = system
+        self.entity = position.entity
+        self.controller = controller
+        self.speed = 8
+        system.components.add(self)
+    
+    def move(self, direction:Direction) -> None:
+        self.entity[PositionComponent].move(direction)
         self.system.toMove.add((self, direction))
 
 
@@ -326,7 +390,7 @@ class CameraComponent:
     def __init__(self, system: CameraSystem, entity: Composition):
         self.system = system
         self.entity = entity
-        self.delay = 5
+        self.delay = 8
         self.speed: Point = Point(4, 4)
         self.ticks = 3
         self.magnitude = 3
@@ -346,6 +410,7 @@ class AnimationControllerComponent:
     def __init__(self, system: AnimationControllerSystem, entity: Composition):
         self.system = system
         self.entity = entity
+        self.lockControls = False
         self.animations: Dict[str, AnimationComponent] = dict()
         self._stackContext: bool = False
         self._baseAnimation: AnimationComponent
@@ -357,9 +422,13 @@ class AnimationControllerComponent:
     def addAnimation(self, name: str, animation: "AnimationComponent"):
         self.animations[name] = animation
 
-    def getCurrentAnimation(self) -> str:
+    def getCurrentAnimationName(self) -> str:
         name = self._baseAnimationName
         return name if not self._stackContext else self._stackAnimationName
+
+    def getCurrentAnimation(self) -> AnimationComponent:
+        name = self._baseAnimation
+        return name if not self._stackContext else self._stackAnimation
 
     def playAnimation(self, name: str) -> None:
         self._baseAnimationName = name
@@ -367,7 +436,8 @@ class AnimationControllerComponent:
         self._baseAnimation.loop = True
         self._playAnimation(self._baseAnimation)
 
-    def playAnimationInStack(self, name: str) -> None:
+    def playAnimationInStack(self, name: str, lockControls = False) -> None:
+        self.lockControls = lockControls
         self._stackAnimationName = name
         self._stackAnimation = self.animations[name]
         self._stackAnimation.loop = False
@@ -388,3 +458,4 @@ class AnimationControllerComponent:
             if self._stackAnimation.finished():
                 self._restoreBaseAnimation()
                 self._stackContext = False
+                self.lockControls = False

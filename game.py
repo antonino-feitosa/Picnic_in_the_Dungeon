@@ -8,6 +8,8 @@ from device import MouseDragListener
 
 from systems import PositionSystem
 from systems import PositionComponent
+from systems import MotionSystem
+from systems import MotionComponent
 from systems import RenderSystem
 from systems import RenderComponent
 from systems import AnimationSystem
@@ -54,6 +56,9 @@ class ControlSystem:
         device.addListener(listenDrag)
 
     def listenerControlPlayer(self, key: str) -> None:
+        if self.game.animationControllerSystem.lockControls or self.game.motionSystem.lockControls:
+            return
+
         direction = None
         match key:
             case "[1]":
@@ -75,7 +80,7 @@ class ControlSystem:
             case "[9]":
                 direction = Direction.UP_RIGHT
         if direction is not None:
-            self.game.player[PositionComponent].move(direction)
+            self.game.player[MotionComponent].move(direction)
             self.game.update()
 
     def listenerControlMinimap(self, key: str) -> None:
@@ -131,6 +136,7 @@ class RogueLike:
         self.animationSystem = AnimationSystem()
         self.cameraSystem = CameraSystem(self.device.camera, self.rand, self.pixelsUnit)
         self.animationControllerSystem = AnimationControllerSystem()
+        self.motionSystem = MotionSystem(self.pixelsUnit)
 
         self.player: Composition = self.createPlayer()
         self.player[CameraComponent].centralize()
@@ -156,16 +162,18 @@ class RogueLike:
         player.add(AnimationComponent(self.animationSystem, player[RenderComponent], self.loader.avatarIdleRight))
         player[AnimationComponent].play()
         player.add(CameraComponent(self.cameraSystem, player))
-        controler = AnimationControllerComponent(self.animationControllerSystem, player)
+        controller = AnimationControllerComponent(self.animationControllerSystem, player)
         render = player[RenderComponent]
         for (key, sprite) in self.loader.avatarSprites.items():
             animation = AnimationComponent(self.animationSystem, render, sprite)
-            controler.addAnimation(str(key), animation)
-        player.add(controler)
+            controller.addAnimation(str(key), animation)
+        player.add(controller)
+        player.add(MotionComponent(self.motionSystem, player[PositionComponent], controller))
         return player
 
     def update(self) -> None:
         self.positionSystem.update()
+        self.motionSystem.update()
         self.player[FieldOfViewComponent].update()
         self.player[CameraComponent].focus()
         position = self.player[PositionComponent].position
@@ -177,8 +185,6 @@ class RogueLike:
 
     def draw(self) -> None:
         self.device.clear()
-        self.cameraSystem.update()
-        self.animationControllerSystem.update()
         self.renderSystem.draw()
         self.device.reload()
 
@@ -186,6 +192,9 @@ class RogueLike:
         return self.device.running
 
     def loop(self) -> None:
+        self.cameraSystem.update()
+        self.motionSystem.updateOnline()
+        self.animationControllerSystem.update()
         self.animationSystem.update()
         self.device.update()
         self.draw()

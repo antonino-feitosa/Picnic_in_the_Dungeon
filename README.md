@@ -80,16 +80,16 @@ Simple ARPG with rogue like game elements:
 </p>
 11. Ângulos de Visão para o Campo de Visão (radial, cone e periférico para um campo de visão circular)
 <p float="left">
-    <img src="docs/readme_images/FOV_circle.png" width="300">
-    <img src="docs/readme_images/FOV_cone.png" width="300">
-    <img src="docs/readme_images/FOV_peripheral.png" width="300">
+    <img src="docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
+    <img src="docs/readme_images/FOV_Cone.png" width="300"> &nbsp;
+    <img src="docs/readme_images/FOV_Peripheral.png" width="300">
 </p>
 12. Formatos do Campo de Visão (para o ângulo de visão radial)
 <p float="left">
-    <img src="docs/readme_images/FOV_square.png" width="300">
-    <img src="docs/readme_images/FOV_circle.png" width="300">
-    <img src="docs/readme_images/FOV_diamond.png" width="300">
-    <img src="docs/readme_images/FOV_octal.png" width="300">
+    <img src="docs/readme_images/FOV_Square.png" width="300"> &nbsp;
+    <img src="docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
+    <img src="docs/readme_images/FOV_Diamond.png" width="300"> &nbsp;
+    <img src="docs/readme_images/FOV_Octal.png" width="300">
 </p>
 
 ### Controles

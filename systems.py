@@ -19,9 +19,9 @@ from algorithms import Random
 from algorithms import Dimension
 from algorithms import Direction
 from algorithms import Composition
+from algorithms import FieldOfView
 
 from algorithms import relativeDirection
-from algorithms import fieldOfViewRayCasting
 
 
 class PositionSystem:
@@ -165,13 +165,19 @@ class FieldOfViewSystem:
     def __init__(self, ground: set[Point], enableFOV: bool):
         self.enableFOV = enableFOV
         self.ground = ground
+        self._fov = FieldOfView(1, ground)
 
-    def update(self, component: "FieldOfViewComponent") -> None:
+    def update(self, component: 'FieldOfViewComponent') -> None:
         if self.enableFOV:
-            radius = component.radius
+            fov = self._fov
+            fov.ground = self.ground
+            fov.radius = component.radius
+            fov.focalDistance = component.focalDistance
+            fov.angleOfView = component.angle
+            fov.formatOfView = component.format
+            direction = component.entity[MotionComponent].direction
             center = component.entity[PositionComponent].position
-            ground = self.ground
-            component.visible = fieldOfViewRayCasting(center, radius, ground)
+            component.visible = fov.rayCasting(center, direction)
         else:
             component.visible = self.ground
 
@@ -185,6 +191,7 @@ class CameraSystem:
         self.active: CameraComponent
         self._offset: Point = Point(0, 0)
         self._countShake = 0
+        self._magnitude = 3
         self._applying = False
         self._current: Point = Point(0, 0)
         self._waitingToApply = 0
@@ -218,13 +225,13 @@ class CameraSystem:
         return Point(point.x * ux, point.y * uy)
 
     def shake(self, component: "CameraComponent") -> None:
-        self.countShake = component.ticks
-        self.magnitude = component.magnitude
+        self._countShake = component.ticks
+        self._magnitude = component.magnitude
         self._applyShake()
 
     def _applyShake(self) -> None:
-        dx = self.rand.nextNormal(0, self.magnitude)
-        dy = self.rand.nextNormal(0, self.magnitude)
+        dx = self.rand.nextNormal(0, self._magnitude)
+        dy = self.rand.nextNormal(0, self._magnitude)
         self._offset = Point(math.ceil(dx), math.ceil(dy))
 
     def _applyFocusWithDelay(self) -> bool:
@@ -326,19 +333,33 @@ class MotionComponent:
         self.entity = position.entity
         self.controller = controller
         self.speed = 8
+        self.direction = Direction.RIGHT
         system.components.add(self)
     
     def move(self, direction:Direction) -> None:
         self.entity[PositionComponent].move(direction)
         self.system.toMove.add((self, direction))
+        self.direction = direction
 
 
 class FieldOfViewComponent:
+    AngleCone = 'cone'
+    AngleRadial = 'radial'
+    AnglePeripheral = 'peripheral'
+
+    FormatOctal = 'octal'
+    FormatCircle = 'circle'
+    FormatSquare = 'square'
+    FormatDiamond = 'diamond'
+
     def __init__(self, system: FieldOfViewSystem, entity: Composition, radius: int):
         self.system = system
-        self.radius = radius
         self.entity = entity
+        self.radius = radius
+        self.focalDistance = 0
         self.visible: Set[Point] = set()
+        self.angle = FieldOfViewComponent.AngleRadial
+        self.format = FieldOfViewComponent.FormatOctal
 
     def update(self):
         self.system.update(self)
@@ -392,8 +413,8 @@ class CameraComponent:
         self.entity = entity
         self.delay = 8
         self.speed: Point = Point(4, 4)
-        self.ticks = 3
-        self.magnitude = 3
+        self.ticks = 8
+        self.magnitude = 4
 
     def focus(self) -> None:
         self.system.focus(self)

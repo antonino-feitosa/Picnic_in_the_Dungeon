@@ -60,6 +60,37 @@ Simple ARPG with rogue like game elements:
 <p float="left">
     <img src="docs/readme_images/FieldOfView.gif" width="300">
 </p>
+7. Animações de Sprites
+<p float="left">
+    <img src="docs/readme_images/Animation.gif" width="300">
+</p>
+8. Câmera com Foco, Tremor, Atraso
+<p float="left">
+    <img src="docs/readme_images/Camera_Focus.gif" width="300"> &nbsp;
+    <img src="docs/readme_images/Camera_Shake.gif" width="300"> &nbsp;
+    <img src="docs/readme_images/Camera_Delay.gif" width="300"> &nbsp;
+</p>
+9. Controlador de Animações (alterna a execução de animações retornando para a animação anterior ao fim da sequência de uma animação de maior prioridade)
+<p float="left">
+    <img src="docs/readme_images/Animation_Controller.gif" width="300">
+</p>
+10. Movimentações das Animações
+<p float="left">
+    <img src="docs/readme_images/Motion.gif" width="300">
+</p>
+11. Ângulos de Visão para o Campo de Visão (radial, cone e periférico para um campo de visão circular)
+<p float="left">
+    <img src="docs/readme_images/FOV_circle.png" width="300">
+    <img src="docs/readme_images/FOV_cone.png" width="300">
+    <img src="docs/readme_images/FOV_peripheral.png" width="300">
+</p>
+12. Formatos do Campo de Visão (para o ângulo de visão radial)
+<p float="left">
+    <img src="docs/readme_images/FOV_square.png" width="300">
+    <img src="docs/readme_images/FOV_circle.png" width="300">
+    <img src="docs/readme_images/FOV_diamond.png" width="300">
+    <img src="docs/readme_images/FOV_octal.png" width="300">
+</p>
 
 ### Controles
 
@@ -89,11 +120,12 @@ Avaliando o estudo efetuado em [^33], escolhemos o algoritmo básico (ray castin
 Nossa implementação utiliza o algoritmo de desenho de linhas de Bresenham [^34], traçando linhas a partir de um centro para cada posição de distância _radius_ considerando a distância de Manhattan. Os pontos em cada linha são ordenados, iniciando no centro considerando visíveis todos os pontos que não encontram obstáculos a partir do centro. Isto é, percorremos as linhas do centro até a borda, considerando todos os pontos visíveis até encontrar um obstáculo.
 
 Trabalho Futuro
-- [ ] Alterar o raio do foco de visão
-    - [ ] Formato diamante
-    - [ ] Formato octogonal
-    - [ ] Formato frontal
-    - [ ] Formato periférico
+- [x] Alterar o raio do foco de visão
+    - [x] Formato circular
+    - [x] Formato diamante
+    - [x] Formato octogonal
+    - [x] Formato frontal
+    - [x] Formato periférico
 
 ### Dependências
 
@@ -115,9 +147,9 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Field of View Integration with Map
 - [x] Animation System
 - [x] Camera System
-- [ ] Animation Transition System
-- [ ] Motion System
-- [ ] Player 8 Directional Sprites
+- [x] Animation Transition System
+- [x] Motion System
+- [x] Player 8 Directional Sprites
 - [ ] Collectable System
 - [ ] Centralize Minimap
 - [ ] Wave Collapse Function

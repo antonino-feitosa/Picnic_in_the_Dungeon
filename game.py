@@ -175,7 +175,7 @@ class RogueLike:
         self.positionSystem.update()
         self.motionSystem.update()
         self.player[FieldOfViewComponent].update()
-        self.player[CameraComponent].focus()
+        #self.player[CameraComponent].focus()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
         self.animationSystem.visible = visible

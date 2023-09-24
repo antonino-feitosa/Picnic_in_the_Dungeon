@@ -150,8 +150,8 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Animation Transition System
 - [x] Motion System
 - [x] Player 8 Directional Sprites
+- [x] Centralize Minimap
 - [ ] Collectable System
-- [ ] Centralize Minimap
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)
 - [ ] Player Directions Sprites

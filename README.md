@@ -22,6 +22,8 @@ Simple ARPG with rogue like game elements:
 - [ ] Tower Defense Elements (like traps and defenses in Clash of Clans[^11]);
 - [ ] Monster Capture (like Pokemon[^4]);
 - [ ] Procedural Quests
+- [ ] Combat System (like Civilization [^20] with elements of Pokemon[^4])
+- [ ] Skills (like Dungeons and Dragons[^21])
 
 
 
@@ -151,7 +153,13 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Motion System
 - [x] Player 8 Directional Sprites
 - [x] Centralize Minimap
+- [x] Message System
+- [ ] Message System with Options
+- [ ] Mouse Control System
 - [ ] Collectable System
+- [ ] Doors
+- [ ] Triggers
+- [ ] Switches
 - [ ] Wave Collapse Function
 - [ ] Map Geration (Random Walk + Wave Collapse Function)
 - [ ] Player Directions Sprites
@@ -183,22 +191,34 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 [^17]: [ANSI Escape Codes](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
 [^18]: [Rogue Like with Rust](https://bfnightly.bracketproductions.com/chapter_0.html)
 [^19]: [Darker than Black](https://en.wikipedia.org/wiki/Darker_than_Black)
+[^20]: [Civilization](https://civilization.fandom.com/wiki/Combat_(Civ6))
+[^21]: [Dungeons and Dragons Skills](https://ocd20.fandom.com/wiki/Skills)
 
 [^32]: [Pygame](https://www.pygame.org/news)
 [^33]: [Comparative study of field of view algorithms for 2D grid based worlds](https://www.roguebasin.com/index.php/Comparative_study_of_field_of_view_algorithms_for_2D_grid_based_worlds)
 [^34]: [Bresenham's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
 
 
-[^31]: [Configure Key GIT](https://roelofjanelsinga.com/articles/how-to-setup-gpg-signing-keys-in-github/#:~:text=How%20to%20get%20the%20verified%20flag%20on%20your,use%20your%20GPG%20key%20to%20sign%20commits%20)
-[^20]: [triangle rasterization](http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html)
-[^21]: [line rasterization](https://www.javatpoint.com/computer-graphics-bresenhams-line-algorithm)
-[^22]: [Field of View](https://www.researchgate.net/publication/347719548_New_Algorithms_for_Computing_Field_of_Vision_over_2D_Grids)
-[^23]: [Field of View - Rogue](http://www.roguebasin.com/index.php/Comparative_study_of_field_of_view_algorithms_for_2D_grid_based_worlds)
-[^24]: [Game Algorithms](https://www.phstudios.com/game-algorithm-series/)
-[^25]: [Brogue](https://sites.google.com/site/broguegame/)
-[^26]: [Multiple Body](https://www.gridsagegames.com/blog/2020/04/developing-multitile-creatures-roguelikes/)
-[^27]: [IA] (http://www.roguebasin.com/index.php/Roguelike_Intelligence_-_Stateless_AIs)
-[^28]: [IA - path](https://news.ycombinator.com/item?id=22848888)
-[^29]: [Dijkstra map](http://www.roguebasin.com/index.php?title=The_Incredible_Power_of_Dijkstra_Maps)
-[^30]: [Dijkstra map - Rogue Basin](http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized)
+[^61]: [Configure Key GIT](https://roelofjanelsinga.com/articles/how-to-setup-gpg-signing-keys-in-github/#:~:text=How%20to%20get%20the%20verified%20flag%20on%20your,use%20your%20GPG%20key%20to%20sign%20commits%20)
+[^60]: [triangle rasterization](http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html)
+[^61]: [line rasterization](https://www.javatpoint.com/computer-graphics-bresenhams-line-algorithm)
+[^62]: [Field of View](https://www.researchgate.net/publication/347719548_New_Algorithms_for_Computing_Field_of_Vision_over_2D_Grids)
+[^63]: [Field of View - Rogue](http://www.roguebasin.com/index.php/Comparative_study_of_field_of_view_algorithms_for_2D_grid_based_worlds)
+[^64]: [Game Algorithms](https://www.phstudios.com/game-algorithm-series/)
+[^65]: [Brogue](https://sites.google.com/site/broguegame/)
+[^66]: [Multiple Body](https://www.gridsagegames.com/blog/2020/04/developing-multitile-creatures-roguelikes/)
+[^67]: [IA] (http://www.roguebasin.com/index.php/Roguelike_Intelligence_-_Stateless_AIs)
+[^68]: [IA - path](https://news.ycombinator.com/item?id=22848888)
+[^69]: [Dijkstra map](http://www.roguebasin.com/index.php?title=The_Incredible_Power_of_Dijkstra_Maps)
+[^60]: [Dijkstra map - Rogue Basin](http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized)
 
+
+
+[//]: # https://www.dafont.com/pt/no-continue.font
+[//]: # https://www.dafont.com/pt/haunting-spirits.font
+[//]: # https://www.1001freefonts.com/alphacode-beyond.font
+[//]: # https://www.1001freefonts.com/alphacode-emperor.font
+[//]: # https://www.1001freefonts.com/alphacode-pandora.font
+[//]: # https://www.dafont.com/pt/the-orb-report.font
+[//]: # https://www.dafont.com/pt/number-one.font
+[//]: # https://www.dafont.com/pt/lomtrian.font

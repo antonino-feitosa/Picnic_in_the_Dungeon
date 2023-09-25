@@ -1,7 +1,9 @@
 
 from typing import Set
+from typing import List
 from typing import Tuple
 
+from device import Font
 from device import Image
 from device import Device
 from device import SpriteSheet
@@ -65,8 +67,13 @@ class Loader:
         self.avatar: Image
         self.avatarIdleRight: SpriteSheet
         self.avatarSprites: Dict[Tuple[str,Direction],SpriteSheet] = dict()
+        self.messageBackground: Image
+        self.textFont: Font
 
     def load(self) -> None:
+        self.messageBackground = self.loadImage('Message - Background.png')
+        self.textFont = self.loadFont('gomarice_no_continue.ttf')
+
         self.groundSheet = self.loadSheet('Tileset - Ground.png', self.pixelsUnit)
         self.wallSheet = self.loadSheet('Tileset - Walls.png', self.pixelsUnit)
         self.minimapGroundSheet = self.loadSheet(
@@ -90,12 +97,48 @@ class Loader:
 
     def loadImage(self, name: str) -> Image:
         return self.device.loadImage(name, 'resources')
+    
+    def loadFont(self, name: str) -> Font:
+        return self.device.loadFont(name, 16, 'resources\\Fonts')
 
     def loadGroundCanvas(self, dimension: Dimension) -> TiledCanvas:
         return self.device.loadTiledCanvas(self.pixelsUnit, dimension)
 
     def loadMinimapCanvas(self, dimension: Dimension) -> TiledCanvas:
         return self.device.loadTiledCanvas(self.pixelsUnitMinimap, dimension)
+
+
+class Message:
+    def __init__(self, loader:Loader):
+        self.loader = loader
+        self.background:Image = loader.messageBackground # 650 x 250
+        self.currentMessage = 0
+        w, h = self.loader.device.dimension
+        self._messages: List[str] = ['']
+        self._backgroundPosition = Point((w - 610)//2, h - 210)
+        self._currentImage: Image
+    
+    def setMessages(self, messages: List[str] = ['']) -> None:
+        self._messages = messages
+        self._setMessage(0)
+    
+    def _setMessage(self, index:int) -> None:
+        self._currentImage = self.background.clone()
+        font = self.loader.textFont
+        font.drawAtImage(self._messages[index], self._currentImage, Point(30,30))
+
+    def nextMessage(self) -> None:
+        if self.currentMessage < len(self._messages):
+            self.currentMessage += 1
+            self._setMessage(self.currentMessage)
+    
+    def previousMessage(self) -> None:
+        if self.currentMessage > 0:
+            self.currentMessage -= 1
+            self._setMessage(self.currentMessage)
+
+    def draw(self) -> None:
+        self._currentImage.drawAtScreen(self._backgroundPosition)
 
 
 class Map:

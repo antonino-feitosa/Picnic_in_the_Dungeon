@@ -1,5 +1,6 @@
 import os
 import pygame
+import pygame.freetype
 
 from typing import Set
 from typing import List
@@ -40,6 +41,10 @@ class Image:
     def drawAtScreen(self, position: Point = Point(0, 0)) -> None:
         self.device.drawImageAtScreen(self, position)
 
+    def clone(self) -> "Image":
+        image = self.image.copy()
+        return Image(self.device, image)
+
 
 class SpriteSheet:
     def __init__(self, sheet: Image, dimension: Dimension):
@@ -53,6 +58,42 @@ class SpriteSheet:
                 image.blit(self.sheet.image, (0, 0), rect)
                 self.images.append(Image(sheet.device, image))
         pass
+
+
+class Font:
+    def __init__(self, device: "Device", font: pygame.freetype.Font):
+        self.font = font
+        self.device = device
+        self.foreground: Tuple[int, int, int, int] = (255, 255, 255, 255)
+        self.background: Tuple[int, int, int, int] = (0, 0, 0, 0)
+
+    def drawAtImage(self, text: str, image: Image, position: Point):
+        surface = self._createSurface(text)
+        image.image.blit(surface, position)
+
+    def drawAtScreen(self, text: str, position: Point):
+        textSurface = self._createSurface(text)
+        image = Image(self.device, textSurface)
+        self.device.drawImageAtScreen(image, position)
+
+    def _createSurface(self, text: str):
+        messages = text.split("\n")
+        renders = []
+        dimension = Dimension(0, 0)
+        for msg in messages:
+            image, rect = self.font.render(msg, self.foreground, self.background)
+            renders.append(image)
+            if rect.width > dimension.width:
+                dimension = Dimension(rect.width, dimension.height)
+            if rect.height > dimension.height:
+                dimension = Dimension(dimension.width, rect.height)
+        dim = Dimension(dimension.width, dimension.height * len(renders))
+        canvas = pygame.Surface(dim, pygame.SRCALPHA)
+        y = 0
+        for render in renders:
+            canvas.blit(render, dest=(0, y))
+            y += dimension.height
+        return canvas
 
 
 class TiledCanvas:
@@ -214,6 +255,14 @@ class Device:
         image = self.loadImage(name, dir)
         sheet = SpriteSheet(image, dimension)
         return sheet
+
+    def loadFont(self, name: str, size: int, dir: str = ".") -> Font:
+        try:
+            path = os.path.join(dir, name)
+            font = pygame.freetype.Font(path, size)
+            return Font(self, font)
+        except pygame.error as err:
+            raise DeviceError(err)
 
     def drawImage(self, image: Image, position: Point) -> None:
         x, y = self.camera.translate

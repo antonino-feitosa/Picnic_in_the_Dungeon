@@ -1,6 +1,7 @@
 
 from base import Map
 from base import Loader
+from base import Message
 
 from device import Device
 from device import KeyboardListener
@@ -20,6 +21,8 @@ from systems import CameraSystem
 from systems import CameraComponent
 from systems import AnimationControllerSystem
 from systems import AnimationControllerComponent
+from systems import MessageSystem
+from systems import MessageComponent
 
 from algorithms import Point
 from algorithms import Random
@@ -32,6 +35,10 @@ class ControlSystem:
         self.game = game
         self.minimapOffset = 25
         device = self.game.device
+
+        listenAction = KeyboardListener({'1'})
+        listenAction.onKeyUp = self.listenerAction
+        device.addListener(listenAction)
 
         listenNumeric = KeyboardListener(
             {"[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]"}
@@ -56,7 +63,9 @@ class ControlSystem:
         device.addListener(listenDrag)
 
     def listenerControlPlayer(self, key: str) -> None:
-        if self.game.animationControllerSystem.lockControls or self.game.motionSystem.lockControls:
+        if (self.game.animationControllerSystem.lockControls
+            or self.game.motionSystem.lockControls
+            or self.game.messageSystem.lockControls):
             return
 
         direction = None
@@ -116,6 +125,14 @@ class ControlSystem:
         self.game.cameraSystem.centralize()
         self.game.renderSystem.resetMinimapPosition()
         self.game.draw()
+    
+    def listenerAction(self, key: str | None = None) -> None:
+        if self.game.messageSystem.lockControls:
+            self.game.messageSystem.update()
+        else:
+            self.game.player.add(MessageComponent(self.game.messageSystem, 'Ok!'))
+            self.game.player[MessageComponent].showMessage()
+        self.game.draw()
 
 
 class RogueLike:
@@ -137,6 +154,7 @@ class RogueLike:
         self.cameraSystem = CameraSystem(self.device.camera, self.rand, self.pixelsUnit)
         self.animationControllerSystem = AnimationControllerSystem()
         self.motionSystem = MotionSystem(self.pixelsUnit)
+        self.messageSystem = MessageSystem(self.loader)
 
         self.player: Composition = self.createPlayer()
         self.player[CameraComponent].centralize()
@@ -186,6 +204,7 @@ class RogueLike:
     def draw(self) -> None:
         self.device.clear()
         self.renderSystem.draw()
+        self.messageSystem.draw()
         self.device.reload()
 
     def isRunning(self) -> bool:

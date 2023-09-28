@@ -15,8 +15,6 @@ from typing import Sequence
 from typing import Callable
 from typing import NamedTuple
 
-from queue import PriorityQueue
-
 
 class ApplicationError(Exception):
     def __init__(self, message):
@@ -252,6 +250,24 @@ class Composition:
         Composition.countId += 1
         self.id = Composition.countId
         self.typeToComponent: Dict[Type, Any] = dict()
+        self._enabled = True
+    
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                for comp in self.typeToComponent.values():
+                    comp.enabled = True
+                self._enabled = True
+        else:
+            if self._enabled:
+                for comp in self.typeToComponent.values():
+                    comp.enabled = False
+                self._enabled = False
 
     def add(self, component) -> "Composition":
         self.typeToComponent[type(component)] = component
@@ -264,11 +280,6 @@ class Composition:
 
     def remove(self, typeOfComponent: Type) -> None:
         self.typeToComponent.pop(typeOfComponent, None)
-    
-    def destroy(self) -> None:
-        for comp in self.typeToComponent.values():
-            comp.destroy()
-        self.typeToComponent.clear()
 
     def __getitem__(self, typeOfComponent: Type[T]) -> T:
         return self.typeToComponent[typeOfComponent]

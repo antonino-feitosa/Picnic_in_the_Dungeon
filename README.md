@@ -169,8 +169,9 @@ Pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Player 8 Directional Sprites
 - [x] Centralize Minimap
 - [x] Message System
-- [ ] BUtton System
 - [ ] Mouse Control System
+- [ ] Refactor Loader
+- [ ] Refactor Mouse System
 - [ ] Message System with Options
 - [ ] Collectable System
 - [ ] Doors

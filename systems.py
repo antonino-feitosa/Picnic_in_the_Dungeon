@@ -333,7 +333,23 @@ class RenderComponent:
         self.image = image
         self.entity = entity
         self.offset: Point = Point(0, 0)
+        self._enabled = True
         system.components.add(self)
+    
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                self.system.components.add(self)
+                self._enabled = True
+        else:
+            if self._enabled:
+                self.system.components.remove(self)
+                self._enabled = False
 
     def draw(self):
         width, height = self.entity[PositionComponent].position
@@ -342,9 +358,6 @@ class RenderComponent:
         position = Point(width * uw + dx, height * uh + dy)
         self.image.draw(position)
 
-    def destroy(self):
-        self.system.components.remove(self)
-
 
 class PositionComponent:
     def __init__(self, system: PositionSystem, entity: Composition, position: Point):
@@ -352,11 +365,26 @@ class PositionComponent:
         self.entity = entity
         self.position: Point = position
         self.collided: List[Tuple[Composition | None, Point]] = []
-        system.positionToComponent[position] = self
+        self._enabled = False
 
     def move(self, direction: Direction) -> None:
         self.collided.clear()
         self.system.toMove.add((self, direction))
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                self.system.positionToComponent[self.position] = self
+                self._enabled = True
+        else:
+            if self._enabled:
+                self.system.positionToComponent.pop(self.position)
+                self._enabled = False
 
 
 class MotionComponent:
@@ -367,11 +395,27 @@ class MotionComponent:
         self.speed = 8
         self.direction = Direction.RIGHT
         system.components.add(self)
+        self._enabled = True
     
     def move(self, direction:Direction) -> None:
         self.entity[PositionComponent].move(direction)
         self.system.toMove.add((self, direction))
         self.direction = direction
+    
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                self.system.components.add(self)
+                self._enabled = True
+        else:
+            if self._enabled:
+                self.system.components.remove(self)
+                self._enabled = False
 
 
 class FieldOfViewComponent:
@@ -395,6 +439,14 @@ class FieldOfViewComponent:
 
     def update(self):
         self.system.update(self)
+    
+    @property
+    def enabled(self):
+        pass
+
+    @enabled.setter
+    def enabled(self, value):
+        pass
 
 
 class AnimationComponent:
@@ -409,21 +461,30 @@ class AnimationComponent:
         self.system = system
         self.animation = animation
         self.entity = render.entity
+        self._enabled = False
     
-    def play(self):
-        self.entity.add(self)
-        self.system.components.add(self)
+    @property
+    def finished(self):
+        return not self.loop and self._frameIndex == len(self.animation.images) - 1
 
-    def destroy(self):
-        self.entity.remove(self)
-        self.system.components.remove(self)
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                self.system.components.add(self)
+                self._enabled = True
+        else:
+            if self._enabled:
+                self.system.components.remove(self)
+                self._enabled = False
 
     def reload(self):
         self._tickCount = 0
         self._frameIndex = 0
-
-    def finished(self):
-        return not self.loop and self._frameIndex == len(self.animation.images) - 1
 
     def update(self):
         if self._tickCount >= self.tick:
@@ -457,6 +518,14 @@ class CameraComponent:
 
     def shake(self) -> None:
         self.system.shake(self)
+    
+    @property
+    def enabled(self):
+        pass
+
+    @enabled.setter
+    def enabled(self, value):
+        pass
 
 
 class AnimationControllerComponent:
@@ -471,6 +540,7 @@ class AnimationControllerComponent:
         self._baseAnimationName: str
         self._stackAnimationName: str
         system.components.add(self)
+        self._enabled = True
 
     def addAnimation(self, name: str, animation: "AnimationComponent"):
         self.animations[name] = animation
@@ -498,20 +568,37 @@ class AnimationControllerComponent:
         self._playAnimation(self._stackAnimation)
 
     def _restoreBaseAnimation(self) -> None:
-        self.entity[AnimationComponent].destroy()
-        self._baseAnimation.play()
+        self.entity[AnimationComponent].enabled = False
+        self.entity.remove(AnimationComponent)
+        self._baseAnimation.enabled = True
 
     def _playAnimation(self, animation: AnimationComponent) -> None:
-        self.entity[AnimationComponent].destroy()
+        self.entity[AnimationComponent].enabled = False
+        self.entity.remove(AnimationComponent)
         animation.reload()
-        animation.play()
+        animation.enabled = True
 
     def update(self):
         if self._stackContext:
-            if self._stackAnimation.finished():
+            if self._stackAnimation.finished:
                 self._restoreBaseAnimation()
                 self._stackContext = False
                 self.lockControls = False
+    
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                self.system.components.add(self)
+                self._enabled = True
+        else:
+            if self._enabled:
+                self.system.components.remove(self)
+                self._enabled = False
 
 
 class MessageComponent:
@@ -524,3 +611,11 @@ class MessageComponent:
     
     def showMessage(self) -> None:
         self.system.showMessage(self)
+    
+    @property
+    def enabled(self):
+        pass
+
+    @enabled.setter
+    def enabled(self, value):
+        pass

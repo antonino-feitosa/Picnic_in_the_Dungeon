@@ -2,6 +2,7 @@
 from typing import Set
 from typing import List
 from typing import Tuple
+from typing import Callable
 
 from device import Font
 from device import Image
@@ -69,10 +70,31 @@ class Loader:
         self.avatarSprites: Dict[Tuple[str,Direction],SpriteSheet] = dict()
         self.messageBackground: Image
         self.textFont: Font
+        self.descriptionBackground:Image
+        self.iconPass:Image
+        self.iconMove:Image
+        self.iconAttack:Image
+        self.iconDefend:Image
+        self.iconAlert:Image
+        self.iconEnvironment:Image
+        self.iconConfig:Image
+        self.iconBag:Image
+        self.iconSelectedPass:Image
+        self.iconSelectedMove:Image
+        self.iconSelectedAttack:Image
+        self.iconSelectedDefend:Image
+        self.iconSelectedAlert:Image
+        self.iconSelectedEnvironment:Image
+        self.iconSelectedConfig:Image
+        self.iconSelectedBag:Image
+        self.selectedUnit:SpriteSheet
+        self.selectedPath:SpriteSheet
 
     def load(self) -> None:
         self.messageBackground = self.loadImage('Message - Background.png')
         self.textFont = self.loadFont('gomarice_no_continue.ttf')
+        self.selectedUnit = self.loadSheet('Selected Place.png', self.pixelsUnit)
+        self.selectedPath = self.loadSheet('Path.png', self.pixelsUnit)
 
         self.groundSheet = self.loadSheet('Tileset - Ground.png', self.pixelsUnit)
         self.wallSheet = self.loadSheet('Tileset - Walls.png', self.pixelsUnit)
@@ -89,6 +111,25 @@ class Loader:
             'Avatar - White - Idle - Right.png', self.pixelsUnit
         )
 
+        self.descriptionBackground = self.loadImage('Icons/Description - Background.png')
+        self.iconPass = self.loadImage('Icons/Pass.png')
+        self.iconBag = self.loadImage('Icons/Bag.png')
+        self.iconMove = self.loadImage('Icons/Move.png')
+        self.iconAttack = self.loadImage('Icons/Attack.png')
+        self.iconDefend = self.loadImage('Icons/Defend.png')
+        self.iconAlert = self.loadImage('Icons/Alert.png')
+        self.iconEnvironment = self.loadImage('Icons/Environment.png')
+        self.iconConfig = self.loadImage('Icons/Config.png')
+
+        self.iconSelectedPass = self.loadImage('Icons/Pass - Selected.png')
+        self.iconSelectedBag = self.loadImage('Icons/Bag - Selected.png')
+        self.iconSelectedMove = self.loadImage('Icons/Move - Selected.png')
+        self.iconSelectedAttack = self.loadImage('Icons/Attack - Selected.png')
+        self.iconSelectedDefend = self.loadImage('Icons/Defend - Selected.png')
+        self.iconSelectedAlert = self.loadImage('Icons/Alert - Selected.png')
+        self.iconSelectedEnvironment = self.loadImage('Icons/Environment - Selected.png')
+        self.iconSelectedConfig = self.loadImage('Icons/Config - Selected.png')
+
         for (entry,path) in Loader.AvatarWhiteSprites.items():
             self.avatarSprites[entry] = self.loadSheet('Avatar/' + path, self.pixelsUnit)
 
@@ -99,7 +140,7 @@ class Loader:
         return self.device.loadImage(name, 'resources')
     
     def loadFont(self, name: str) -> Font:
-        return self.device.loadFont(name, 16, 'resources\\Fonts')
+        return self.device.loadFont(name, 16, 'resources/Fonts')
 
     def loadGroundCanvas(self, dimension: Dimension) -> TiledCanvas:
         return self.device.loadTiledCanvas(self.pixelsUnit, dimension)

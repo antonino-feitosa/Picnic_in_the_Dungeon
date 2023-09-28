@@ -182,16 +182,22 @@ class MouseClickListener(InputListener):
         self.onMouseDown: Callable[[Point], None] = lambda _: None
 
     def update(self, event):
-        if (
-            event.type == pygame.MOUSEBUTTONUP and event.button == 1
-        ):  # 1 for left button
-            x, y = pygame.mouse.get_pos()
-            offx, offy = self.device.camera.translate
-            self.onMouseUp(Point(x + offx, y + offy))
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            x, y = pygame.mouse.get_pos()
-            offx, offy = self.device.camera.translate
-            self.onMouseDown(Point(x + offx, y + offy))
+        isMouseButton = event.type == pygame.MOUSEBUTTONUP
+        if isMouseButton and event.button == 1:  # 1 for left button
+            position = Point(*pygame.mouse.get_pos())
+            self.onMouseUp(position)
+        if isMouseButton and event.button == 1:
+            position = Point(*pygame.mouse.get_pos())
+            self.onMouseDown(position)
+
+class MouseMotionListener(InputListener):
+    def __init__(self):
+        self.onMove: Callable[[Point], None] = lambda _: None
+
+    def update(self, event):
+        if event.type == pygame.MOUSEMOTION:
+            position = Point(*pygame.mouse.get_pos())
+            self.onMove(position)
 
 
 class MouseDragListener(InputListener):

@@ -1,6 +1,9 @@
+
+import heapq
 import random
 
 from enum import Enum
+
 from typing import Any
 from typing import Set
 from typing import Dict
@@ -12,6 +15,7 @@ from typing import Sequence
 from typing import Callable
 from typing import NamedTuple
 
+from queue import PriorityQueue
 
 
 class ApplicationError(Exception):
@@ -260,6 +264,11 @@ class Composition:
 
     def remove(self, typeOfComponent: Type) -> None:
         self.typeToComponent.pop(typeOfComponent, None)
+    
+    def destroy(self) -> None:
+        for comp in self.typeToComponent.values():
+            comp.destroy()
+        self.typeToComponent.clear()
 
     def __getitem__(self, typeOfComponent: Type[T]) -> T:
         return self.typeToComponent[typeOfComponent]
@@ -541,3 +550,48 @@ class FieldOfView:
             else:
                 dist -= 1
         return dist
+
+
+class PathFinding:
+    def __init__(self, ground:Set[Point], directions:Sequence[Direction]):
+        self.ground = ground
+        self.directions = directions
+
+    def searchPath(self, source:Point, dest:Point) -> List[Point]:
+        queue:List[Tuple[int,Point]] = [(0,source)]
+        dist:Dict[Point,int] = {source:0}
+        previous:Dict[Point,Point] = dict()
+        visited = set()
+        
+        while len(queue) > 0:
+            for q in queue:
+                print('\t', q)
+            pathCost, current = heapq.heappop(queue)
+            visited.add(current)
+            print('Next ', current, pathCost)
+            input()
+            if current == dest:
+                return self._postProcess(dest, previous)
+            for dir in self.directions:
+                neighbor = dir + current
+                if neighbor in self.ground and neighbor not in visited:
+                    distance = distanceManhattan(neighbor, dest)
+                    distance += pathCost
+                    distance += 1
+                    if neighbor not in dist or distance < dist[neighbor]:
+                        previous[neighbor] = current
+                        dist[neighbor] = distance
+                        if neighbor in queue:
+                            heapq.heapreplace(queue, (distance,neighbor))
+                        else:
+                            heapq.heappush(queue, (distance,neighbor))
+        return []
+    
+    def _postProcess(self, dest:Point, previous:Dict[Point,Point]) -> List[Point]:
+        path:List[Point] = []
+        path.insert(0, dest)
+        while dest in previous:
+            next = previous[dest]
+            dest = next
+            path.insert(0, dest)
+        return path

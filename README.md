@@ -5,6 +5,15 @@ Jogo de exploração de masmorras com foco no desenvolvimento de habilidades. As
 
 Além disso, o jogo também apresentará opções de customização de modo que o usuário possa gerar conteúdo. Isso inclui o desenvolvimento de cenários, quebra-cabeças, armadilhas, equipamentos, armas, poções, além do desenvolvimento de habilidades.
 
+Princípios do Jogo:
+1. Customização: o usuário é livre para escolher como deseja evoluir o personagem, escolhendo as principais características como: uso de armas, uso de magias, uso de aliados, habilidades, etc. Por exemplo, ele pode desejar criar um guerreiro que usa magia de fortalecimento enquanto ataca com um machado, ou então, um psíquico usando controle mental para fazer os inimigos lutarem entre si. Além disso, o usuário pode criar suas próprias habilidades combinando as mecânicas disponíveis no jogo.
+2. Aprendizado: cada partida deve ser única de modo que o usuário precisa aprender a identificar os inimigos, suas táticas e combate e habilidades. Assim, os inimigos incluindo suas táticas e habilidades serão gerados proceduralmente a cada partida.
+3. Único: cada partida deve ser única, isto é, os cenários são gerados proceduralmente e a morte é permanente. No entanto, para a morte nao frustrar o usuário, o personagem será utilizado para gerar novos inimigos especiais que aparecerão nas novas partidas considerando o contexto da morte, por exemplo, a morte por um zumbi pode gerar super zumbi fazendo uso da habilidades e equipamentos do personagem, ou então, a morte por goblins pode gerar uma horda de goblins equipadas com os equipamentos do personagem.
+4. Cenários Atrativos: os cenários devem ser atrativos do ponto de vista visual como imagens e disposição do espaço físico como também no sentido de interação. Os cenários devem apresentar diferentes elementos de interação, por exemplo, correntezas de água, rochas que podem ser quebradas para liberar a passagem, possibilidade de explorar cavernas submersas, diferentes quebra-cabeças gerando recompensas, armadilhas inteligentes que podem ser usadas em favor do usuário.
+5. Ambiente Hostil: os cenários devem ser hostis e dinâmicos de modo uma exploração cautelosa gerará mais recompensas ao custo de riscos maiores. Por exemplo, os cenários terão diferentes armadilhas que sempre podem ser evitados com tempo suficiente, porém, ao longo do tempo, os inimigos podem evoluir aumentando a dificuldade caso a exploração torne muito longa.
+6. Estratégias: os inimigos são desenvolvidos para que o usuário empregue diferentes táticas apresente desafios além do modo massacrar e cortar. No entanto, o usuário pode evitar esses desafios optando por um modo de jogo mais simples. Assim, outras habilidades podem ser exploradas como uso da diplomacia para evitar combates, treinamento de inimigos tornando-os aliados, uso da inteligência para operar mecanismos desconhecidos, etc. Desse modo, outras características podem facilitar a exploração da masmorra, por exemplo, inteligência pode ser usada para operar mecanismos como um robô, carisma pode ser usada obter aliados, sabedoria para identificar caminhos perigosos ou alimentos seguros.
+
+
 Simple ARPG with rogue like game elements:
 - [ ] Turn Based (Strategy)
 - [ ] Procedural Map Generation;
@@ -24,13 +33,17 @@ Simple ARPG with rogue like game elements:
 - [ ] Procedural Quests
 - [ ] Combat System (like Civilization [^20] with elements of Pokemon[^4])
 - [ ] Skills (like Dungeons and Dragons[^21])
+- [ ] Camps (like Civilization [^20])
+- [ ] Hordes (like Left for Dead [^22])
 
+### Elementos Desejados
 
+- [ ] Formação: inimigos coordenados em formação de ataque de modo a obter vantagem em combate nessa formação [^23][^24].
+- [ ] Patrulhas: alguns inimigos podem vagar por regiões da masmorra. Esses inimigos podem ser consideráveis sendo um desafio para o personagem de modo que ele possa escolher engajar em combate ou não. Outro exemplo é de uma patrulha simple, porém, alertando outros inimigos da presença do personagem.
+- [ ] Missões: missões devem ser apresentadas de modo transparente ao usuário, isto é, não há controle das missões ou interface para controlar missões ativas e objetivos. Será algo similar aos RPGs do super Nintendo em que um NPC apresenta um diálogo com certo desejo recompensando o personagem quando atendido. Ou então, quando o personagem descobre uma porta trancada e então passa a procurar pela chave.
+- [ ] Missões Procedurais: as missões serão geradas de modo procedural de acordo com as características do mapa e conterão diferentes níveis de interação, isto é, uma missão terá diferentes resultados de acordo com a ações do personagem e por sua vez, cada resultado pode liberar outras missões.
+- [ ] 
 
-[//]: # "Monster formation"
-[//]: # "Monster patrol"
-[//]: # "Guild missions (explore, escort)"
-[//]: # "Procedural missions"
 
 ## Progresso
 
@@ -131,7 +144,9 @@ Trabalho Futuro
 
 ### Dependências
 
-pygame [^32]: para implementação de recursos básicos como janela, tratamento de imagens, etc.
+Pygame [^32]: para implementação de recursos básicos como janela, tratamento de imagens, etc.
+
+```pip3 install pygame```
 
 ## TODO
 
@@ -154,8 +169,9 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [x] Player 8 Directional Sprites
 - [x] Centralize Minimap
 - [x] Message System
-- [ ] Message System with Options
+- [ ] BUtton System
 - [ ] Mouse Control System
+- [ ] Message System with Options
 - [ ] Collectable System
 - [ ] Doors
 - [ ] Triggers
@@ -193,6 +209,9 @@ pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 [^19]: [Darker than Black](https://en.wikipedia.org/wiki/Darker_than_Black)
 [^20]: [Civilization](https://civilization.fandom.com/wiki/Combat_(Civ6))
 [^21]: [Dungeons and Dragons Skills](https://ocd20.fandom.com/wiki/Skills)
+[^22]: [Left for Dead - Horde](https://left4dead.fandom.com/wiki/Common_Infected#The_Horde)
+[^23]: [Formações de Combate - Jogos](https://www.tagmar.com.br/wiki/Default.aspx?PageName=Forma%C3%A7%C3%A3o%20de%20Combate)
+[^24]: [Formações de Combate - Aérea](https://www.aereo.jor.br/2010/08/11/mais-sobre-formacoes-de-combate/)
 
 [^32]: [Pygame](https://www.pygame.org/news)
 [^33]: [Comparative study of field of view algorithms for 2D grid based worlds](https://www.roguebasin.com/index.php/Comparative_study_of_field_of_view_algorithms_for_2D_grid_based_worlds)

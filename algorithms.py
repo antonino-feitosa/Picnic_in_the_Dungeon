@@ -564,12 +564,8 @@ class PathFinding:
         visited = set()
         
         while len(queue) > 0:
-            for q in queue:
-                print('\t', q)
             pathCost, current = heapq.heappop(queue)
             visited.add(current)
-            print('Next ', current, pathCost)
-            input()
             if current == dest:
                 return self._postProcess(dest, previous)
             for dir in self.directions:

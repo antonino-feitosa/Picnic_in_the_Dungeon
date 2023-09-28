@@ -42,6 +42,31 @@ from algorithms import distanceEuclidean
 from algorithms import distanceSquare
 
 
+class ControlComponent:
+    def __init__(self, position:Point):
+        self.radius = 12
+        self.imageIdle: Image
+        self.imageActive: Image
+        self.tooptip: str
+        self.processing: bool = False
+        self.enabled:bool = True
+    
+    def clickScreen(self, position:Point) -> bool:
+        return False
+
+    def clickWorld(self, position:Point) -> bool:
+        return False
+
+    def mouseMove(self, position:Point) -> None:
+        pass
+
+    def update(self) -> None:
+        pass
+
+
+
+
+
 class MouseButton:
     def __init__(self, position:Point, image:Image):
         self.tooltip: str = ''
@@ -118,7 +143,7 @@ class MouseControlSystem:
 
                 if not acted:
                     position = self.screenToWorldPoint(self.position)
-                    if position in self.game.positionSystem.positionToComponent:
+                    if position in self.game[PositionSystem].positionToComponent:
                         self._selectedUnitPosition = position
                         if self._hasSelectedUnit:
                             self._entityControl[PositionComponent].position = position
@@ -145,9 +170,9 @@ class MouseControlSystem:
         self._entityControl[AnimationComponent].enabled = True
     
     def _createAnimation(self, sheet: SpriteSheet) -> Composition:
-        positionSystem = self.game.positionSystem
-        renderSystem = self.game.renderSystem
-        animationSystem = self.game.animationSystem
+        positionSystem = self.game[PositionSystem]
+        renderSystem = self.game[RenderSystem]
+        animationSystem = self.game[AnimationSystem]
         image = sheet.images[0]
 
         entity = Composition()
@@ -256,9 +281,9 @@ class ControlSystem:
         device.addListener(listenClick)
 
     def listenerControlPlayer(self, key: str) -> None:
-        if (self.game.animationControllerSystem.lockControls
-            or self.game.motionSystem.lockControls
-            or self.game.messageSystem.lockControls):
+        if (self.game[AnimationControllerSystem].lockControls
+            or self.game[MotionSystem].lockControls
+            or self.game[MessageSystem].lockControls):
             return
 
         direction = None
@@ -286,10 +311,10 @@ class ControlSystem:
             self.game.update()
 
     def listenerControlMinimap(self, key: str) -> None:
-        visible = self.game.renderSystem.minimapVisible
+        visible = self.game[RenderSystem].minimapVisible
         if visible:
             off = self.minimapOffset
-            position = self.game.renderSystem.minimapPosition
+            position = self.game[RenderSystem].minimapPosition
             if key == "down":
                 position = Point(position.x, position.y + off)
             if key == "up":
@@ -298,13 +323,13 @@ class ControlSystem:
                 position = Point(position.x - off, position.y)
             if key == "right":
                 position = Point(position.x + off, position.y)
-            self.game.renderSystem.minimapPosition = position
+            self.game[RenderSystem].minimapPosition = position
             self.game.draw()
 
     def listenerShowMinimap(self, key: str) -> None:
-        visible = self.game.renderSystem.minimapVisible
-        self.game.renderSystem.minimapVisible = not visible
-        self.game.renderSystem.resetMinimapPosition()
+        visible = self.game[RenderSystem].minimapVisible
+        self.game[RenderSystem].minimapVisible = not visible
+        self.game[RenderSystem].resetMinimapPosition()
         self.game.draw()
 
     def listenerTranslateMap(self, source: Point, dest: Point) -> None:
@@ -315,29 +340,30 @@ class ControlSystem:
         self.game.draw()
 
     def listenerResetCamera(self, key: str | None = None) -> None:
-        self.game.cameraSystem.centralize()
-        self.game.renderSystem.resetMinimapPosition()
+        self.game[CameraSystem].centralize()
+        self.game[RenderSystem].resetMinimapPosition()
         self.game.draw()
     
     def listenerAction(self, key: str | None = None) -> None:
-        if self.game.messageSystem.lockControls:
-            self.game.messageSystem.update()
+        if self.game[MessageSystem].lockControls:
+            self.game[MessageSystem].update()
         else:
-            self.game.player.add(MessageComponent(self.game.messageSystem, 'Ok!'))
+            self.game.player.add(MessageComponent(self.game[MessageSystem], 'Ok!'))
             self.game.player[MessageComponent].showMessage()
         self.game.draw()
     
     def listenerClick(self, point:Point) -> None:
-        self.game.mouseControlSystem.hasClick = True
-        self.game.mouseControlSystem.position = point
-        self.game.mouseControlSystem.update()
+        self.game[MouseControlSystem].hasClick = True
+        self.game[MouseControlSystem].position = point
+        self.game[MouseControlSystem].update()
 
     def listenerMove(self, point:Point) -> None:
-        self.game.mouseControlSystem.position = point
-        self.game.mouseControlSystem.update()
+        self.game[MouseControlSystem].position = point
+        self.game[MouseControlSystem].update()
 
-class RogueLike:
+class RogueLike(Composition):
     def __init__(self, seed: int = 0, enableFOV=True):
+        super().__init__()
         self.rand = Random(seed)
         self.device = Device("Picnic in the Dungeon", tick=16)
         self.pixelsUnit = Dimension(32, 32)
@@ -347,26 +373,26 @@ class RogueLike:
         self.map = self.createStartMap()
 
         ground = self.map.groundPositions
-        self.renderSystem = RenderSystem(self.rand, self.loader)
-        self.positionSystem = PositionSystem(ground)
-        self.fieldOfViewSystem = FieldOfViewSystem(ground, enableFOV)
-        self.animationSystem = AnimationSystem()
-        self.cameraSystem = CameraSystem(self.device.camera, self.rand, self.pixelsUnit)
-        self.animationControllerSystem = AnimationControllerSystem()
-        self.motionSystem = MotionSystem(self.pixelsUnit)
-        self.messageSystem = MessageSystem(self.loader)
-        self.controlSystem = ControlSystem(self)
-        self.mouseControlSystem = MouseControlSystem(self)
+        self.add(RenderSystem(self.rand, self.loader))
+        self.add(PositionSystem(ground))
+        self.add(FieldOfViewSystem(ground, enableFOV))
+        self.add(AnimationSystem())
+        self.add(CameraSystem(self.device.camera, self.rand, self.pixelsUnit))
+        self.add(AnimationControllerSystem())
+        self.add(MotionSystem(self.pixelsUnit))
+        self.add(MessageSystem(self.loader))
+        self.add(ControlSystem(self))
+        self.add(MouseControlSystem(self))
 
         self.player: Composition = self.createPlayer()
         self.player[CameraComponent].centralize()
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
-        self.renderSystem.setMap(self.map)
-        self.renderSystem.setView(position, visible)
-        self.animationSystem.visible = visible
-        self.animationControllerSystem.visible = visible
+        self[RenderSystem].setMap(self.map)
+        self[RenderSystem].setView(position, visible)
+        self[AnimationSystem].visible = visible
+        self[AnimationControllerSystem].visible = visible
 
     def createStartMap(self) -> Map:
         dimension = Dimension(200, 200)
@@ -376,48 +402,48 @@ class RogueLike:
 
     def createPlayer(self) -> Composition:
         player = Composition()
-        player.add(RenderComponent(self.renderSystem, player, self.loader.avatar))
-        player.add(PositionComponent(self.positionSystem, player, self.map.startPoint))
-        player.add(FieldOfViewComponent(self.fieldOfViewSystem, player, 6))
-        player.add(AnimationComponent(self.animationSystem, player[RenderComponent], self.loader.avatarSprites[('idle', Direction.RIGHT)]))
+        player.add(RenderComponent(self[RenderSystem], player, self.loader.avatar))
+        player.add(PositionComponent(self[PositionSystem], player, self.map.startPoint))
+        player.add(FieldOfViewComponent(self[FieldOfViewSystem], player, 6))
+        player.add(AnimationComponent(self[AnimationSystem], player[RenderComponent], self.loader.avatarSprites[('idle', Direction.RIGHT)]))
         player[AnimationComponent].enabled = True
-        player.add(CameraComponent(self.cameraSystem, player))
-        controller = AnimationControllerComponent(self.animationControllerSystem, player)
+        player.add(CameraComponent(self[CameraSystem], player))
+        controller = AnimationControllerComponent(self[AnimationControllerSystem], player)
         render = player[RenderComponent]
         for (key, sprite) in self.loader.avatarSprites.items():
-            animation = AnimationComponent(self.animationSystem, render, sprite)
+            animation = AnimationComponent(self[AnimationSystem], render, sprite)
             controller.addAnimation(str(key), animation)
         player.add(controller)
-        player.add(MotionComponent(self.motionSystem, player[PositionComponent], controller))
+        player.add(MotionComponent(self[MotionSystem], player[PositionComponent], controller))
         player[PositionComponent].enabled = True
         return player
 
     def update(self) -> None:
-        self.positionSystem.update()
-        self.motionSystem.update()
+        self[PositionSystem].update()
+        self[MotionSystem].update()
         self.player[FieldOfViewComponent].update()
         #self.player[CameraComponent].focus()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
-        self.animationSystem.visible = visible
-        self.animationControllerSystem.visible = visible
-        self.renderSystem.update(position, visible)
+        self[AnimationSystem].visible = visible
+        self[AnimationControllerSystem].visible = visible
+        self[RenderSystem].update(position, visible)
         self.draw()
 
     def draw(self) -> None:
         self.device.clear()
-        self.renderSystem.draw()
-        self.messageSystem.draw()
-        self.mouseControlSystem.draw()
+        self[RenderSystem].draw()
+        self[MessageSystem].draw()
+        self[MouseControlSystem].draw()
         self.device.reload()
 
     def isRunning(self) -> bool:
         return self.device.running
 
     def loop(self) -> None:
-        self.cameraSystem.update()
-        self.motionSystem.updateOnline()
-        self.animationControllerSystem.update()
-        self.animationSystem.update()
+        self[CameraSystem].update()
+        self[MotionSystem].updateOnline()
+        self[AnimationControllerSystem].update()
+        self[AnimationSystem].update()
         self.device.update()
         self.draw()

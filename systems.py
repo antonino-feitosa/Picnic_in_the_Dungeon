@@ -2,6 +2,7 @@ import math
 
 from typing import Set
 from typing import Tuple
+from typing import Callable
 
 from base import Map
 from base import Loader
@@ -48,38 +49,43 @@ class PositionSystem:
 
 
 class MotionSystem:
-    def __init__(self, unitPixels:Dimension):
+    def __init__(self, unitPixels: Dimension):
         self.unitPixels = unitPixels
         self.lockControls = False
-        self.components: Set['MotionComponent'] = set()
+        self.components: Set["MotionComponent"] = set()
         self.toMove: Set[Tuple[MotionComponent, Direction]] = set()
         self.moving: Set[Tuple[RenderComponent, Point, int]] = set()
-    
+
     def update(self):
-        for (component, direction) in self.toMove:
+        for component, direction in self.toMove:
             positionComponent = component.entity[PositionComponent]
             controller = component.entity[AnimationControllerComponent]
-            controller.playAnimation(str(('idle', direction)))
+            controller.playAnimation(str(("idle", direction)))
             if len(positionComponent.collided) > 0:
-                controller.playAnimationInStack(str(('collision', direction)), lockControls=True)
+                controller.playAnimationInStack(
+                    str(("collision", direction)), lockControls=True
+                )
             else:
                 spd = component.speed
                 render = controller.getCurrentAnimation().render
-                controller.playAnimationInStack(str(('walk', direction)), lockControls=True)
+                controller.playAnimationInStack(
+                    str(("walk", direction)), lockControls=True
+                )
                 x, y = self.unitPixels
                 delta = Point(x * direction.x // spd, y * direction.y // spd)
                 self.moving.add((render, delta, spd - 1))
                 render.offset = Point(x * -direction.x, y * -direction.y)
         self.toMove.clear()
-    
+
     def updateOnline(self):
         lock = False
         if len(self.moving) > 0:
-            moving:Set[Tuple[RenderComponent, Point, int]] = set()
-            for (render, delta, spd) in self.moving:
+            moving: Set[Tuple[RenderComponent, Point, int]] = set()
+            for render, delta, spd in self.moving:
                 spd -= 1
                 if spd == 0:
-                    render.offset = Point(0,0)
+                    render.offset = Point(0, 0)
+                    render.entity[MotionComponent].callback()
                 else:
                     lock = True
                     x, y = render.offset
@@ -87,8 +93,6 @@ class MotionSystem:
                     moving.add((render, delta, spd))
             self.moving = moving
         self.lockControls = lock
-
-        
 
 
 class RenderSystem:
@@ -168,7 +172,7 @@ class FieldOfViewSystem:
         self.ground = ground
         self._fov = FieldOfView(1, ground)
 
-    def update(self, component: 'FieldOfViewComponent') -> None:
+    def update(self, component: "FieldOfViewComponent") -> None:
         if self.enableFOV:
             fov = self._fov
             fov.ground = self.ground
@@ -292,23 +296,23 @@ class AnimationControllerSystem:
 
 
 class MessageSystem:
-    def __init__(self, loader:Loader):
+    def __init__(self, loader: Loader):
         self.component: MessageComponent | None = None
         self.confirm = False
         self.cancel = False
         self.option = 0
         self.lockControls = False
         self._message = Message(loader)
-    
-    def showMessage(self, component:'MessageComponent') -> None:
+
+    def showMessage(self, component: "MessageComponent") -> None:
         self._message.setMessages([component.text])
         self.component = component
         self.lockControls = True
-    
+
     def draw(self):
         if self.component is not None:
             self._message.draw()
-    
+
     def update(self):
         if self.component is not None:
             self.component.confirmed = self.confirm
@@ -319,8 +323,7 @@ class MessageSystem:
         self.cancel = False
         self.option = 0
         self.lockControls = False
-        
-    
+
 
 ##############################################################################
 # Components
@@ -335,7 +338,7 @@ class RenderComponent:
         self.offset: Point = Point(0, 0)
         self._enabled = True
         system.components.add(self)
-    
+
     @property
     def enabled(self):
         return self._enabled
@@ -388,7 +391,12 @@ class PositionComponent:
 
 
 class MotionComponent:
-    def __init__(self, system: MotionSystem, position:PositionComponent, controller:'AnimationControllerComponent'):
+    def __init__(
+        self,
+        system: MotionSystem,
+        position: PositionComponent,
+        controller: "AnimationControllerComponent",
+    ):
         self.system = system
         self.entity = position.entity
         self.controller = controller
@@ -396,12 +404,13 @@ class MotionComponent:
         self.direction = Direction.RIGHT
         system.components.add(self)
         self._enabled = True
-    
-    def move(self, direction:Direction) -> None:
+        self.callback: Callable[[], None] = lambda: None
+
+    def move(self, direction: Direction) -> None:
         self.entity[PositionComponent].move(direction)
         self.system.toMove.add((self, direction))
         self.direction = direction
-    
+
     @property
     def enabled(self):
         return self._enabled
@@ -419,14 +428,14 @@ class MotionComponent:
 
 
 class FieldOfViewComponent:
-    AngleCone = 'cone'
-    AngleRadial = 'radial'
-    AnglePeripheral = 'peripheral'
+    AngleCone = "cone"
+    AngleRadial = "radial"
+    AnglePeripheral = "peripheral"
 
-    FormatOctal = 'octal'
-    FormatCircle = 'circle'
-    FormatSquare = 'square'
-    FormatDiamond = 'diamond'
+    FormatOctal = "octal"
+    FormatCircle = "circle"
+    FormatSquare = "square"
+    FormatDiamond = "diamond"
 
     def __init__(self, system: FieldOfViewSystem, entity: Composition, radius: int):
         self.system = system
@@ -439,7 +448,7 @@ class FieldOfViewComponent:
 
     def update(self):
         self.system.update(self)
-    
+
     @property
     def enabled(self):
         pass
@@ -462,7 +471,7 @@ class AnimationComponent:
         self.animation = animation
         self.entity = render.entity
         self._enabled = False
-    
+
     @property
     def finished(self):
         return not self.loop and self._frameIndex == len(self.animation.images) - 1
@@ -518,7 +527,7 @@ class CameraComponent:
 
     def shake(self) -> None:
         self.system.shake(self)
-    
+
     @property
     def enabled(self):
         pass
@@ -559,7 +568,7 @@ class AnimationControllerComponent:
         self._baseAnimation.loop = True
         self._playAnimation(self._baseAnimation)
 
-    def playAnimationInStack(self, name: str, lockControls = False) -> None:
+    def playAnimationInStack(self, name: str, lockControls=False) -> None:
         self.lockControls = lockControls
         self._stackAnimationName = name
         self._stackAnimation = self.animations[name]
@@ -584,7 +593,7 @@ class AnimationControllerComponent:
                 self._restoreBaseAnimation()
                 self._stackContext = False
                 self.lockControls = False
-    
+
     @property
     def enabled(self):
         return self._enabled
@@ -602,16 +611,16 @@ class AnimationControllerComponent:
 
 
 class MessageComponent:
-    def __init__(self, system:MessageSystem, text:str):
+    def __init__(self, system: MessageSystem, text: str):
         self.text = text
         self.system = system
         self.confirmed = False
         self.canceled = False
         self.answer = 0
-    
+
     def showMessage(self) -> None:
         self.system.showMessage(self)
-    
+
     @property
     def enabled(self):
         pass

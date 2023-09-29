@@ -1,4 +1,5 @@
 
+from typing import Set
 from typing import List
 from typing import Tuple
 from typing import Callable
@@ -13,6 +14,8 @@ from device import KeyboardListener
 from device import MouseDragListener
 from device import MouseClickListener
 from device import MouseMotionListener
+
+from entities import SimpleAnimation
 
 from systems import PositionSystem
 from systems import PositionComponent
@@ -43,169 +46,187 @@ from algorithms import distanceSquare
 
 
 class ControlComponent:
-    def __init__(self, position:Point):
-        self.radius = 12
-        self.imageIdle: Image
-        self.imageActive: Image
-        self.tooptip: str
-        self.processing: bool = False
-        self.enabled:bool = True
+    def mouseClick(self, screenPosition:Point, worldPosition:Point) -> bool:
+        return False
+
+    def mouseMove(self, screenPosition:Point, worldPosition:Point) -> None:
+        pass
+
+
+class ControlComponentSelectEntity(ControlComponent):
+    def __init__(self, system:'MouseControlSystem', game:Composition, spriteSheet:SpriteSheet):
+        self.game = game
+        self.system = system
+        self.selectedAnimation:SimpleAnimation = SimpleAnimation(game, spriteSheet, Point(0,0))
+
+        self._enabled = False
+        self.callback:Callable[[Composition],None] = lambda _: None
+
+    def mouseClick(self, screenPosition:Point, worldPosition:Point) -> bool:
+        if self.enabled:
+            if worldPosition in self.game[PositionSystem].positionToComponent:
+                component = self.game[PositionSystem].positionToComponent[worldPosition]
+                self.selectedAnimation[PositionComponent].position = component.position
+                self.selectedAnimation.play()
+                self.callback(component.entity)
+                return True
+        return False
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value and not self._enabled:
+            self._enabled = True
+            self.system.components.add(self)
+        if not value and self._enabled:
+            self._enabled = False
+            self.selectedAnimation.stop()
+            self.system.components.remove(self)
+
+
+class ControlComponentPath(ControlComponent):
+    def __init__(self, system:'MouseControlSystem', game:Composition, spriteSheet:SpriteSheet):
+        self.system = system
+        self.pathSize = 3 # TODO num of moves, turn component
+        self.selectedEntity:Composition
+
+        self._enabled = False
+        self.callback:Callable[[List[Point]],None] = lambda _: None
+
+        self.path:List[Point] = []
+        self.pathFinding = PathFinding(game[Map].groundPositions, DIRECTIONS)
+        self.pathAnimations:List[SimpleAnimation] = []
+        for _ in range(self.pathSize):
+            self.pathAnimations.append(SimpleAnimation(game, spriteSheet, Point(0,0)))
+
+    @property
+    def enabled(self):
+        return self._enabled
+            
+    @enabled.setter
+    def enabled(self, value):
+        if value and not self._enabled:
+            self._enabled = True
+            self.system.components.add(self)
+        if not value and self._enabled:
+            self._enabled = False
+            self.clearPath()
+            self.system.components.remove(self)
     
-    def clickScreen(self, position:Point) -> bool:
+    def startSelection(self, entity:Composition) -> None:
+        self.enabled = True
+        self.selectedEntity = entity
+    
+    def mouseClick(self, screenPosition:Point, worldPosition:Point) -> bool:
+        if self.enabled:
+            self.callback(self.path)
+            self.clearPath()
+            self.enabled = False
+            return True
         return False
 
-    def clickWorld(self, position:Point) -> bool:
+    def mouseMove(self, screenPosition:Point, worldPosition:Point) -> None:
+        if self.enabled:
+            source = self.selectedEntity[PositionComponent].position
+            self.updatePath(source, worldPosition)
+    
+    def updatePath(self, source:Point, destination:Point) -> None:
+        if destination == source:
+            self.path = []
+        else:
+            distance = distanceSquare(source, destination)
+            if distance > 0 and distance <= self.pathSize:
+                self.path = self.pathFinding.searchPath(source, destination)
+                if len(self.path) > 0:
+                    self.path = self.path[1:]
+                for position, entity in zip(self.path, self.pathAnimations):
+                    entity[PositionComponent].position = position
+                    entity.play()
+        for i in range(len(self.path), self.pathSize):
+            self.pathAnimations[i].stop()
+    
+    def clearPath(self):
+        for anim in self.pathAnimations:
+            anim.stop()
+
+
+class ControlComponentMove(ControlComponent):
+    def __init__(self, system:'MouseControlSystem', game:Composition, loader:Loader):
+        super().__init__()
+        self.game = game
+        self.radius = 12
+        self.system = system
+        self.pathSize = 3 # TODO num of moves, turn component
+        _, h = loader.device.dimension
+        height = h - loader.descriptionBackground.dimension.height
+        width = loader.descriptionBackground.dimension.width
+
+        self.position = Point(width - 30 - 16, height)
+        self.imageIdle = loader.iconMove
+        self.imageActive = loader.iconSelectedMove
+        self.imageCurrent = self.imageIdle
+        self.tooptip = 'Move to Location'
+        self.selectedEntity: Composition
+
+    
+    def mouseClick(self, screenPosition:Point, worldPosition:Point) -> bool:
+        if self.active:
+            center = self.selectedEntity[PositionComponent].position
+            distance = distanceSquare(worldPosition, center)
+            if distance > 0 and distance < self.pathSize:
+                self.perform()
+            self.active = False
+            return True
+        else:
+            if self.clickInRadius(screenPosition):
+                self.active = True
+                self.imageCurrent = self.imageActive
+                return True
         return False
-
-    def mouseMove(self, position:Point) -> None:
+    
+    def perform(self) -> None:
+        # lock controls
+        # move
         pass
 
-    def update(self) -> None:
-        pass
+    def draw(self) -> None:
+        self.imageCurrent.drawAtScreen(self.position)
+
+    def clickInRadius(self, clickPosition:Point) -> bool:
+        offset = Point(self.position.x + self.radius, self.position.y + self.radius)
+        distance = distanceEuclidean(clickPosition, offset) < self.radius
+        return distance <= self.radius
 
 
-
-
-
-class MouseButton:
-    def __init__(self, position:Point, image:Image):
-        self.tooltip: str = ''
-        self.image:Image = image
-        self.position: Point = position
-        self.action = None
 
 class MouseControlSystem:
-    def __init__(self, game: 'RogueLike'):
+    def __init__(self, game: 'RogueLike', loader:Loader):
         self.game = game
         self.device = game.device
-        self.hasClick:bool = False
-        self.pathSize = 3
+        self.showDescrition:bool = False
+        self.lockControls = False
+        self.enabled = False
         self.position:Point = Point(0,0)
-        self._hasSelectedUnit = False
-        self._selectedUnitPosition:Point = Point(0,0)
-        self._onMoveAction:bool = False
-        self._pathEntity: List[Composition] = []
-        self._pathDestination:List[Point] = []
-
-        selectSheet = self.game.loader.selectedUnit
-        self._entityControl = self._createAnimation(selectSheet)
-        pathSheet = self.game.loader.selectedPath
-        for _ in range(self.pathSize):
-            self._pathEntity.append(self._createAnimation(pathSheet))
-        self._pathFinding = PathFinding(game.map.groundPositions, DIRECTIONS)
-
-        self.icons:List[Tuple[Image,Point,Callable[[],None]]] = []
-        self._createIcons()
-    
-    def _createIcons(self):
+        self.components: Set[ControlComponent] = set()
+        
+        self.background: Image = loader.descriptionBackground
         _, h = self.game.device.dimension
         loader = self.game.loader
         height = h - loader.descriptionBackground.dimension.height
-        width = loader.descriptionBackground.dimension.width
-        icons = [
-            loader.iconMove,
-            loader.iconPass,
-            loader.iconAlert,
-            loader.iconDefend,
-            loader.iconAttack,
-            loader.iconBag,
-            loader.iconConfig,
-            loader.iconEnvironment
-        ]
-        actions = [
-            self._actionMove,
-            lambda : print('Action Pass'),
-            lambda : print('Action Alert'),
-            lambda : print('Action Defend'),
-            lambda : print('Action Attack'),
-            lambda : print('Action Bag'),
-            lambda : print('Action Config'),
-            lambda : print('Action Environment')
-        ]
-        dx = width - 30 - 16
-        for image, action in zip(icons, actions):
-            self.icons.append((image, Point(dx, height), action))
-            dx -= 30
-        
-    def update(self) -> None:
-        if self.hasClick:
-            if self._onMoveAction:
-                self._actionMovePerform()
-            else:
-
-                acted = False
-                for _, position, action in self.icons:
-                    destination = Point(position.x + 12, position.y + 12)
-                    if distanceEuclidean(destination, self.position) < 12:
-                        action()
-                        acted = True
-                        break
-
-                if not acted:
-                    position = self.screenToWorldPoint(self.position)
-                    if position in self.game[PositionSystem].positionToComponent:
-                        self._selectedUnitPosition = position
-                        if self._hasSelectedUnit:
-                            self._entityControl[PositionComponent].position = position
-                        else:
-                            self._enableEntitySelect()
-                        self._hasSelectedUnit = True
-                    else:
-                        self._hasSelectedUnit = False
-        else:
-            if self._onMoveAction:
-                self._updateEntityPath()
-        
-        if not self._hasSelectedUnit:
-            self._disableEntitySelect()
-        self.hasClick = False
+        self.backgroundPosition = Point(0, height)
     
-    def _disableEntitySelect(self):
-        self._entityControl[RenderComponent].enabled = False
-        self._entityControl[AnimationComponent].enabled = False
+    def mouseClick(self, screenPosition:Point) -> None:
+        worldPosition = self.screenToWorldPoint(screenPosition)
+        for control in self.components.copy():
+            control.mouseClick(screenPosition, worldPosition)
 
-    def _enableEntitySelect(self):
-        self._entityControl[PositionComponent].position = self._selectedUnitPosition
-        self._entityControl[RenderComponent].enabled = True
-        self._entityControl[AnimationComponent].enabled = True
-    
-    def _createAnimation(self, sheet: SpriteSheet) -> Composition:
-        positionSystem = self.game[PositionSystem]
-        renderSystem = self.game[RenderSystem]
-        animationSystem = self.game[AnimationSystem]
-        image = sheet.images[0]
-
-        entity = Composition()
-        position = PositionComponent(positionSystem, entity, Point(0,0))
-        render = RenderComponent(renderSystem, entity, image)
-        render.enabled = False
-        animation = AnimationComponent(animationSystem, render, sheet)
-        entity.add(position)
-        entity.add(render)
-        entity.add(animation)
-        return entity
-
-
-    def _updateEntityPath(self):
-        for entity in self._pathEntity:
-            entity[RenderComponent].enabled = False
-            entity[AnimationComponent].enabled = False
-        
-        dest = self.screenToWorldPoint(self.position)
-        source = self._selectedUnitPosition
-        distance = distanceSquare(source, dest)
-        inRange = distance > 0 and distance <= self.pathSize
-            
-        if inRange and self._onMoveAction and dest != source:
-            path = self._pathFinding.searchPath(source, dest)
-            if len(path) > 0:
-                path = path[1:]
-            self._pathDestination = path
-            for position, entity in zip(path, self._pathEntity):
-                entity[PositionComponent].position = position
-                entity[RenderComponent].enabled = True
-                entity[AnimationComponent].enabled = True
-                
+    def mouseMove(self, screenPosition:Point) -> None:
+        worldPosition = self.screenToWorldPoint(screenPosition)
+        for control in self.components.copy():
+            control.mouseMove(screenPosition, worldPosition)
 
     def screenToWorldPoint(self, point:Point):
         w, h = self.game.pixelsUnit
@@ -213,31 +234,9 @@ class MouseControlSystem:
         return Point((point.x + x)//w, (point.y + y)//h)
 
     def draw(self):
-        if self._hasSelectedUnit:
-            self.drawControlUnitInterface()
-
-    def drawControlUnitInterface(self) -> None:
-        loader = self.game.loader
-        loader.descriptionBackground.drawAtScreen(Point(0, self.icons[0][1].y))
-        for image, point, _ in self.icons:
-            image.drawAtScreen(point)
-    
-    def _actionMove(self):
-        self._onMoveAction = True
-        moveElement = self.icons[0]
-        image = self.game.loader.iconSelectedMove
-        self.icons[0] = (image, moveElement[1], self._actionMove)
-        self._updateEntityPath()
-    
-    def _actionMovePerform(self):
-        self._onMoveAction = False
-        moveElement = self.icons[0]
-        image = self.game.loader.iconMove
-        self.icons[0] = (image, moveElement[1], self._actionMove)
-        print('Moving to', self._pathDestination)
-        self._hasSelectedUnit = False
-        self._disableEntitySelect()
-        self._updateEntityPath()
+        if self.showDescrition:
+            self.background.drawAtScreen(self.backgroundPosition)
+        
 
 
 class ControlSystem:
@@ -273,11 +272,11 @@ class ControlSystem:
         device.addListener(listenDrag)
 
         listenMove = MouseMotionListener()
-        listenMove.onMove = self.listenerMove
+        listenMove.onMove = self.game[MouseControlSystem].mouseMove
         device.addListener(listenMove)
 
         listenClick = MouseClickListener()
-        listenClick.onMouseUp = self.listenerClick
+        listenClick.onMouseUp = self.game[MouseControlSystem].mouseClick
         device.addListener(listenClick)
 
     def listenerControlPlayer(self, key: str) -> None:
@@ -351,15 +350,7 @@ class ControlSystem:
             self.game.player.add(MessageComponent(self.game[MessageSystem], 'Ok!'))
             self.game.player[MessageComponent].showMessage()
         self.game.draw()
-    
-    def listenerClick(self, point:Point) -> None:
-        self.game[MouseControlSystem].hasClick = True
-        self.game[MouseControlSystem].position = point
-        self.game[MouseControlSystem].update()
 
-    def listenerMove(self, point:Point) -> None:
-        self.game[MouseControlSystem].position = point
-        self.game[MouseControlSystem].update()
 
 class RogueLike(Composition):
     def __init__(self, seed: int = 0, enableFOV=True):
@@ -370,29 +361,32 @@ class RogueLike(Composition):
         self.pixelsUnitMinimap = Dimension(4, 4)
         self.loader = Loader(self.device, self.pixelsUnit, self.pixelsUnitMinimap)
         self.loader.load()
-        self.map = self.createStartMap()
 
-        ground = self.map.groundPositions
+        self.add(self.createStartMap())
         self.add(RenderSystem(self.rand, self.loader))
-        self.add(PositionSystem(ground))
-        self.add(FieldOfViewSystem(ground, enableFOV))
+        self.add(PositionSystem(self[Map].groundPositions))
+        self.add(FieldOfViewSystem(self[Map].groundPositions, enableFOV))
         self.add(AnimationSystem())
         self.add(CameraSystem(self.device.camera, self.rand, self.pixelsUnit))
         self.add(AnimationControllerSystem())
         self.add(MotionSystem(self.pixelsUnit))
         self.add(MessageSystem(self.loader))
+        self.add(MouseControlSystem(self, self.loader))
         self.add(ControlSystem(self))
-        self.add(MouseControlSystem(self))
 
         self.player: Composition = self.createPlayer()
         self.player[CameraComponent].centralize()
         self.player[FieldOfViewComponent].update()
         position = self.player[PositionComponent].position
         visible = self.player[FieldOfViewComponent].visible
-        self[RenderSystem].setMap(self.map)
+        self[RenderSystem].setMap(self[Map])
         self[RenderSystem].setView(position, visible)
         self[AnimationSystem].visible = visible
         self[AnimationControllerSystem].visible = visible
+
+
+        comp = ControlComponentPath(self[MouseControlSystem], self, self.loader.selectedPath)
+        comp.startSelection(self.player)
 
     def createStartMap(self) -> Map:
         dimension = Dimension(200, 200)
@@ -403,7 +397,7 @@ class RogueLike(Composition):
     def createPlayer(self) -> Composition:
         player = Composition()
         player.add(RenderComponent(self[RenderSystem], player, self.loader.avatar))
-        player.add(PositionComponent(self[PositionSystem], player, self.map.startPoint))
+        player.add(PositionComponent(self[PositionSystem], player, self[Map].startPoint))
         player.add(FieldOfViewComponent(self[FieldOfViewSystem], player, 6))
         player.add(AnimationComponent(self[AnimationSystem], player[RenderComponent], self.loader.avatarSprites[('idle', Direction.RIGHT)]))
         player[AnimationComponent].enabled = True

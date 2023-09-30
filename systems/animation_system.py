@@ -57,6 +57,12 @@ class AnimationControllerComponent:
         if not value and self._enabled:
             self._restoreIdleAnimation()
             self._enabled = False
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return self.entity.__str__()
 
 
 class AnimationComponent:
@@ -102,12 +108,18 @@ class AnimationComponent:
             if self._frameIndex + 1 < length:
                 self._frameIndex += 1
             else:
-                for call in self.callback:
+                for call in self.callback.copy():
                     call()
                 if self.loop:
                     self._frameIndex = 0
         else:
             self._tickCount += 1
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return self.entity.__str__()
 
 
 class AnimationSystem:

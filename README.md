@@ -178,13 +178,14 @@ Pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 - [ ] Triggers
 - [ ] Switches
 - [ ] Wave Collapse Function
-- [ ] Map Geration (Random Walk + Wave Collapse Function)
+- [ ] Map Generation (Random Walk + Wave Collapse Function)
 - [ ] Player Directions Sprites
 - [ ] Player Animations
 - [ ] Map Levels
 - [ ] Binary Spatial Partition Map
 - [ ] Cellular Automata Map
 - [ ] Voronoy Hive Map
+- [ ] Path selection with direction and collision
 
 
 

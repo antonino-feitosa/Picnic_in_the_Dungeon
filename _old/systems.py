@@ -1,51 +1,5 @@
 
 
-class MotionSystem:
-    def __init__(self, unitPixels: Dimension):
-        self.unitPixels = unitPixels
-        self.lockControls = False
-        self.components: Set["MotionComponent"] = set()
-        self.toMove: Set[Tuple[MotionComponent, Direction]] = set()
-        self.moving: Set[Tuple[RenderComponent, Point, int]] = set()
-
-    def update(self):
-        for component, direction in self.toMove:
-            positionComponent = component.entity[PositionComponent]
-            controller = component.entity[AnimationControllerComponent]
-            controller.playAnimation(str(("idle", direction)))
-            if len(positionComponent.collided) > 0:
-                controller.playAnimationInStack(
-                    str(("collision", direction)), lockControls=True
-                )
-            else:
-                spd = component.speed
-                render = controller.getCurrentAnimation().render
-                controller.playAnimationInStack(
-                    str(("walk", direction)), lockControls=True
-                )
-                x, y = self.unitPixels
-                delta = Point(x * direction.x // spd, y * direction.y // spd)
-                self.moving.add((render, delta, spd - 1))
-                render.offset = Point(x * -direction.x, y * -direction.y)
-        self.toMove.clear()
-
-    def updateOnline(self):
-        lock = False
-        if len(self.moving) > 0:
-            moving: Set[Tuple[RenderComponent, Point, int]] = set()
-            for render, delta, spd in self.moving:
-                spd -= 1
-                if spd == 0:
-                    render.offset = Point(0, 0)
-                    render.entity[MotionComponent].callback()
-                else:
-                    lock = True
-                    x, y = render.offset
-                    render.offset = Point(x + delta.x, y + delta.y)
-                    moving.add((render, delta, spd))
-            self.moving = moving
-        self.lockControls = lock
-
 
 
 
@@ -87,44 +41,6 @@ class MessageSystem:
 ##############################################################################
 
 
-
-
-
-class MotionComponent:
-    def __init__(
-        self,
-        system: MotionSystem,
-        position: PositionComponent,
-        controller: "AnimationControllerComponent",
-    ):
-        self.system = system
-        self.entity = position.entity
-        self.controller = controller
-        self.speed = 8
-        self.direction = Direction.RIGHT
-        system.components.add(self)
-        self._enabled = True
-        self.callback: Callable[[], None] = lambda: None
-
-    def move(self, direction: Direction) -> None:
-        self.entity[PositionComponent].move(direction)
-        self.system.toMove.add((self, direction))
-        self.direction = direction
-
-    @property
-    def enabled(self):
-        return self._enabled
-
-    @enabled.setter
-    def enabled(self, value):
-        if value:
-            if not self._enabled:
-                self.system.components.add(self)
-                self._enabled = True
-        else:
-            if self._enabled:
-                self.system.components.remove(self)
-                self._enabled = False
 
 
 

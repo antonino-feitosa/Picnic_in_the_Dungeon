@@ -40,20 +40,36 @@ class ControlSystem:
         self.enabled = True
         self.game.device.addListenerClick(self.mouseClick)
         self.game.device.addListenerMove(self.mouseMove)
+        self.game.tickSystems.append(self)
+        self._position:Position = Position()
+        self._lastPosition: Position = Position()
+        self._click = False
+        self._clickPosition:Position = Position()
 
     def mouseClick(self, screenPosition: Position) -> None:
-        if self.enabled and not self.lockControls:
-            worldPosition = self.screenToWorldPosition(screenPosition)
-            for control in self.components.copy():
-                control.mouseClick(screenPosition, worldPosition)
+        if self.enabled:
+            self._clickPosition = screenPosition
+            self._click = True
+            
 
     def mouseMove(self, screenPosition: Position) -> None:
-        if self.enabled and not self.lockControls:
-            worldPosition = self.screenToWorldPosition(screenPosition)
-            for control in self.components.copy():
-                control.mouseMove(screenPosition, worldPosition)
+        if self.enabled:
+            self._position = screenPosition
 
     def screenToWorldPosition(self, point: Position):
         w, h = self.units
         x, y = self.game.device.camera.translate
         return Position((point.x + x) // w, (point.y + y) // h)
+
+    def tick(self):
+        position, click = self._clickPosition, self._click
+        movePosition = self._position
+        if not self.lockControls:
+            if click:
+                worldPosition = self.screenToWorldPosition(position)
+                for control in self.components.copy():
+                    control.mouseClick(position, worldPosition)
+            
+            worldPosition = self.screenToWorldPosition(movePosition)
+            for control in self.components.copy():
+                control.mouseMove(movePosition, worldPosition)

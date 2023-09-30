@@ -18,7 +18,7 @@ from systems.collision_system import CollisionComponent
 from systems.map_system import MapSystem
 
 
-class ControlComponentSelectEntity(ControlComponent):
+class SelectEntityComponent(ControlComponent):
     def __init__(self, game: Game, system: ControlSystem, spriteSheet: SpriteSheet):
         super().__init__(system)
         self.game = game
@@ -58,7 +58,7 @@ class ControlComponentSelectEntity(ControlComponent):
         super(__class__, self.__class__).enabled.__set__(self, value)  # type: ignore
 
 
-class ControlComponentSelectionPath(ControlComponent):
+class SelectPathComponent(ControlComponent):
     def __init__(self, game: Game, system: ControlSystem, entity:Entity, spriteSheet: SpriteSheet):
         super().__init__(system)
         self.system = system

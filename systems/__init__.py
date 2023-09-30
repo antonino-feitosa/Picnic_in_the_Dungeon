@@ -17,6 +17,10 @@ from .render_system import RenderComponent
 
 from .animation_system import AnimationSystem
 from .animation_system import AnimationComponent
+from .animation_system import AnimationControllerComponent
 
 from .control_system import ControlSystem
 from .control_system import ControlComponent
+
+from .motion_system import MotionSystem
+from .motion_system import MotionComponent

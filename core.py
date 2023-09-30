@@ -54,6 +54,12 @@ class Entity:
             return self.id != other.id
         return NotImplemented
 
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return f"Entity({self.id})"
+
 
 class Game(Entity):
     def __init__(self, device:'Device', random:Random):
@@ -63,8 +69,8 @@ class Game(Entity):
         self.tickSystems = []
         self.drawSystems = []
         self.updateSystems = []
-        self.loadedImages:Dict[str,Image] = dict()
-        self.loadedSpriteSheets:Dict[str,SpriteSheet] = dict()
+        self._loadedImages:Dict[str,Image] = dict()
+        self._loadedSpriteSheets:Dict[str,SpriteSheet] = dict()
 
         self.loadTiledCanvas = device.loadTiledCanvas
         self.loadFont = device.loadFont
@@ -89,16 +95,16 @@ class Game(Entity):
             system.update()
 
     def loadImage(self, path:str) -> Image:
-        if path not in self.loadedImages:
+        if path not in self._loadedImages:
             image = self.device.loadImage(path)
-            self.loadedImages[path] = image
-        return self.loadedImages[path]
+            self._loadedImages[path] = image
+        return self._loadedImages[path]
 
     def loadSpriteSheet(self, path:str, dimension:Dimension) -> SpriteSheet:
-        if path not in self.loadedImages:
+        if path not in self._loadedImages:
             sheet = self.device.loadSpriteSheet(path, dimension)
-            self.loadedSpriteSheets[path] = sheet
-        return self.loadedSpriteSheets[path]
+            self._loadedSpriteSheets[path] = sheet
+        return self._loadedSpriteSheets[path]
 
     @property
     def isRunning(self) -> bool:

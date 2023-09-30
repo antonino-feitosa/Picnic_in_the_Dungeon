@@ -31,6 +31,12 @@ class ViewComponent:
             self._lastPosition = center
             algorithm = self.system.algorithm
             self.system.visible = algorithm.rayCasting(center, direction)
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return self.entity.__str__()
 
 
 class ViewSystem:

@@ -1,4 +1,3 @@
-
 from typing import Set
 from typing import Dict
 from typing import List
@@ -19,33 +18,32 @@ from algorithms import Direction
 
 from systems import PositionComponent
 
+
 class CollisionComponent:
-    def __init__(self, system:'CollisionSystem', entity: Entity):
+    def __init__(self, system: "CollisionSystem", entity: Entity):
         self.system = system
         self.entity = entity
-        self.passiveCollision:Set[CollisionComponent] = set()
+        self.passiveCollision: Set[CollisionComponent] = set()
         self.activeCollision: CollisionComponent | None = None
-        self.wallCollision:bool = False
+        self.wallCollision: bool = False
         self.dependency: Set[CollisionComponent] = set()
         self._enabled = True
         self.system.actualPosition[self.position] = self
 
-        # override move on Position Component
-        self.entity[PositionComponent].move = self.move
-    
-    def move(self, direction:Direction):
-        self.wallCollision = False
-        self.activeCollision = None
-        self.passiveCollision.clear()
+    def move(self, direction: Direction):
         self.system.move(self, direction)
-    
+
     @property
     def position(self) -> Position:
         return self.positionComponent.position
-    
+
     @property
     def positionComponent(self) -> PositionComponent:
         return self.entity[PositionComponent]
+
+    @property
+    def collided(self) -> bool:
+        return self.wallCollision or self.activeCollision is not None
 
     @property
     def enabled(self) -> bool:
@@ -58,10 +56,18 @@ class CollisionComponent:
                 self.system.actualPosition[self.position] = self
                 self._enabled = True
             else:
-                raise ValueError('Can not collision on an occupied position: ' + str(self.position))
+                message = "Can not collision on an occupied position: "
+                raise ValueError(message + str(self.position))
         if not value and self._enabled:
             del self.system.actualPosition[self.position]
             self._enabled = False
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return self.entity.__str__()
+
 
 class CollisionSystem:
     def __init__(self, game: Game):
@@ -80,9 +86,12 @@ class CollisionSystem:
             destination = direction + position
             other = self.actualPosition[destination]
             other.passiveCollision.add(component)
+            other.dependency.remove(component)
             component.activeCollision = other
             component.dependency.clear()
-        
+            component.entity[PositionComponent].direction = direction
+        self.movingInDirection.clear()
+
     def resolveDependency(self):
         while self.tryingToMove:
             component = self.tryingToMove.pop()
@@ -99,17 +108,21 @@ class CollisionSystem:
                 component.positionComponent.position = destination
                 component.positionComponent.direction = direction
                 if component.dependency:
-                    first = component.dependency.pop() # TODO randomize or initiative
+                    first = component.dependency.pop()  # TODO randomize or initiative
                     self.tryingToMove.add(first)
-                    component.dependency.clear()
+                    #component.dependency.clear()
 
-    def move(self, component:CollisionComponent, direction:Direction) -> None:
+    def move(self, component: CollisionComponent, direction: Direction) -> None:
+        component.wallCollision = False
+        component.activeCollision = None
+        component.passiveCollision.clear()
         ground: Set[Position] = self.game[MapSystem].ground
         destination = direction + component.position
         if destination in ground:
             self.movingInDirection[component] = direction
             if destination in self.actualPosition:
-                self.actualPosition[destination].dependency.add(component)
+                other = self.actualPosition[destination]
+                other.dependency.add(component)
             else:
                 self.tryingToMove.add(component)
         else:

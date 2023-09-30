@@ -39,6 +39,12 @@ class Direction:
     def __iter__(self):
         yield self.x
         yield self.y
+    
+    def __eq__(self, other: "Direction"):
+        return self.x == other.x and self.y == other.y
+
+    def __ne__(self, other: "Direction"):
+        return self.x != other.x or self.y != other.y
 
     def __hash__(self) -> int:
         # NOTE it supports grids of 8192 x 8192
@@ -81,12 +87,12 @@ Direction.Diagonals = (
 )
 
 Direction._names = {
-    Direction.Up: "Up",
-    Direction.Down: "Down",
-    Direction.Left: "Left",
-    Direction.Right: "Right",
-    Direction.UpLeft: "UpLeft",
-    Direction.UpRight: "UpRight",
-    Direction.DownLeft: "DownLeft",
-    Direction.DownRight: "DownRight",
+    Direction.Up: "up",
+    Direction.Down: "down",
+    Direction.Left: "left",
+    Direction.Right: "right",
+    Direction.UpLeft: "up.left",
+    Direction.UpRight: "up.right",
+    Direction.DownLeft: "down.left",
+    Direction.DownRight: "down.right",
 }

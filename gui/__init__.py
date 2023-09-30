@@ -1,4 +1,4 @@
 
 
-from .selection import ControlComponentSelectEntity
-from .selection import ControlComponentSelectionPath
+from .selection import SelectEntityComponent
+from .selection import SelectPathComponent

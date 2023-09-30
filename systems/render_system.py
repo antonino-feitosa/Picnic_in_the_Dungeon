@@ -42,6 +42,12 @@ class RenderComponent:
         dx, dy = self.offset
         position = Position(width * uw + dx, height * uh + dy)
         self.image.draw(position)
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return self.entity.__str__()
 
 
 class RenderSystem:

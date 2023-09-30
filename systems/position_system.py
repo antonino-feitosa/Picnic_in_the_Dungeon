@@ -30,6 +30,12 @@ class PositionComponent:
     def enabled(self, value):
         pass
 
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return self.entity.__str__()
+
 class PositionSystem:
     def __init__(self, game: Game):
         self.game = game

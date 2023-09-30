@@ -1,3 +1,5 @@
+import json
+
 from core import Game
 from core import Entity
 
@@ -7,7 +9,6 @@ from device import TiledCanvas
 from algorithms import Random
 from algorithms import Position
 from algorithms import Dimension
-from gui.selection import ControlComponentSelectionPath
 
 from systems import MapSystem
 from systems import CollisionSystem
@@ -22,8 +23,13 @@ from systems import RenderComponent
 from systems import AnimationSystem
 from systems import AnimationComponent
 from systems import ControlSystem
+from systems import AnimationControllerComponent
+from systems import MotionSystem
+from systems import MotionComponent
 
-from gui import ControlComponentSelectEntity
+from gui import SelectEntityComponent
+from gui import SelectPathComponent
+
 
 
 def main():
@@ -41,76 +47,74 @@ def main():
     game.add(RenderSystem(game, units))
     game.add(AnimationSystem(game))
     game.add(ControlSystem(game, units))
+    game.add(MotionSystem(game, units))
 
     game[MapSystem].makeBlack()
     # game[MapSystem].makeIsland()
     game[MapSystem].calculateWalls()
 
-    playerSheet = game.loadSpriteSheet(
-        "_resources/sprite.avatar.white.idle.right.png", units
-    )
+    path = "_resources/sprite.avatar.white.idle.right.png"
+    playerSheet = game.loadSpriteSheet(path, units)
     playerImage = playerSheet.images[0]
 
-    a = Entity()
-    a.add(PositionComponent(game[PositionSystem], a, Position(10, 7)))
-    a.add(CollisionComponent(game[CollisionSystem], a))
-    a.add(RenderComponent(game[RenderSystem], a, playerImage))
-    a.add(AnimationComponent(game[AnimationSystem], a, playerSheet))
-    b = Entity()
-    b.add(PositionComponent(game[PositionSystem], b, Position(11, 7)))
-    b.add(CollisionComponent(game[CollisionSystem], b))
-    b.add(RenderComponent(game[RenderSystem], b, playerImage))
-    b.add(AnimationComponent(game[AnimationSystem], b, playerSheet))
-    c = Entity()
-    c.add(PositionComponent(game[PositionSystem], c, Position(11, 8)))
-    c.add(CollisionComponent(game[CollisionSystem], c))
-    c.add(RenderComponent(game[RenderSystem], c, playerImage))
-    c.add(AnimationComponent(game[AnimationSystem], c, playerSheet))
-    d = Entity()
-    d.add(PositionComponent(game[PositionSystem], d, Position(10, 8)))
-    d.add(CollisionComponent(game[CollisionSystem], d))
-    d.add(RenderComponent(game[RenderSystem], d, playerImage))
-    d.add(AnimationComponent(game[AnimationSystem], d, playerSheet))
-    d[AnimationComponent].tickWait = 4
+    path = "_resources/data.sprite.avatar.white.json"
+
+    paths = []
+    with open(path) as load_file:
+        paths = json.load(load_file)
+
+    for i in range(0, 4):
+        entity = Entity()
+        entity.add(PositionComponent(game[PositionSystem], entity, Position(10 + i//2, 7 + i % 2)))
+        entity.add(CollisionComponent(game[CollisionSystem], entity))
+        entity.add(RenderComponent(game[RenderSystem], entity, playerImage))
+        entity.add(AnimationComponent(game[AnimationSystem], entity, playerSheet))
+
+        animationControl = AnimationControllerComponent(entity)
+        entity.add(animationControl)
+        for path in paths:
+            uri = "_resources/" + path
+            key:str = path
+            key = key.removeprefix("sprite.avatar.white.")
+            key = key.removesuffix('.png')
+            animationControl.animations[key] = game.loadSpriteSheet(uri, units)
+        
+        entity.add(MotionComponent(game[MotionSystem], entity))
 
     canvas = TiledCanvas(device, units, game[MapSystem].dimension)
-    groundSheet = game.loadSpriteSheet(
-        "_resources/sprite.map.ground.basic.png", Dimension(32, 32)
-    )
-    groundWalls = game.loadSpriteSheet(
-        "_resources/sprite.map.walls.basic.png", Dimension(32, 32)
-    )
+    path = "_resources/sprite.map.ground.basic.png"
+    groundSheet = game.loadSpriteSheet(path, Dimension(32, 32))
+    path = "_resources/sprite.map.walls.basic.png"
+    groundWalls = game.loadSpriteSheet(path, Dimension(32, 32))
 
-    groundPaint = MapViewComponent(
-        game[MapViewSystem], canvas, groundSheet, groundWalls
-    )
+    mapViewSystem = game[MapViewSystem]
+    groundPaint = MapViewComponent(mapViewSystem, canvas, groundSheet, groundWalls)
     mapEntity = Entity()
     mapEntity.add(groundPaint)
 
-    selectUnit = game.loadSpriteSheet(
-        "_resources/sprite.gui.select.unit.png", Dimension(32, 32)
-    )
-    selectPath = game.loadSpriteSheet(
-        "_resources/sprite.gui.select.path.png", Dimension(32, 32)
-    )
-    mapEntity.add(ControlComponentSelectEntity(game, game[ControlSystem], selectUnit))
-    mapEntity.add(
-        ControlComponentSelectionPath(game, game[ControlSystem], mapEntity, selectPath)
-    )
+    path = "_resources/sprite.gui.select.unit.png"
+    selectUnit = game.loadSpriteSheet(path, Dimension(32, 32))
+    path = "_resources/sprite.gui.select.path.png"
+    selectPath = game.loadSpriteSheet(path, Dimension(32, 32))
+    controlSystem = game[ControlSystem]
+    mapEntity.add(SelectEntityComponent(game, controlSystem, selectUnit))
+    mapEntity.add(SelectPathComponent(game, controlSystem, mapEntity, selectPath))
 
-    selectUnit = mapEntity[ControlComponentSelectEntity]
-    selectPath = mapEntity[ControlComponentSelectionPath]
+    selectUnit = mapEntity[SelectEntityComponent]
+    selectPath = mapEntity[SelectPathComponent]
 
     selectUnit.callback = lambda e: selectPath.startSelection(e)
 
     def reset(path):
-        positionComponent = selectUnit.selectedEntity[PositionComponent]
-        direction = positionComponent.position.relativeDirection(path[0])
-        positionComponent.move(direction)
+        if path:
+            position = selectUnit.selectedEntity[PositionComponent].position
+            direction = position.relativeDirection(path[0])
+            selectUnit.selectedEntity[CollisionComponent].move(direction)
+            selectUnit.selectedEntity[MotionComponent].move(direction)
         selectUnit.dropSelection()
         game.update()
-    selectPath.callback = reset
 
+    selectPath.callback = reset
 
     game.update()
     game.draw()

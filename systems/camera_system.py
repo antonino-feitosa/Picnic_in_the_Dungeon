@@ -19,6 +19,7 @@ class CameraComponent:
         self.speed: Position = Position(4, 4)
         self.ticks = 8
         self.magnitude = 4
+        self.enabled = True
 
     def focus(self) -> None:
         self.system.focus(self)
@@ -30,13 +31,11 @@ class CameraComponent:
     def shake(self) -> None:
         self.system.shake(self)
 
-    @property
-    def enabled(self):
-        pass
-
-    @enabled.setter
-    def enabled(self, value):
-        pass
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        return self.entity.__str__()
 
 
 class CameraSystem:

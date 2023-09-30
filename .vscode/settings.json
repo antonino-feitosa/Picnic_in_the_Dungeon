@@ -1,7 +1,12 @@
 {
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": false
+        "editor.formatOnSave": false,
     },
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    
+    "cSpell.language": "en,pt,pt-BR",
+    "cSpell.enableFiletypes": [
+        "!python"
+    ]
 }

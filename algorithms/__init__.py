@@ -8,3 +8,4 @@ from .random import Random
 from .randomWalk import RandomWalk
 from .overlap import Overlap
 from .pathfinding import PathFinding
+from .rectangle import Rectangle

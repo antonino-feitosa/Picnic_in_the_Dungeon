@@ -1,4 +1,5 @@
 import json
+from algorithms.rectangle import Rectangle
 
 from core import Game
 from core import Entity
@@ -9,6 +10,7 @@ from device import TiledCanvas
 from algorithms import Random
 from algorithms import Position
 from algorithms import Dimension
+from gui.visualization import DragCameraComponent, MoveCameraComponent
 
 from systems import MapSystem
 from systems import CollisionSystem
@@ -33,13 +35,17 @@ from gui import SelectPathComponent
 
 
 def main():
-    device = Device("Picnic in the Dungeon", Dimension(640, 480), tick=40)
-
     random = Random(1)
     units = Dimension(32, 32)
-    game = Game(device, random)
+    dimension = Dimension(20,15)
+    screenDimension = Dimension(dimension.width * units.width, dimension.height * units.height)
+    device = Device("Picnic in the Dungeon", screenDimension, tick=40)
 
-    game.add(MapSystem(Dimension(20, 15), random))
+    
+    game = Game(device, random)
+    
+
+    game.add(MapSystem(dimension, random))
     game.add(PositionSystem(game))
     game.add(CollisionSystem(game))
     game.add(ViewSystem(game))
@@ -99,6 +105,8 @@ def main():
     controlSystem = game[ControlSystem]
     mapEntity.add(SelectEntityComponent(game, controlSystem, selectUnit))
     mapEntity.add(SelectPathComponent(game, controlSystem, mapEntity, selectPath))
+    mapEntity.add(MoveCameraComponent(game, controlSystem, screenDimension))
+    mapEntity.add(DragCameraComponent(game, controlSystem, screenDimension))
 
     selectUnit = mapEntity[SelectEntityComponent]
     selectPath = mapEntity[SelectPathComponent]

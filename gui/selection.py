@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List
+from typing import Callable, List
 from algorithms.direction import Direction
 from algorithms.pathfinding import PathFinding
 from core import Game
@@ -14,7 +14,6 @@ from systems import CollisionSystem
 from systems import PositionComponent
 
 from entities import SimpleAnimation
-from systems.collision_system import CollisionComponent
 from systems.map_system import MapSystem
 
 
@@ -99,10 +98,12 @@ class SelectPathComponent(ControlComponent):
             return True
         return False
 
-    def mouseMove(self, screenPosition: Position, worldPosition: Position) -> None:
+    def mouseMove(self, screenPosition: Position, worldPosition: Position) -> bool:
         if self.enabled:
             source = self.selectedEntity[PositionComponent].position
             self.updatePath(source, worldPosition)
+            return True
+        return False
 
     def updatePath(self, source: Position, destination: Position) -> None:
         if destination == source:

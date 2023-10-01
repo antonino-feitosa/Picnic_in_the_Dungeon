@@ -46,10 +46,15 @@ class Device:
         self.tick = tick
         self.clock = pygame.time.Clock()
         self.onClick: List[Callable[[Position], None]] = []
+        self.onClickRight: List[Callable[[Position], None]] = []
         self.onMove: List[Callable[[Position], None]] = []
+        self.onPressed: List[Callable[[str], None]] = []
 
     def addListenerClick(self, callback: Callable[[Position], None]) -> None:
         self.onClick.append(callback)
+    
+    def addListenerClickRight(self, callback: Callable[[Position], None]) -> None:
+        self.onClickRight.append(callback)
 
     def addListenerMove(self, callback: Callable[[Position], None]) -> None:
         self.onMove.append(callback)
@@ -117,9 +122,19 @@ class Device:
                 position = Position(*pygame.mouse.get_pos())
                 for callback in self.onMove:
                     callback(position)
-            if (
-                event.type == pygame.MOUSEBUTTONUP and event.button == 1
-            ):  # 1 for left button
+            
+            # 1 for left button
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:  
                 position = Position(*pygame.mouse.get_pos())
                 for callback in self.onClick:
                     callback(position)
+            
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:  
+                position = Position(*pygame.mouse.get_pos())
+                for callback in self.onClickRight:
+                    callback(position)
+
+            if event.type == pygame.KEYUP and event.key:
+                keyName = pygame.key.name(event.key)
+                for callback in self.onPressed:
+                    callback(keyName)

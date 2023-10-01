@@ -12,9 +12,12 @@ class ControlComponent:
 
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
         return False
+    
+    def mouseClickRight(self, screenPosition: Position, worldPosition: Position) -> bool:
+        return False
 
-    def mouseMove(self, screenPosition: Position, worldPosition: Position) -> None:
-        pass
+    def mouseMove(self, screenPosition: Position, worldPosition: Position) -> bool:
+        return False
 
     @property
     def enabled(self):
@@ -35,22 +38,30 @@ class ControlSystem:
         self.game = game
         self.units = units
         self.lockControls = False
-        self.position: Position = Position()
+        w, h = game.device.dimension
+        self.position: Position = Position(w//2, h//2)
         self.components: Set[ControlComponent] = set()
         self.enabled = True
         self.game.device.addListenerClick(self.mouseClick)
+        self.game.device.addListenerClickRight(self.mouseClickRight)
         self.game.device.addListenerMove(self.mouseMove)
         self.game.tickSystems.append(self)
         self._position:Position = Position()
         self._lastPosition: Position = Position()
         self._click = False
+        self._clickRight = False
         self._clickPosition:Position = Position()
+        self._clickPositionRight:Position = Position()
 
     def mouseClick(self, screenPosition: Position) -> None:
         if self.enabled:
             self._clickPosition = screenPosition
             self._click = True
-            
+    
+    def mouseClickRight(self, screenPosition: Position) -> None:
+        if self.enabled:
+            self._clickPositionRight = screenPosition
+            self._clickRight = True
 
     def mouseMove(self, screenPosition: Position) -> None:
         if self.enabled:
@@ -63,13 +74,24 @@ class ControlSystem:
 
     def tick(self):
         position, click = self._clickPosition, self._click
+        positionRight, clickRight = self._clickPositionRight, self._clickRight
+        self._click = False
+        self._clickRight = False
         movePosition = self._position
         if not self.lockControls:
             if click:
                 worldPosition = self.screenToWorldPosition(position)
                 for control in self.components.copy():
-                    control.mouseClick(position, worldPosition)
+                    if control.mouseClick(position, worldPosition):
+                        break
             
+            if clickRight:
+                worldPosition = self.screenToWorldPosition(positionRight)
+                for control in self.components.copy():
+                    if control.mouseClickRight(positionRight, worldPosition):
+                        break
+
             worldPosition = self.screenToWorldPosition(movePosition)
             for control in self.components.copy():
-                control.mouseMove(movePosition, worldPosition)
+                if control.mouseMove(movePosition, worldPosition):
+                    break

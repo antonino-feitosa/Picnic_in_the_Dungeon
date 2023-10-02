@@ -24,3 +24,6 @@ from .control_system import ControlComponent
 
 from .motion_system import MotionSystem
 from .motion_system import MotionComponent
+
+from .gui_render_system import GuiRenderSystem
+from .gui_render_system import GuiRenderComponent

@@ -4,7 +4,6 @@ from algorithms import Dimension, Random
 from device import Device, Image, SpriteSheet
 
 
-
 class Entity:
     countId = 0
 
@@ -56,27 +55,32 @@ class Entity:
 
     def __repr__(self) -> str:
         return self.__str__()
-    
+
     def __str__(self) -> str:
         return f"Entity({self.id})"
 
 
 class Game(Entity):
-    def __init__(self, device:'Device', random:Random):
+    def __init__(self, device: "Device", random: Random):
         super().__init__()
         self.rand = random
         self.device = device
         self.tickSystems = []
         self.drawSystems = []
         self.updateSystems = []
-        self._loadedImages:Dict[str,Image] = dict()
-        self._loadedSpriteSheets:Dict[str,SpriteSheet] = dict()
+        self._loadedImages: Dict[str, Image] = dict()
+        self._loadedSpriteSheets: Dict[str, SpriteSheet] = dict()
 
         self.loadTiledCanvas = device.loadTiledCanvas
-        self.loadFont = device.loadFont
-        self.loadSound = device.loadSound
-        self.loadMusic = device.loadMusic
-    
+
+        pathFonts = "_resources/_fonts/"
+        pathSounds = "_resources/_sounds/"
+        pathMusics = "_resources/_musics/"
+
+        self.loadFont = lambda path, size: device.loadFont(pathFonts + path, size)
+        self.loadSound = lambda path: device.loadSound(pathSounds + path)
+        self.loadMusic = lambda path, f: device.loadMusic(pathMusics + path, f)
+
     def tick(self) -> None:
         active = filter(lambda system: system.enabled, self.tickSystems)
         for system in active:
@@ -94,13 +98,15 @@ class Game(Entity):
         for system in active:
             system.update()
 
-    def loadImage(self, path:str) -> Image:
+    def loadImage(self, path: str) -> Image:
+        path = "_resources/_images/" + path
         if path not in self._loadedImages:
             image = self.device.loadImage(path)
             self._loadedImages[path] = image
         return self._loadedImages[path]
 
-    def loadSpriteSheet(self, path:str, dimension:Dimension) -> SpriteSheet:
+    def loadSpriteSheet(self, path: str, dimension: Dimension) -> SpriteSheet:
+        path = "_resources/_sheets/" + path
         if path not in self._loadedImages:
             sheet = self.device.loadSpriteSheet(path, dimension)
             self._loadedSpriteSheets[path] = sheet
@@ -109,7 +115,7 @@ class Game(Entity):
     @property
     def isRunning(self) -> bool:
         return self.device.running
-    
+
     def loop(self) -> None:
         self.tick()
         self.device.loop()

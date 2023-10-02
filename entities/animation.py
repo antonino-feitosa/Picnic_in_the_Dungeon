@@ -13,6 +13,32 @@ from systems import PositionSystem
 from systems import PositionComponent
 from systems import RenderSystem
 from systems import RenderComponent
+from systems import GuiRenderComponent
+from systems import GuiRenderSystem
+
+class SimpleGuiImage(Entity):
+    def __init__(self, game: Game, image: Image, position: Position):
+        super().__init__()
+        self.add(GuiRenderComponent(game[GuiRenderSystem], self, image))
+        self[GuiRenderComponent].position = position
+        self.enabled = False
+    
+    @property
+    def image(self) -> Image:
+        return self[GuiRenderComponent].image
+
+    @image.setter
+    def image(self, image:Image) -> None:
+        self[GuiRenderComponent].image = image
+    
+    @property
+    def position(self) -> Position:
+        return self[GuiRenderComponent].position
+    
+    @position.setter
+    def position(self, position:Position) -> None:
+        self[GuiRenderComponent].position = position
+        
 
 class SimpleImage(Entity):
     def __init__(self, game: Game, image: Image, position: Position):

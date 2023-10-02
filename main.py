@@ -10,6 +10,7 @@ from device import TiledCanvas
 from algorithms import Random
 from algorithms import Position
 from algorithms import Dimension
+from gui.messages import MessageInfoComponent
 from gui.visualization import DragCameraComponent, MoveCameraComponent
 
 from systems import MapSystem
@@ -28,9 +29,11 @@ from systems import ControlSystem
 from systems import AnimationControllerComponent
 from systems import MotionSystem
 from systems import MotionComponent
+from systems import GuiRenderSystem
 
 from gui import SelectEntityComponent
 from gui import SelectPathComponent
+
 
 
 
@@ -54,16 +57,17 @@ def main():
     game.add(AnimationSystem(game))
     game.add(ControlSystem(game, units))
     game.add(MotionSystem(game, units))
+    game.add(GuiRenderSystem(game))
 
     game[MapSystem].makeBlack()
     # game[MapSystem].makeIsland()
     game[MapSystem].calculateWalls()
 
-    path = "_resources/sprite.avatar.white.idle.right.png"
+    path = "sprite.avatar.white.idle.right.png"
     playerSheet = game.loadSpriteSheet(path, units)
     playerImage = playerSheet.images[0]
 
-    path = "_resources/data.sprite.avatar.white.json"
+    path = "_resources/_datasets/data.sprite.avatar.white.json"
 
     paths = []
     with open(path) as load_file:
@@ -79,18 +83,17 @@ def main():
         animationControl = AnimationControllerComponent(entity)
         entity.add(animationControl)
         for path in paths:
-            uri = "_resources/" + path
             key:str = path
             key = key.removeprefix("sprite.avatar.white.")
             key = key.removesuffix('.png')
-            animationControl.animations[key] = game.loadSpriteSheet(uri, units)
+            animationControl.animations[key] = game.loadSpriteSheet(path, units)
         
         entity.add(MotionComponent(game[MotionSystem], entity))
 
     canvas = TiledCanvas(device, units, game[MapSystem].dimension)
-    path = "_resources/sprite.map.ground.basic.png"
+    path = "sprite.map.ground.basic.png"
     groundSheet = game.loadSpriteSheet(path, Dimension(32, 32))
-    path = "_resources/sprite.map.walls.basic.png"
+    path = "sprite.map.walls.basic.png"
     groundWalls = game.loadSpriteSheet(path, Dimension(32, 32))
 
     mapViewSystem = game[MapViewSystem]
@@ -98,15 +101,16 @@ def main():
     mapEntity = Entity()
     mapEntity.add(groundPaint)
 
-    path = "_resources/sprite.gui.select.unit.png"
+    path = "sprite.gui.select.unit.png"
     selectUnit = game.loadSpriteSheet(path, Dimension(32, 32))
-    path = "_resources/sprite.gui.select.path.png"
+    path = "sprite.gui.select.path.png"
     selectPath = game.loadSpriteSheet(path, Dimension(32, 32))
     controlSystem = game[ControlSystem]
     mapEntity.add(SelectEntityComponent(game, controlSystem, selectUnit))
     mapEntity.add(SelectPathComponent(game, controlSystem, mapEntity, selectPath))
     mapEntity.add(MoveCameraComponent(game, controlSystem, screenDimension))
     mapEntity.add(DragCameraComponent(game, controlSystem, screenDimension))
+    mapEntity.add(MessageInfoComponent(game, controlSystem))
 
     selectUnit = mapEntity[SelectEntityComponent]
     selectPath = mapEntity[SelectPathComponent]
@@ -121,6 +125,8 @@ def main():
             selectUnit.selectedEntity[MotionComponent].move(direction)
         selectUnit.dropSelection()
         game.update()
+        mapEntity[MessageInfoComponent].showMessage("Texto Longo para comparacao " + str(path))
+
 
     selectPath.callback = reset
 

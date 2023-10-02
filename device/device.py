@@ -79,6 +79,7 @@ class Device:
     def loadFont(self, path: str, size: int) -> Font:
         try:
             font = pygame.freetype.Font(path, size)
+            font.style = pygame.freetype.STYLE_STRONG
             return Font(self, font)
         except pygame.error as err:
             raise DeviceError(err)

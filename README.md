@@ -42,69 +42,145 @@ Simple ARPG with rogue like game elements:
 - [ ] Patrulhas: alguns inimigos podem vagar por regiões da masmorra. Esses inimigos podem ser consideráveis sendo um desafio para o personagem de modo que ele possa escolher engajar em combate ou não. Outro exemplo é de uma patrulha simple, porém, alertando outros inimigos da presença do personagem.
 - [ ] Missões: missões devem ser apresentadas de modo transparente ao usuário, isto é, não há controle das missões ou interface para controlar missões ativas e objetivos. Será algo similar aos RPGs do super Nintendo em que um NPC apresenta um diálogo com certo desejo recompensando o personagem quando atendido. Ou então, quando o personagem descobre uma porta trancada e então passa a procurar pela chave.
 - [ ] Missões Procedurais: as missões serão geradas de modo procedural de acordo com as características do mapa e conterão diferentes níveis de interação, isto é, uma missão terá diferentes resultados de acordo com a ações do personagem e por sua vez, cada resultado pode liberar outras missões.
-- [ ] 
 
+#### Detalhes do Jogo
+
+Existem diferentes linguagens no mundo do jogo de modo que o personagem pode adquirir outras linguagens permitindo a interação com outros NPCs. A nível de implementação, elas serão apresentadas por fontes diferentes.
+
+Fontes para Escrita
+https://all-free-download.com/font/download/gadaj_6918765.html
+
+<!--
+https://all-free-download.com/font/download/laizzier_comic_6911249.html
+https://all-free-download.com/font/download/domestic_manners_6899401.html
+https://all-free-download.com/font/download/casa_sans_6898880.html
+https://all-free-download.com/font/download/subzer0_6915464.html
+https://all-free-download.com/font/download/nerko_6912869.html
+https://all-free-download.com/font/download/cartoony_worldoz_6906319.html
+https://all-free-download.com/font/download/subtlety_6894618.html
+https://all-free-download.com/font/download/dr_jekyll_6902903.html
+https://all-free-download.com/font/download/cibergotica_6905828.html
+
+Fontes para Desenho
+https://all-free-download.com/font/download/voodoo_vampire_6918285.html
+https://all-free-download.com/font/download/ye_olde_oak_6919017.html
+https://all-free-download.com/font/download/emilio_20_6906777.html
+https://all-free-download.com/font/download/code_danger_6905640.html
+https://all-free-download.com/font/download/look_sir_droids_6897071.html
+https://all-free-download.com/font/download/chronicles_of_arkmar_6898410.html
+https://all-free-download.com/font/download/ibm_logo_6909435.html
+https://all-free-download.com/font/download/tory_gothic_caps_6917317.html
+https://all-free-download.com/font/download/cake_frosting_6894950.html
+https://all-free-download.com/font/download/mizike_6899419.html
+https://all-free-download.com/font/download/thannhaeuser_zier_6898285.html
+https://all-free-download.com/font/download/cheshire_initials_6895514.html
+https://all-free-download.com/font/download/typographer_woodcut_initials_one_6898275.html
+https://all-free-download.com/font/download/feinsliebchen_barock_6907627.html
+https://all-free-download.com/font/download/astroneo_6901744.html
+https://all-free-download.com/font/download/bb_petie_boy_6895937.html
+https://all-free-download.com/font/download/constanze_initials_6905504.html
+https://all-free-download.com/font/download/reddit_face_6915008.html
+https://all-free-download.com/font/download/precious_6913754.html
+https://all-free-download.com/font/download/riot_act_6894532.html
+https://all-free-download.com/font/download/yaki_goma_6919003.html
+https://all-free-download.com/font/download/rabanera_6918926.html
+https://all-free-download.com/font/download/dead_6903682.html
+https://all-free-download.com/font/download/my_font_6911333.html
+https://all-free-download.com/font/download/morris_jenson_initialen_6911541.html
+https://all-free-download.com/font/download/porter_sans_block_6913790.html
+https://all-free-download.com/font/download/scratched_letters_6916835.html
+https://all-free-download.com/font/download/circuit_board_6905801.html
+https://all-free-download.com/font/download/lilith_6910911.html
+https://all-free-download.com/font/download/namskout_6912991.html
+https://all-free-download.com/font/download/dark_garden_6898032.html
+
+Fontes para Símbolos
+https://all-free-download.com/font/download/x_code_from_east_6918992.html
+https://all-free-download.com/font/download/braile_font_6901085.html
+https://all-free-download.com/font/download/masonic_cipher_6912307.html
+
+
+
+
+
+
+https://all-free-download.com/font/download/dark_garden_6898032.html
+https://all-free-download.com/font/download/namskout_6912991.html
+https://all-free-download.com/font/download/lilith_6910911.html
+https://all-free-download.com/font/download/circuit_board_6905801.html
+https://all-free-download.com/font/download/scratched_letters_6916835.html
+https://all-free-download.com/font/download/porter_sans_block_6913790.html
+https://all-free-download.com/font/download/masonic_cipher_6912307.html
+https://all-free-download.com/font/download/cibergotica_6905828.html
+https://all-free-download.com/font/download/morris_jenson_initialen_6911541.html
+https://all-free-download.com/font/download/my_font_6911333.html
+https://all-free-download.com/font/download/dr_jekyll_6902903.html
+
+https://all-free-download.com/font/download/milkmoustachio_6911896.html
+https://all-free-download.com/font/download/free_monogram_6907215.html
+
+-->
 
 ## Progresso
 
 1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório.
 <p float="left">
-    <img src="docs/readme_images/RandomWalk0.png" width="100"> &nbsp;
-    <img src="docs/readme_images/RandomWalk1.png" width="100"> &nbsp;
-    <img src="docs/readme_images/RandomWalk2.png" width="100">
+    <img src="_docs/readme_images/RandomWalk0.png" width="100"> &nbsp;
+    <img src="_docs/readme_images/RandomWalk1.png" width="100"> &nbsp;
+    <img src="_docs/readme_images/RandomWalk2.png" width="100">
 </p>
 2. Geração de minimapa acessado pela tecla 'tab'.
 <p float="left">
-    <img src="docs/readme_images/Minimap0.png" width="100"> &nbsp;
-    <img src="docs/readme_images/Minimap1.png" width="100"> &nbsp;
-    <img src="docs/readme_images/Minimap2.png" width="100">
+    <img src="_docs/readme_images/Minimap0.png" width="100"> &nbsp;
+    <img src="_docs/readme_images/Minimap1.png" width="100"> &nbsp;
+    <img src="_docs/readme_images/Minimap2.png" width="100">
 </p>
 3. Movimentação do Personagem
 <p float="left">
-    <img src="docs/readme_images/Player_Moviment.gif" width="300">
+    <img src="_docs/readme_images/Player_Moviment.gif" width="300">
 </p>
 4. Câmera com Foco no Personagem
 <p float="left">
-    <img src="docs/readme_images/Camera.gif" width="300">
+    <img src="_docs/readme_images/Camera.gif" width="300">
 </p>
 5. Minimapa com Posição do Personagem
 <p float="left">
-    <img src="docs/readme_images/CameraMinimap.gif" width="300">
+    <img src="_docs/readme_images/CameraMinimap.gif" width="300">
 </p>
 6. Campo de Visão
 <p float="left">
-    <img src="docs/readme_images/FieldOfView.gif" width="300">
+    <img src="_docs/readme_images/FieldOfView.gif" width="300">
 </p>
 7. Animações de Sprites
 <p float="left">
-    <img src="docs/readme_images/Animation.gif" width="300">
+    <img src="_docs/readme_images/Animation.gif" width="300">
 </p>
 8. Câmera com Foco, Tremor, Atraso
 <p float="left">
-    <img src="docs/readme_images/Camera_Focus.gif" width="300"> &nbsp;
-    <img src="docs/readme_images/Camera_Shake.gif" width="300"> &nbsp;
-    <img src="docs/readme_images/Camera_Delay.gif" width="300"> &nbsp;
+    <img src="_docs/readme_images/Camera_Focus.gif" width="300"> &nbsp;
+    <img src="_docs/readme_images/Camera_Shake.gif" width="300"> &nbsp;
+    <img src="_docs/readme_images/Camera_Delay.gif" width="300"> &nbsp;
 </p>
 9. Controlador de Animações (alterna a execução de animações retornando para a animação anterior ao fim da sequência de uma animação de maior prioridade)
 <p float="left">
-    <img src="docs/readme_images/Animation_Controller.gif" width="300">
+    <img src="_docs/readme_images/Animation_Controller.gif" width="300">
 </p>
 10. Movimentações das Animações
 <p float="left">
-    <img src="docs/readme_images/Motion.gif" width="300">
+    <img src="_docs/readme_images/Motion.gif" width="300">
 </p>
 11. Ângulos de Visão para o Campo de Visão (radial, cone e periférico para um campo de visão circular)
 <p float="left">
-    <img src="docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
-    <img src="docs/readme_images/FOV_Cone.png" width="300"> &nbsp;
-    <img src="docs/readme_images/FOV_Peripheral.png" width="300">
+    <img src="_docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
+    <img src="_docs/readme_images/FOV_Cone.png" width="300"> &nbsp;
+    <img src="_docs/readme_images/FOV_Peripheral.png" width="300">
 </p>
 12. Formatos do Campo de Visão (para o ângulo de visão radial)
 <p float="left">
-    <img src="docs/readme_images/FOV_Square.png" width="300"> &nbsp;
-    <img src="docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
-    <img src="docs/readme_images/FOV_Diamond.png" width="300"> &nbsp;
-    <img src="docs/readme_images/FOV_Octal.png" width="300">
+    <img src="_docs/readme_images/FOV_Square.png" width="300"> &nbsp;
+    <img src="_docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
+    <img src="_docs/readme_images/FOV_Diamond.png" width="300"> &nbsp;
+    <img src="_docs/readme_images/FOV_Octal.png" width="300">
 </p>
 
 ### Controles
@@ -147,6 +223,10 @@ Trabalho Futuro
 Pygame [^32]: para implementação de recursos básicos como janela, tratamento de imagens, etc.
 
 ```pip3 install pygame```
+
+Todas as imagens são de autoria própria, reservada.
+
+Todas as músicas, sons e fontes foram obtidas como licença GPL. Para cada recurso, indicamos o link usado para obtenção e incluímos a licença associada, sempre que disponível. Caso algum autor seja contra o uso de seu material, entre em contato para remoção do conteúdo.
 
 ## TODO
 
@@ -220,6 +300,7 @@ Pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 [^34]: [Bresenham's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
 
 
+<!--
 [^61]: [Configure Key GIT](https://roelofjanelsinga.com/articles/how-to-setup-gpg-signing-keys-in-github/#:~:text=How%20to%20get%20the%20verified%20flag%20on%20your,use%20your%20GPG%20key%20to%20sign%20commits%20)
 [^60]: [triangle rasterization](http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html)
 [^61]: [line rasterization](https://www.javatpoint.com/computer-graphics-bresenhams-line-algorithm)
@@ -243,3 +324,6 @@ Pygame [^32]: para implementação de recursos básicos como janela, tratamento 
 [//]: # https://www.dafont.com/pt/the-orb-report.font
 [//]: # https://www.dafont.com/pt/number-one.font
 [//]: # https://www.dafont.com/pt/lomtrian.font
+
+
+-->

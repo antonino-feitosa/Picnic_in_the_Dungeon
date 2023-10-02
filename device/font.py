@@ -17,7 +17,7 @@ class Font:
     def __init__(self, device: "Device", font: pygame.freetype.Font):
         self.font = font
         self.device = device
-        self.foreground: Tuple[int, int, int, int] = (255, 255, 255, 255)
+        self.foreground: Tuple[int, int, int, int] = (0, 0, 0, 255)
         self.background: Tuple[int, int, int, int] = (0, 0, 0, 0)
 
     def drawAtImage(self, text: str, image: Image, position: Position):

@@ -20,28 +20,39 @@ class Entity:
     @enabled.setter
     def enabled(self, value):
         if value and not self._enabled:
-            for comp in self.typeToComponent.values():
-                comp.enabled = True
+            for elements in self.typeToComponent.values():
+                for component in elements:
+                    component.enabled = True
             self._enabled = True
         if not value and self._enabled:
-            for comp in self.typeToComponent.values():
-                comp.enabled = False
+            for elements in self.typeToComponent.values():
+                for component in elements:
+                    component.enabled = False
             self._enabled = False
 
     def add(self, component) -> "Entity":
-        self.typeToComponent[type(component)] = component
+        key = type(component)
+        if key not in self.typeToComponent:
+            self.typeToComponent[key] = []
+        self.typeToComponent[key].append(component)
         return self
-
+    
     T = TypeVar("T")
 
-    def __getitem__(self, typeOfComponent: Type[T]) -> T:
+    def getAll(self, typeOfComponent: Type[T]) -> List[T]:
         return self.typeToComponent[typeOfComponent]
+
+    def __getitem__(self, typeOfComponent: Type[T]) -> T:
+        return self.typeToComponent[typeOfComponent][0]
 
     def __contains__(self, typeOfComponent: Type) -> bool:
         return typeOfComponent in self.typeToComponent
 
     def __delitem__(self, typeOfComponent: Type) -> None:
-        self.typeToComponent.pop(typeOfComponent, None)
+        removed = self.typeToComponent.pop(typeOfComponent, [])
+        for component in removed:
+            component.enabled =  False
+        
 
     def __eq__(self, other):
         if other.__class__ is self.__class__:

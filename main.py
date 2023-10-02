@@ -10,6 +10,7 @@ from device import TiledCanvas
 from algorithms import Random
 from algorithms import Position
 from algorithms import Dimension
+from device.image import Image
 from gui.messages import MessageInfoComponent
 from gui.visualization import DragCameraComponent, MoveCameraComponent
 
@@ -33,9 +34,40 @@ from systems import GuiRenderSystem
 
 from gui import SelectEntityComponent
 from gui import SelectPathComponent
+from systems.render_id_system import RenderIdComponent, RenderIdSystem
 
+def loadAvatarDataSet(game:Game, entity:Entity, units:Dimension, colorId = 1):
+    path = "_resources/_datasets/data.sprite.avatar.white.json"
 
+    paths = []
+    with open(path) as load_file:
+        paths = json.load(load_file)
+    
+    colors = [
+        # Armas, Poderes, Aleatórios
+        (200,200,200), # 1 0 0
+        (20,200,200),  # 2 0 0
+        (20,200,20),   # 4 1 0
+        (20,20,200),   # 8 2 0
+        (200,20,200),  # 8 4 1
+        (200,200,20),  # 8 8 2
+        (255,200,20),  # 8 8 4
+        (200,20,20),   # 8 8 8
+    ]
 
+    animationControl = entity[AnimationControllerComponent]
+    color = colors[colorId]
+    entity[RenderComponent].image.replaceColor((255,255,255), color)
+    for path in paths:
+        key:str = path
+        key = key.removeprefix("sprite.avatar.white.")
+        key = key.removesuffix('.png')
+        sheet = game.loadSpriteSheet(path, units)
+        for image in sheet.images:
+            image.replaceColor((255,255,255), color)
+        animationControl.animations[key] = sheet
+    animationControl.playAnimation('idle.right')
+    
 
 def main():
     random = Random(1)
@@ -44,9 +76,7 @@ def main():
     screenDimension = Dimension(dimension.width * units.width, dimension.height * units.height)
     device = Device("Picnic in the Dungeon", screenDimension, tick=40)
 
-    
     game = Game(device, random)
-    
 
     game.add(MapSystem(dimension, random))
     game.add(PositionSystem(game))
@@ -58,6 +88,7 @@ def main():
     game.add(ControlSystem(game, units))
     game.add(MotionSystem(game, units))
     game.add(GuiRenderSystem(game))
+    game.add(RenderIdSystem(game, units))
 
     game[MapSystem].makeBlack()
     # game[MapSystem].makeIsland()
@@ -67,28 +98,17 @@ def main():
     playerSheet = game.loadSpriteSheet(path, units)
     playerImage = playerSheet.images[0]
 
-    path = "_resources/_datasets/data.sprite.avatar.white.json"
-
-    paths = []
-    with open(path) as load_file:
-        paths = json.load(load_file)
-
     for i in range(0, 4):
         entity = Entity()
         entity.add(PositionComponent(game[PositionSystem], entity, Position(10 + i//2, 7 + i % 2)))
         entity.add(CollisionComponent(game[CollisionSystem], entity))
         entity.add(RenderComponent(game[RenderSystem], entity, playerImage))
         entity.add(AnimationComponent(game[AnimationSystem], entity, playerSheet))
-
-        animationControl = AnimationControllerComponent(entity)
-        entity.add(animationControl)
-        for path in paths:
-            key:str = path
-            key = key.removeprefix("sprite.avatar.white.")
-            key = key.removesuffix('.png')
-            animationControl.animations[key] = game.loadSpriteSheet(path, units)
-        
+        entity.add(RenderIdComponent(game, entity, 'A'))
+        entity.add(AnimationControllerComponent(entity))
         entity.add(MotionComponent(game[MotionSystem], entity))
+        loadAvatarDataSet(game, entity, units, i)
+
 
     canvas = TiledCanvas(device, units, game[MapSystem].dimension)
     path = "sprite.map.ground.basic.png"
@@ -108,7 +128,7 @@ def main():
     controlSystem = game[ControlSystem]
     mapEntity.add(SelectEntityComponent(game, controlSystem, selectUnit))
     mapEntity.add(SelectPathComponent(game, controlSystem, mapEntity, selectPath))
-    mapEntity.add(MoveCameraComponent(game, controlSystem, screenDimension))
+    #mapEntity.add(MoveCameraComponent(game, controlSystem, screenDimension))
     mapEntity.add(DragCameraComponent(game, controlSystem, screenDimension))
     mapEntity.add(MessageInfoComponent(game, controlSystem))
 

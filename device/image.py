@@ -1,5 +1,6 @@
 import pygame
 
+from typing import Tuple
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -24,3 +25,8 @@ class Image:
     def clone(self) -> "Image":
         image = self.image.copy()
         return Image(self.device, image)
+
+    def replaceColor(self, source: Tuple[int, int, int], destination: Tuple[int, int, int]):
+        imageDest = self.image.copy()
+        pygame.transform.threshold(imageDest, self.image, source, set_color=destination, inverse_set=True)
+        self.image = imageDest

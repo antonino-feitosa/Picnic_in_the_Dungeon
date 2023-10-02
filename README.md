@@ -39,9 +39,11 @@ Simple ARPG with rogue like game elements:
 ### Elementos Desejados
 
 - [ ] Formação: inimigos coordenados em formação de ataque de modo a obter vantagem em combate nessa formação [^23][^24].
-- [ ] Patrulhas: alguns inimigos podem vagar por regiões da masmorra. Esses inimigos podem ser consideráveis sendo um desafio para o personagem de modo que ele possa escolher engajar em combate ou não. Outro exemplo é de uma patrulha simple, porém, alertando outros inimigos da presença do personagem.
+- [ ] Patrulhas: alguns inimigos podem vagar por regiões da masmorra. Esses inimigos podem ser consideráveis, sendo um desafio para o personagem de modo que ele possa escolher engajar em combate ou não. Outro exemplo é de uma patrulha simples, porém, alertando outros inimigos da presença do personagem.
 - [ ] Missões: missões devem ser apresentadas de modo transparente ao usuário, isto é, não há controle das missões ou interface para controlar missões ativas e objetivos. Será algo similar aos RPGs do super Nintendo em que um NPC apresenta um diálogo com certo desejo recompensando o personagem quando atendido. Ou então, quando o personagem descobre uma porta trancada e então passa a procurar pela chave.
-- [ ] Missões Procedurais: as missões serão geradas de modo procedural de acordo com as características do mapa e conterão diferentes níveis de interação, isto é, uma missão terá diferentes resultados de acordo com a ações do personagem e por sua vez, cada resultado pode liberar outras missões.
+- [ ] Missões Procedurais: as missões serão geradas de modo procedural conforme as características do mapa e conterão diferentes níveis de interação, isto é, uma missão terá diferentes resultados segundo as ações do personagem e por sua vez, cada resultado pode liberar outras missões.
+- [ ] Entidades com emoções que influenciam o seu comportamento imediato. Por exemplo, um inimigo pode ficar com muito apavorado após presenciar a morte de seus companheiros ou então entrar em fúria, etc.
+- [ ] Entidades com personalidades afetando com a longo prazo. Por exemplo, isso pode afetar escolha de alvos, um personagem pode dar preferência a proteção do grupo.
 
 #### Detalhes do Jogo
 
@@ -49,6 +51,9 @@ Existem diferentes linguagens no mundo do jogo de modo que o personagem pode adq
 
 Fontes para Escrita
 https://all-free-download.com/font/download/gadaj_6918765.html
+
+Fontes Para Desenho
+https://www.dafont.com/pt/haunting-spirits.font
 
 <!--
 https://all-free-download.com/font/download/laizzier_comic_6911249.html
@@ -98,27 +103,12 @@ Fontes para Símbolos
 https://all-free-download.com/font/download/x_code_from_east_6918992.html
 https://all-free-download.com/font/download/braile_font_6901085.html
 https://all-free-download.com/font/download/masonic_cipher_6912307.html
-
-
-
-
-
-
-https://all-free-download.com/font/download/dark_garden_6898032.html
-https://all-free-download.com/font/download/namskout_6912991.html
-https://all-free-download.com/font/download/lilith_6910911.html
-https://all-free-download.com/font/download/circuit_board_6905801.html
-https://all-free-download.com/font/download/scratched_letters_6916835.html
-https://all-free-download.com/font/download/porter_sans_block_6913790.html
-https://all-free-download.com/font/download/masonic_cipher_6912307.html
-https://all-free-download.com/font/download/cibergotica_6905828.html
-https://all-free-download.com/font/download/morris_jenson_initialen_6911541.html
-https://all-free-download.com/font/download/my_font_6911333.html
-https://all-free-download.com/font/download/dr_jekyll_6902903.html
-
-https://all-free-download.com/font/download/milkmoustachio_6911896.html
-https://all-free-download.com/font/download/free_monogram_6907215.html
-
+https://www.dafont.com/pt/lomtrian.font
+https://www.dafont.com/pt/number-one.font
+https://www.dafont.com/pt/the-orb-report.font
+https://www.1001freefonts.com/alphacode-pandora.font
+https://www.1001freefonts.com/alphacode-emperor.font
+https://www.1001freefonts.com/alphacode-beyond.font
 -->
 
 ## Progresso
@@ -249,6 +239,11 @@ Todas as músicas, sons e fontes foram obtidas como licença GPL. Para cada recu
 - [x] Player 8 Directional Sprites
 - [x] Centralize Minimap
 - [x] Message System
+- [x] Id for Units
+- [ ] Turn System
+- [ ] Simple IA System
+- [ ] Add Enemies
+- [ ] Refactor Game (Minimap)
 - [ ] Mouse Control System
 - [ ] Refactor Loader
 - [ ] Refactor Mouse System
@@ -316,7 +311,6 @@ Todas as músicas, sons e fontes foram obtidas como licença GPL. Para cada recu
 
 
 
-[//]: # https://www.dafont.com/pt/no-continue.font
 [//]: # https://www.dafont.com/pt/haunting-spirits.font
 [//]: # https://www.1001freefonts.com/alphacode-beyond.font
 [//]: # https://www.1001freefonts.com/alphacode-emperor.font

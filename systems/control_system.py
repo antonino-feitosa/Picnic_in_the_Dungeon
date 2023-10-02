@@ -83,7 +83,6 @@ class ControlSystem:
         if not self.lockControls:
             self.buttonLeftDown = self.game.device.buttonLeftDown
             self.buttonRightDown = self.game.device.buttonRightDown
-            print(self.buttonRightDown)
 
             if click:
                 worldPosition = self.screenToWorldPosition(position)

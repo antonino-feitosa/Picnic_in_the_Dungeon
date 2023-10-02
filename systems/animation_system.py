@@ -16,7 +16,7 @@ class AnimationControllerComponent:
         self.animations: Dict[str, SpriteSheet] = dict()
         self._shooting = False
         self._enabled = True
-        self._idleAnimation: SpriteSheet = entity[AnimationComponent].animation
+        self._idleAnimation: SpriteSheet
 
     def playAnimation(self, name: str) -> None:
         if name in self.animations:

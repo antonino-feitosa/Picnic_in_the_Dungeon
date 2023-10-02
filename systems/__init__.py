@@ -27,3 +27,6 @@ from .motion_system import MotionComponent
 
 from .gui_render_system import GuiRenderSystem
 from .gui_render_system import GuiRenderComponent
+
+from .render_id_system import RenderIdSystem
+from .render_id_system import RenderIdComponent

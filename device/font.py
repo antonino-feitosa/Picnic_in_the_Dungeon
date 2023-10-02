@@ -24,6 +24,13 @@ class Font:
         surface = self._createSurface(text)
         x, y = position
         image.image.blit(surface, (x, y))
+    
+    def drawAtImageCenter(self, text: str, image: Image, offset:Position = Position()):
+        surface = self._createSurface(text)
+        w, h = image.dimension
+        x = (w - surface.get_width())//2 + offset.x
+        y = (h - surface.get_height())//2 + offset.y
+        image.image.blit(surface, (x, y))
 
     def drawAtScreen(self, text: str, position: Position):
         textSurface = self._createSurface(text)

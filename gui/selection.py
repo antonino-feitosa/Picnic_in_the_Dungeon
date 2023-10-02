@@ -31,7 +31,7 @@ class SelectEntityComponent(ControlComponent):
 
 
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
-        if self.enabled:
+        if self.enabled and not self.activeSelection:
             positionToComponent = self.game[CollisionSystem].actualPosition
             if worldPosition in positionToComponent:
                 component = positionToComponent[worldPosition]

@@ -52,6 +52,8 @@ class ControlSystem:
         self._clickRight = False
         self._clickPosition:Position = Position()
         self._clickPositionRight:Position = Position()
+        self.buttonLeftDown = False
+        self.buttonRightDown = False
 
     def mouseClick(self, screenPosition: Position) -> None:
         if self.enabled:
@@ -79,6 +81,10 @@ class ControlSystem:
         self._clickRight = False
         movePosition = self._position
         if not self.lockControls:
+            self.buttonLeftDown = self.game.device.buttonLeftDown
+            self.buttonRightDown = self.game.device.buttonRightDown
+            print(self.buttonRightDown)
+
             if click:
                 worldPosition = self.screenToWorldPosition(position)
                 for control in self.components.copy():

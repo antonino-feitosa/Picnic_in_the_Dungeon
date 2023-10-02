@@ -18,15 +18,10 @@ class DragCameraComponent(ControlComponent):
         self.system = system
         self.dimension = dimension
         self.enabled = True
-        self._active = False
         self._lastPosition:Position = Position()
-    
-    def mouseClickRight(self, screenPosition: Position, worldPosition: Position) -> bool:
-        self._active = not self._active
-        return False
 
     def mouseMove(self, screenPosition: Position, worldPosition: Position) -> bool:
-        if self._active:
+        if self.system.buttonRightDown:
             position = self.game.device.camera.translate
             source = self._lastPosition
             destination = screenPosition
@@ -35,7 +30,7 @@ class DragCameraComponent(ControlComponent):
             self.game.device.camera.translate = position
             self.game.draw()
         self._lastPosition = screenPosition
-        return self._active
+        return self.system.buttonRightDown
         
 
 class MoveCameraComponent(ControlComponent):

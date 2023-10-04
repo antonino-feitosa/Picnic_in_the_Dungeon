@@ -2,7 +2,7 @@
 from typing import Callable
 from core import Game
 from algorithms import Position
-from entities.animation import SimpleGuiImage
+from entities.animation import GuiSimpleImage
 
 from systems import ControlSystem
 from systems import ControlComponent
@@ -19,7 +19,7 @@ class MessageInfoComponent(ControlComponent):
         w, h = self.image.dimension
         width, height = self.game.device.dimension
         position = Position((width - w) // 2, (height - h))
-        self._background = SimpleGuiImage(game, self.image, position)
+        self._background = GuiSimpleImage(game, self.image, position)
         self.enabled = False
     
     def showMessage(self, info:str):

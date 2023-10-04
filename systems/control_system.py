@@ -34,7 +34,7 @@ class ControlComponent:
 
 
 class ControlSystem:
-    def __init__(self, game: Game, units: Dimension):
+    def __init__(self, game: Game, units: Dimension = Dimension(1,1)):
         self.game = game
         self.units = units
         self.lockControls = False

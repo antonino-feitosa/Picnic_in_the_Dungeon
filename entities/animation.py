@@ -15,8 +15,10 @@ from systems import RenderSystem
 from systems import RenderComponent
 from systems import GuiRenderComponent
 from systems import GuiRenderSystem
+from systems import GuiAnimationSystem
+from systems import GuiAnimationComponent
 
-class SimpleGuiImage(Entity):
+class GuiSimpleImage(Entity):
     def __init__(self, game: Game, image: Image, position: Position):
         super().__init__()
         self.add(GuiRenderComponent(game[GuiRenderSystem], self, image))
@@ -58,4 +60,15 @@ class SimpleAnimation(Entity):
         self.add(RenderComponent(game[RenderSystem], self, image))
         self.add(AnimationComponent(game[AnimationSystem], self, spriteSheet))
         self[RenderComponent].enabled = False
+        self.enabled = False
+
+class GuiSimpleAnimation(Entity):
+    def __init__(self, game: Game, spriteSheet: SpriteSheet, position: Position):
+        super().__init__()
+        self.spriteSheet: SpriteSheet = spriteSheet
+        image = spriteSheet.images[0]
+        self.add(GuiRenderComponent(game[GuiRenderSystem], self, image))
+        self.add(GuiAnimationComponent(game[GuiAnimationSystem], self, spriteSheet))
+        self[GuiRenderComponent].position = position
+        self[GuiRenderComponent].enabled = False
         self.enabled = False

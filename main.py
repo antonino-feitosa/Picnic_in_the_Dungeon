@@ -1,7 +1,6 @@
 import json
-from algorithms.rectangle import Rectangle
 
-from core import Game
+from core import Game, GameLoop
 from core import Entity
 
 from device import Device
@@ -11,6 +10,7 @@ from algorithms import Random
 from algorithms import Position
 from algorithms import Dimension
 from device.image import Image
+from game.main_screen import createMainScreenGame
 from gui.messages import MessageInfoComponent
 from gui.visualization import DragCameraComponent, MoveCameraComponent
 
@@ -69,14 +69,15 @@ def loadAvatarDataSet(game:Game, entity:Entity, units:Dimension, colorId = 1):
     animationControl.playAnimation('idle.right')
     
 
-def main():
+def main1():
     random = Random(1)
     units = Dimension(32, 32)
     dimension = Dimension(20,15)
     screenDimension = Dimension(dimension.width * units.width, dimension.height * units.height)
     device = Device("Picnic in the Dungeon", screenDimension, tick=40)
+    gameLoop = GameLoop(device)
 
-    game = Game(device, random)
+    game = Game(gameLoop, random)
 
     game.add(MapSystem(dimension, random))
     game.add(PositionSystem(game))
@@ -151,10 +152,14 @@ def main():
     selectPath.callback = reset
 
     game.update()
-    game.draw()
-    while game.isRunning:
-        game.loop()
+    gameLoop.forever(game)
 
+def main():
+    screenDimension = Dimension(800, 640)
+    device = Device("Picnic in the Dungeon", screenDimension, tick=40)
+    gameLoop = GameLoop(device)
+    game = createMainScreenGame(gameLoop)
+    gameLoop.forever(game)
 
 if __name__ == "__main__":
     main()

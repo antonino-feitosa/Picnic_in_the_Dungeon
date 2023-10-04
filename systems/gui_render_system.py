@@ -1,5 +1,5 @@
 
-from typing import Set
+from typing import List, Set
 
 from core import Game
 from core import Entity
@@ -14,7 +14,7 @@ class GuiRenderComponent:
         self.image = image
         self.entity = entity
         self.position: Position = Position()
-        system.components.add(self)
+        system.components.append(self)
         self._enabled = True
 
     @property
@@ -25,7 +25,7 @@ class GuiRenderComponent:
     def enabled(self, value):
         if value:
             if not self._enabled:
-                self.system.components.add(self)
+                self.system.components.append(self)
                 self._enabled = True
         else:
             if self._enabled:
@@ -45,7 +45,7 @@ class GuiRenderComponent:
 class GuiRenderSystem:
     def __init__(self, game: Game):
         self.game = game
-        self.components: Set[GuiRenderComponent] = set()
+        self.components: List[GuiRenderComponent] = []
         self.enabled = True
         game.drawSystems.append(self)
 

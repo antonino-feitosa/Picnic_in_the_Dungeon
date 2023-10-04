@@ -12,6 +12,7 @@ Princípios do Jogo:
 4. Cenários Atrativos: os cenários devem ser atrativos do ponto de vista visual como imagens e disposição do espaço físico como também no sentido de interação. Os cenários devem apresentar diferentes elementos de interação, por exemplo, correntezas de água, rochas que podem ser quebradas para liberar a passagem, possibilidade de explorar cavernas submersas, diferentes quebra-cabeças gerando recompensas, armadilhas inteligentes que podem ser usadas em favor do usuário.
 5. Ambiente Hostil: os cenários devem ser hostis e dinâmicos de modo uma exploração cautelosa gerará mais recompensas ao custo de riscos maiores. Por exemplo, os cenários terão diferentes armadilhas que sempre podem ser evitados com tempo suficiente, porém, ao longo do tempo, os inimigos podem evoluir aumentando a dificuldade caso a exploração torne muito longa.
 6. Estratégias: os inimigos são desenvolvidos para que o usuário empregue diferentes táticas apresente desafios além do modo massacrar e cortar. No entanto, o usuário pode evitar esses desafios optando por um modo de jogo mais simples. Assim, outras habilidades podem ser exploradas como uso da diplomacia para evitar combates, treinamento de inimigos tornando-os aliados, uso da inteligência para operar mecanismos desconhecidos, etc. Desse modo, outras características podem facilitar a exploração da masmorra, por exemplo, inteligência pode ser usada para operar mecanismos como um robô, carisma pode ser usada obter aliados, sabedoria para identificar caminhos perigosos ou alimentos seguros.
+7. Morte Permanente: devido à dificuldade, o personagem pode morrer frequentemente, no entanto, isso não deve ser visto como algo negativo. O personagem deve sentir que cursou uma aventura e obteve experiências dessa jornada. Para isso, deve ser implementado um ambiente de guilda, corporação ou associação, assim, o usuário pode focar em melhorar a guilda catalogando espécies, formas de ataque, armas, magias, etc. Desse modo, se espera que uma desassociação do personagem removendo o ponto negativo da morte do personagem.
 
 
 Simple ARPG with rogue like game elements:
@@ -36,80 +37,6 @@ Simple ARPG with rogue like game elements:
 - [ ] Camps (like Civilization [^20])
 - [ ] Hordes (like Left for Dead [^22])
 
-### Elementos Desejados
-
-- [ ] Formação: inimigos coordenados em formação de ataque de modo a obter vantagem em combate nessa formação [^23][^24].
-- [ ] Patrulhas: alguns inimigos podem vagar por regiões da masmorra. Esses inimigos podem ser consideráveis, sendo um desafio para o personagem de modo que ele possa escolher engajar em combate ou não. Outro exemplo é de uma patrulha simples, porém, alertando outros inimigos da presença do personagem.
-- [ ] Missões: missões devem ser apresentadas de modo transparente ao usuário, isto é, não há controle das missões ou interface para controlar missões ativas e objetivos. Será algo similar aos RPGs do super Nintendo em que um NPC apresenta um diálogo com certo desejo recompensando o personagem quando atendido. Ou então, quando o personagem descobre uma porta trancada e então passa a procurar pela chave.
-- [ ] Missões Procedurais: as missões serão geradas de modo procedural conforme as características do mapa e conterão diferentes níveis de interação, isto é, uma missão terá diferentes resultados segundo as ações do personagem e por sua vez, cada resultado pode liberar outras missões.
-- [ ] Entidades com emoções que influenciam o seu comportamento imediato. Por exemplo, um inimigo pode ficar com muito apavorado após presenciar a morte de seus companheiros ou então entrar em fúria, etc.
-- [ ] Entidades com personalidades afetando com a longo prazo. Por exemplo, isso pode afetar escolha de alvos, um personagem pode dar preferência a proteção do grupo.
-
-#### Detalhes do Jogo
-
-Existem diferentes linguagens no mundo do jogo de modo que o personagem pode adquirir outras linguagens permitindo a interação com outros NPCs. A nível de implementação, elas serão apresentadas por fontes diferentes.
-
-Fontes para Escrita
-https://all-free-download.com/font/download/gadaj_6918765.html
-
-Fontes Para Desenho
-https://www.dafont.com/pt/haunting-spirits.font
-
-<!--
-https://all-free-download.com/font/download/laizzier_comic_6911249.html
-https://all-free-download.com/font/download/domestic_manners_6899401.html
-https://all-free-download.com/font/download/casa_sans_6898880.html
-https://all-free-download.com/font/download/subzer0_6915464.html
-https://all-free-download.com/font/download/nerko_6912869.html
-https://all-free-download.com/font/download/cartoony_worldoz_6906319.html
-https://all-free-download.com/font/download/subtlety_6894618.html
-https://all-free-download.com/font/download/dr_jekyll_6902903.html
-https://all-free-download.com/font/download/cibergotica_6905828.html
-
-Fontes para Desenho
-https://all-free-download.com/font/download/voodoo_vampire_6918285.html
-https://all-free-download.com/font/download/ye_olde_oak_6919017.html
-https://all-free-download.com/font/download/emilio_20_6906777.html
-https://all-free-download.com/font/download/code_danger_6905640.html
-https://all-free-download.com/font/download/look_sir_droids_6897071.html
-https://all-free-download.com/font/download/chronicles_of_arkmar_6898410.html
-https://all-free-download.com/font/download/ibm_logo_6909435.html
-https://all-free-download.com/font/download/tory_gothic_caps_6917317.html
-https://all-free-download.com/font/download/cake_frosting_6894950.html
-https://all-free-download.com/font/download/mizike_6899419.html
-https://all-free-download.com/font/download/thannhaeuser_zier_6898285.html
-https://all-free-download.com/font/download/cheshire_initials_6895514.html
-https://all-free-download.com/font/download/typographer_woodcut_initials_one_6898275.html
-https://all-free-download.com/font/download/feinsliebchen_barock_6907627.html
-https://all-free-download.com/font/download/astroneo_6901744.html
-https://all-free-download.com/font/download/bb_petie_boy_6895937.html
-https://all-free-download.com/font/download/constanze_initials_6905504.html
-https://all-free-download.com/font/download/reddit_face_6915008.html
-https://all-free-download.com/font/download/precious_6913754.html
-https://all-free-download.com/font/download/riot_act_6894532.html
-https://all-free-download.com/font/download/yaki_goma_6919003.html
-https://all-free-download.com/font/download/rabanera_6918926.html
-https://all-free-download.com/font/download/dead_6903682.html
-https://all-free-download.com/font/download/my_font_6911333.html
-https://all-free-download.com/font/download/morris_jenson_initialen_6911541.html
-https://all-free-download.com/font/download/porter_sans_block_6913790.html
-https://all-free-download.com/font/download/scratched_letters_6916835.html
-https://all-free-download.com/font/download/circuit_board_6905801.html
-https://all-free-download.com/font/download/lilith_6910911.html
-https://all-free-download.com/font/download/namskout_6912991.html
-https://all-free-download.com/font/download/dark_garden_6898032.html
-
-Fontes para Símbolos
-https://all-free-download.com/font/download/x_code_from_east_6918992.html
-https://all-free-download.com/font/download/braile_font_6901085.html
-https://all-free-download.com/font/download/masonic_cipher_6912307.html
-https://www.dafont.com/pt/lomtrian.font
-https://www.dafont.com/pt/number-one.font
-https://www.dafont.com/pt/the-orb-report.font
-https://www.1001freefonts.com/alphacode-pandora.font
-https://www.1001freefonts.com/alphacode-emperor.font
-https://www.1001freefonts.com/alphacode-beyond.font
--->
 
 ## Progresso
 
@@ -173,13 +100,6 @@ https://www.1001freefonts.com/alphacode-beyond.font
     <img src="_docs/readme_images/FOV_Octal.png" width="300">
 </p>
 
-### Controles
-
-- Tabulação: ativa o minimapa
-- Espaço: centraliza a câmera
-- Botões direcionais: movimentam o minimapa quando ativo
-- Teclado numérico: movimentam o personagem
-
 ## Detalhes de Implementação
 
 ### Algoritmo de Passeio Aleatório
@@ -218,49 +138,67 @@ Todas as imagens são de autoria própria, reservada.
 
 Todas as músicas, sons e fontes foram obtidas como licença GPL. Para cada recurso, indicamos o link usado para obtenção e incluímos a licença associada, sempre que disponível. Caso algum autor seja contra o uso de seu material, entre em contato para remoção do conteúdo.
 
-## TODO
+As fontes utilizadas são listadas a seguir:
+https://all-free-download.com/font/download/gadaj_6918765.html
+https://www.dafont.com/pt/haunting-spirits.font
 
-- [x] Ground System
-- [x] Random Walk
-- [x] Camera
-- [x] Camera Translate
-- [x] Mini Map
-- [x] Mini Map Controls
-- [x] Player Position
-- [x] Mini Map Player Position
-- [x] Player Directional Controls
-- [x] Refactor Position and Dimension
-- [x] Field of View
-- [x] Field of View Integration with Map
-- [x] Animation System
-- [x] Camera System
-- [x] Animation Transition System
-- [x] Motion System
-- [x] Player 8 Directional Sprites
-- [x] Centralize Minimap
-- [x] Message System
-- [x] Id for Units
-- [ ] Turn System
-- [ ] Simple IA System
-- [ ] Add Enemies
-- [ ] Refactor Game (Minimap)
-- [ ] Mouse Control System
-- [ ] Refactor Loader
-- [ ] Refactor Mouse System
-- [ ] Message System with Options
-- [ ] Collectable System
-- [ ] Doors
-- [ ] Triggers
-- [ ] Switches
-- [ ] Wave Collapse Function
-- [ ] Map Generation (Random Walk + Wave Collapse Function)
-- [ ] Player Directions Sprites
-- [ ] Player Animations
-- [ ] Map Levels
-- [ ] Binary Spatial Partition Map
-- [ ] Cellular Automata Map
-- [ ] Voronoy Hive Map
-- [ ] Path selection with direction and collision
+
+
+<!--
+https://all-free-download.com/font/download/laizzier_comic_6911249.html
+https://all-free-download.com/font/download/domestic_manners_6899401.html
+https://all-free-download.com/font/download/casa_sans_6898880.html
+https://all-free-download.com/font/download/subzer0_6915464.html
+https://all-free-download.com/font/download/nerko_6912869.html
+https://all-free-download.com/font/download/cartoony_worldoz_6906319.html
+https://all-free-download.com/font/download/subtlety_6894618.html
+https://all-free-download.com/font/download/dr_jekyll_6902903.html
+https://all-free-download.com/font/download/cibergotica_6905828.html
+
+Fontes para Desenho
+https://all-free-download.com/font/download/voodoo_vampire_6918285.html
+https://all-free-download.com/font/download/ye_olde_oak_6919017.html
+https://all-free-download.com/font/download/emilio_20_6906777.html
+https://all-free-download.com/font/download/code_danger_6905640.html
+https://all-free-download.com/font/download/look_sir_droids_6897071.html
+https://all-free-download.com/font/download/chronicles_of_arkmar_6898410.html
+https://all-free-download.com/font/download/ibm_logo_6909435.html
+https://all-free-download.com/font/download/tory_gothic_caps_6917317.html
+https://all-free-download.com/font/download/cake_frosting_6894950.html
+https://all-free-download.com/font/download/mizike_6899419.html
+https://all-free-download.com/font/download/thannhaeuser_zier_6898285.html
+https://all-free-download.com/font/download/cheshire_initials_6895514.html
+https://all-free-download.com/font/download/typographer_woodcut_initials_one_6898275.html
+https://all-free-download.com/font/download/feinsliebchen_barock_6907627.html
+https://all-free-download.com/font/download/astroneo_6901744.html
+https://all-free-download.com/font/download/bb_petie_boy_6895937.html
+https://all-free-download.com/font/download/constanze_initials_6905504.html
+https://all-free-download.com/font/download/reddit_face_6915008.html
+https://all-free-download.com/font/download/precious_6913754.html
+https://all-free-download.com/font/download/riot_act_6894532.html
+https://all-free-download.com/font/download/yaki_goma_6919003.html
+https://all-free-download.com/font/download/rabanera_6918926.html
+https://all-free-download.com/font/download/dead_6903682.html
+https://all-free-download.com/font/download/my_font_6911333.html
+https://all-free-download.com/font/download/morris_jenson_initialen_6911541.html
+https://all-free-download.com/font/download/porter_sans_block_6913790.html
+https://all-free-download.com/font/download/scratched_letters_6916835.html
+https://all-free-download.com/font/download/circuit_board_6905801.html
+https://all-free-download.com/font/download/lilith_6910911.html
+https://all-free-download.com/font/download/namskout_6912991.html
+https://all-free-download.com/font/download/dark_garden_6898032.html
+
+Fontes para Símbolos
+https://all-free-download.com/font/download/x_code_from_east_6918992.html
+https://all-free-download.com/font/download/braile_font_6901085.html
+https://all-free-download.com/font/download/masonic_cipher_6912307.html
+https://www.dafont.com/pt/lomtrian.font
+https://www.dafont.com/pt/number-one.font
+https://www.dafont.com/pt/the-orb-report.font
+https://www.1001freefonts.com/alphacode-pandora.font
+https://www.1001freefonts.com/alphacode-emperor.font
+https://www.1001freefonts.com/alphacode-beyond.font
+-->
 
 
 

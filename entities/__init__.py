@@ -1,4 +1,5 @@
 
 from .animation import SimpleImage
-from .animation import SimpleGuiImage
+from .animation import GuiSimpleImage
 from .animation import SimpleAnimation
+from .animation import GuiSimpleAnimation

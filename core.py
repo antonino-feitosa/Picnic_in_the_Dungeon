@@ -72,25 +72,26 @@ class Entity:
 
 
 class Game(Entity):
-    def __init__(self, device: "Device", random: Random):
+    def __init__(self, gameLoop:'GameLoop', random: Random):
         super().__init__()
+        self.gameLoop: 'GameLoop' = gameLoop
         self.rand = random
-        self.device = device
+        self.device = gameLoop.device
         self.tickSystems = []
         self.drawSystems = []
         self.updateSystems = []
         self._loadedImages: Dict[str, Image] = dict()
         self._loadedSpriteSheets: Dict[str, SpriteSheet] = dict()
 
-        self.loadTiledCanvas = device.loadTiledCanvas
+        self.loadTiledCanvas = self.device.loadTiledCanvas
 
         pathFonts = "_resources/_fonts/"
         pathSounds = "_resources/_sounds/"
         pathMusics = "_resources/_musics/"
 
-        self.loadFont = lambda path, size: device.loadFont(pathFonts + path, size)
-        self.loadSound = lambda path: device.loadSound(pathSounds + path)
-        self.loadMusic = lambda path, f: device.loadMusic(pathMusics + path, f)
+        self.loadFont = lambda path, size: self.device.loadFont(pathFonts + path, size)
+        self.loadSound = lambda path: self.device.loadSound(pathSounds + path)
+        self.loadMusic = lambda path, f: self.device.loadMusic(pathMusics + path, f)
 
     def tick(self) -> None:
         active = filter(lambda system: system.enabled, self.tickSystems)
@@ -127,7 +128,20 @@ class Game(Entity):
     def isRunning(self) -> bool:
         return self.device.running
 
-    def loop(self) -> None:
-        self.tick()
-        self.device.loop()
-        self.draw()
+    def setActive(self):
+        self.gameLoop.game = self
+
+
+
+class GameLoop:
+    def __init__(self, device:Device):
+        self.device = device
+        self.game: Game
+    
+    def forever(self, game:Game):
+        self.game = game
+        while self.game.isRunning:
+            game = self.game
+            game.tick()
+            self.device.loop()
+            game.draw()

@@ -1,6 +1,8 @@
 
 # Casos de Uso
 
+- [ ] Durante o jogo o usuário pode ter a opção de acessar um menu para sair do jogo, reiniciar a partida ou voltar para o menu principal
+
 - [ ] O jogo inicia apresentando uma guilda com o progresso do usuário que consiste nos principais elementos do jogo, isto é, armas, magias, raças, classes, poções, armaduras, etc. Inicialmente estará disponível somente as opções básicas. Além disso, haverá uma seção de pesquisa, outra para recrutamento, outra para missões e outra para exploração. Na aba de pesquisa o usuário pode criar novos elementos, porém, eles só estarão disponíveis após a exploração com sucesso da masmorra associada. A seção de recrutamento oferece a criação novos personagens e equipes considerando os elementos disponíveis. O usuário pode optar pela seleção de missões para liberar elementos secundários como ataques especiais de armas previamente liberadas, variações de magias, etc. Por fim, a aba de exploração permite que o usuário escolha elementos primários que ele deseja explorar que serão liberados após uma exploração efetiva da masmorra. Cada masmorra consiste em 25 níveis com desafios a cada 5 níveis. Uma exploração efetiva consiste em derrotar o desafio associado ao elemento escolhido.
 
 - [ ] O usuário, na seção de pesquisa, pode criar novos elementos. Por exemplo, raças são características das entidades inatas como ter chifres, asas, visão noturna, aptidão para magia, etc. Cada um desses elementos precisam ser liberados através da exploração da masmorra. Além disso, cada elemento pode ter habilidades associadas que devem ser liberadas através de missões. Por exemplo, uma raça que possui chifres pode aprender a habilidade investida com chifres após cumprir a missão que pode ser encontrar touros com esse ataque, conseguir desviar de uma certa quantidade de ataques desse tipo, fazer com que o touro cause dano a si mesmo ao mirar sem considerar as consequências, etc.
@@ -38,6 +40,15 @@
 - [ ] Algumas paredes podem conter passagens secretas. Em vez da entidade colidir com a parede, a passagem secreta será revelada expandindo o campo de visão que antes era limitado pela parede falsa.
 
 
+## Programação
+
+- [ ] Refatorar os sistemas de renderização, animação e controles para ter como base um sistema nas coordenadas na tela e então a especialização deve considerar a câmera e as coordenadas do mundo.
+
+- [ ] Implementar um sistema para os sons monitorando quando eles devem ser interrompidos, isto é, quando a entidade for destruída.
+
+- [ ] Adicionar botão de sair na interface.
+
+- [ ] Implementar a ação de iniciar o jogo.
 
 ## Tarefas de Implementação
 

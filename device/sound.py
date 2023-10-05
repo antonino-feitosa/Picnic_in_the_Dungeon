@@ -6,7 +6,12 @@ class Sound:
         self.sound = sound
 
     def play(self):
-        pygame.mixer.Sound.play(self.sound)
+        #pygame.mixer.Sound.play(self.sound)
+        self.sound.play()
+    
+    def stop(self):
+        #pygame.mixer.Sound.play(self.sound)
+        self.sound.stop()
 
     @property
     def volume(self) -> float:

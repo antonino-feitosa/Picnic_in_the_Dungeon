@@ -12,8 +12,11 @@ from .collision_system import CollisionComponent
 from .map_view_system import MapViewSystem
 from .map_view_system import MapViewComponent
 
-from .render_system import RenderSystem
-from .render_system import RenderComponent
+from .screen_render_system import ScreenRenderSystem
+from .screen_render_system import ScreenRenderComponent
+
+from .world_render_system import WorldRenderSystem
+from .world_render_system import WorldRenderComponent
 
 from .animation_system import AnimationSystem
 from .animation_system import AnimationComponent
@@ -24,9 +27,6 @@ from .control_system import ControlComponent
 
 from .motion_system import MotionSystem
 from .motion_system import MotionComponent
-
-from .gui_render_system import GuiRenderSystem
-from .gui_render_system import GuiRenderComponent
 
 from .render_id_system import RenderIdSystem
 from .render_id_system import RenderIdComponent

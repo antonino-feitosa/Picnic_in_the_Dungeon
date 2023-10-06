@@ -1,7 +1,53 @@
-from typing import Any, List, Type, Dict, TypeVar
-from algorithms import Dimension, Random
+from typing import Any, Dict, Generic, List, Set, Type, TypeVar
 
+from algorithms import Dimension, Random
 from device import Device, Image, SpriteSheet
+
+TypeComponent = TypeVar("TypeComponent")
+class System(Generic[TypeComponent]):
+    def __init__(self, game:'Game', components:List[TypeComponent] | Set[TypeComponent]):
+        self.enabled = True
+        self.game = game
+        if type(components) is set:
+            self.components:Set[TypeComponent] = components # type: ignore
+            self.add = self.components.add
+            self.remove = self.components.remove
+        elif type(components) is list:
+            self.components:List[TypeComponent] = components
+            self.add = self.components.append
+            self.remove = self.components.remove
+
+
+TypeSystem = TypeVar("TypeSystem", bound = System)
+class Component(Generic[TypeSystem]):
+    def __init__(self, system:TypeSystem, entity:'Entity'):
+        self.system:TypeSystem = system
+        self.entity: Entity = entity
+        self._enabled = False
+    
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        if value:
+            if not self._enabled:
+                self.system.add(self)
+                self._enabled = True
+        else:
+            if self._enabled:
+                self.system.remove(self)
+                self._enabled = False
+
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def __str__(self) -> str:
+        message = type(self).__name__
+        if self.entity is not None:
+            message += f"{self.entity.__str__()}"
+        return message
 
 
 class Entity:

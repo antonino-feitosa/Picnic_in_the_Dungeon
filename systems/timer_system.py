@@ -1,18 +1,17 @@
-from typing import Set
 from typing import Callable
 
-from core import Game
+from core import Component, Entity, Game, System
 
 
-class TimerComponent:
-    def __init__(self, system: "TimerSystem", ticks: int):
+class TimerComponent(Component["TimerSystem"]):
+    def __init__(self, system: "TimerSystem", entity: Entity, ticks: int):
+        super().__init__(system, entity)
         self.system = system
         self.loop = False
         self.callback: Callable[[], None] = lambda: None
         self.ticks = ticks
         self._count = 0
-        self._enabled = True
-        self.system.components.add(self)
+        self.enabled = True
 
     def tick(self):
         if self._count >= self.ticks:
@@ -23,27 +22,13 @@ class TimerComponent:
         else:
             self._count += 1
 
-    @property
-    def enabled(self):
-        return self._enabled
 
-    @enabled.setter
-    def enabled(self, value):
-        if value and not self._enabled:
-            self.system.components.add(self)
-            self._enabled = True
-        if not value and self._enabled:
-            self.system.components.remove(self)
-            self._enabled = False
-
-
-class TimerSystem:
+class TimerSystem(System["TimerComponent"]):
     def __init__(self, game: Game):
-        self.game = game
-        self.components: Set[TimerComponent] = set()
-        self.enabled = True
+        super().__init__(game, set())
         game.tickSystems.append(self)
 
     def tick(self):
         for component in self.components.copy():
             component.tick()
+

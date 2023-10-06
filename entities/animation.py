@@ -11,35 +11,35 @@ from systems import AnimationSystem
 from systems import AnimationComponent
 from systems import PositionSystem
 from systems import PositionComponent
-from systems import RenderSystem
-from systems import RenderComponent
-from systems import GuiRenderComponent
-from systems import GuiRenderSystem
+from systems import WorldRenderSystem
+from systems import WorldRenderComponent
+from systems import ScreenRenderComponent
+from systems import ScreenRenderSystem
 from systems import GuiAnimationSystem
 from systems import GuiAnimationComponent
 
 class GuiSimpleImage(Entity):
     def __init__(self, game: Game, image: Image, position: Position):
         super().__init__()
-        self.add(GuiRenderComponent(game[GuiRenderSystem], self, image))
-        self[GuiRenderComponent].position = position
+        self.add(ScreenRenderComponent(game[ScreenRenderSystem], self, image))
+        self[ScreenRenderComponent].offset = position
         self.enabled = False
     
     @property
     def image(self) -> Image:
-        return self[GuiRenderComponent].image
+        return self[ScreenRenderComponent].image
 
     @image.setter
     def image(self, image:Image) -> None:
-        self[GuiRenderComponent].image = image
+        self[ScreenRenderComponent].image = image
     
     @property
     def position(self) -> Position:
-        return self[GuiRenderComponent].position
+        return self[ScreenRenderComponent].offset
     
     @position.setter
     def position(self, position:Position) -> None:
-        self[GuiRenderComponent].position = position
+        self[ScreenRenderComponent].offset = position
         
 
 class SimpleImage(Entity):
@@ -47,7 +47,7 @@ class SimpleImage(Entity):
         super().__init__()
         self.image = image
         self.add(PositionComponent(game[PositionSystem], self, position))
-        self.add(RenderComponent(game[RenderSystem], self, image))
+        self.add(WorldRenderComponent(game[WorldRenderSystem], self, image))
         self.enabled = False
 
 
@@ -57,9 +57,9 @@ class SimpleAnimation(Entity):
         self.spriteSheet: SpriteSheet = spriteSheet
         image = spriteSheet.images[0]
         self.add(PositionComponent(game[PositionSystem], self, position))
-        self.add(RenderComponent(game[RenderSystem], self, image))
+        self.add(WorldRenderComponent(game[WorldRenderSystem], self, image))
         self.add(AnimationComponent(game[AnimationSystem], self, spriteSheet))
-        self[RenderComponent].enabled = False
+        self[WorldRenderComponent].enabled = False
         self.enabled = False
 
 class GuiSimpleAnimation(Entity):
@@ -67,8 +67,8 @@ class GuiSimpleAnimation(Entity):
         super().__init__()
         self.spriteSheet: SpriteSheet = spriteSheet
         image = spriteSheet.images[0]
-        self.add(GuiRenderComponent(game[GuiRenderSystem], self, image))
+        self.add(ScreenRenderComponent(game[ScreenRenderSystem], self, image))
         self.add(GuiAnimationComponent(game[GuiAnimationSystem], self, spriteSheet))
-        self[GuiRenderComponent].position = position
-        self[GuiRenderComponent].enabled = False
+        self[ScreenRenderComponent].offset = position
+        self[ScreenRenderComponent].enabled = False
         self.enabled = False

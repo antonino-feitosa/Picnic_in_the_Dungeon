@@ -28,6 +28,7 @@ class MessageInfoComponent(ControlComponent):
         self.font.drawAtImage(info, image, Position(30,30))
         self._background.image = image
         self._background.enabled = True
+        self.lock = True
         self.enabled = True
     
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:

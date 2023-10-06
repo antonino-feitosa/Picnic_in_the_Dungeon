@@ -7,7 +7,7 @@ from core import Entity
 from device import SpriteSheet
 
 from systems import ViewSystem
-from systems import RenderComponent
+from systems import WorldRenderComponent
 
 
 class AnimationControllerComponent:
@@ -103,7 +103,7 @@ class AnimationComponent:
         if self._tickCount >= self.tickWait:
             self._tickCount = 0
             nextFrame = self.animation.images[self._frameIndex]
-            self.entity[RenderComponent].image = nextFrame
+            self.entity[WorldRenderComponent].image = nextFrame
             length = len(self.animation.images)
             if self._frameIndex + 1 < length:
                 self._frameIndex += 1

@@ -6,7 +6,7 @@ from core import Game
 from core import Entity
 
 from device import SpriteSheet
-from systems.gui_render_system import GuiRenderComponent
+from systems.screen_render_system import ScreenRenderComponent
 
 from systems.render_id_system import RenderIdComponent
 
@@ -48,7 +48,7 @@ class GuiAnimationComponent:
         if self._tickCount >= self.tickWait:
             self._tickCount = 0
             nextFrame = self.animation.images[self._frameIndex]
-            self.entity[GuiRenderComponent].image = nextFrame
+            self.entity[ScreenRenderComponent].image = nextFrame
             length = len(self.animation.images)
             if self._frameIndex + 1 < length:
                 self._frameIndex += 1

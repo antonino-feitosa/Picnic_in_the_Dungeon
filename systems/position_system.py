@@ -1,14 +1,7 @@
-from core import Game
-from core import Entity
+from typing import Set, Tuple
 
-from typing import Set
-from typing import Dict
-from typing import List
-from typing import Tuple
-
-from algorithms import Position
-from algorithms import Direction
-
+from algorithms import Direction, Position
+from core import Entity, Game
 from systems import MapSystem
 
 
@@ -18,23 +11,17 @@ class PositionComponent:
         self.entity = entity
         self.direction: Direction = Direction.Right
         self.position: Position = position
+        self.enabled = True
 
     def move(self, direction: Direction) -> None:
         self.system.toMove.add((self, direction))
 
-    @property
-    def enabled(self):
-        return True
-
-    @enabled.setter
-    def enabled(self, value):
-        pass
-
     def __repr__(self) -> str:
         return self.__str__()
-    
+
     def __str__(self) -> str:
-        return self.entity.__str__()
+        return self.position.__str__()
+
 
 class PositionSystem:
     def __init__(self, game: Game):

@@ -1,56 +1,33 @@
 from typing import Callable, Set, Tuple
-from algorithms.dimension import Dimension
-from algorithms.direction import Direction
-from algorithms.position import Position
-from core import Entity, Game
-from systems.animation_system import AnimationControllerComponent
-from systems.collision_system import CollisionComponent
-from systems.control_system import ControlSystem
-from systems.position_system import PositionComponent
-from systems.render_system import RenderComponent
+
+from algorithms import Dimension, Direction, Position
+from core import Component, Entity, Game, System
+from systems import (
+    AnimationControllerComponent,
+    CollisionComponent,
+    ControlSystem,
+    WorldRenderComponent,
+)
 
 
-class MotionComponent:
-    def __init__(self, system: "MotionSystem", entity:Entity):
-        self.system = system
-        self.entity = entity
+class MotionComponent(Component["MotionSystem"]):
+    def __init__(self, system: "MotionSystem", entity: Entity):
+        super().__init__(system, entity)
         self.speed = 8
-        system.components.add(self)
-        self._enabled = True
         self.callback: Callable[[], None] = lambda: None
-        self.system.components.add(self)
+        self.enabled = True
 
     def move(self, direction: Direction) -> None:
         self.system.toMove.add((self, direction))
 
-    @property
-    def enabled(self):
-        return self._enabled
 
-    @enabled.setter
-    def enabled(self, value):
-        if value and not self._enabled:
-            self.system.components.add(self)
-            self._enabled = True
-        if not value and self._enabled:
-            self.system.components.remove(self)
-            self._enabled = False
-    
-    def __repr__(self) -> str:
-        return self.__str__()
-    
-    def __str__(self) -> str:
-        return self.entity.__str__()
-
-
-class MotionSystem:
+class MotionSystem(System[MotionComponent]):
     def __init__(self, game: Game, unitPixels: Dimension):
-        self.game = game
+        super().__init__(game, set())
         self.unitPixels = unitPixels
         self.lockControls = False
-        self.components: Set[MotionComponent] = set()
         self.toMove: Set[Tuple[MotionComponent, Direction]] = set()
-        self.moving: Set[Tuple[RenderComponent, Position, int]] = set()
+        self.moving: Set[Tuple[WorldRenderComponent, Position, int]] = set()
         self.enabled = True
         self.game.updateSystems.append(self)
         self.game.tickSystems.append(self)
@@ -65,7 +42,7 @@ class MotionSystem:
                 controller.shootAnimation("collision." + str(direction))
             else:
                 spd = component.speed
-                render = component.entity[RenderComponent]
+                render = component.entity[WorldRenderComponent]
                 controller.shootAnimation("walk." + str(direction))
                 x, y = self.unitPixels
                 delta = Position(x * direction.x // spd, y * direction.y // spd)
@@ -76,7 +53,7 @@ class MotionSystem:
     def tick(self) -> None:
         lock = False
         if len(self.moving) > 0:
-            moving: Set[Tuple[RenderComponent, Position, int]] = set()
+            moving: Set[Tuple[WorldRenderComponent, Position, int]] = set()
             for render, delta, spd in self.moving:
                 spd -= 1
                 if spd == 0:

@@ -9,54 +9,68 @@ from core import Entity
 
 from algorithms import Position
 from entities.animation import GuiSimpleAnimation, GuiSimpleImage
+from gui.messages import MessageInfoComponent
 
 from systems import ControlSystem
 from systems import ControlComponent
 
 from systems.gui_animation_system import GuiAnimationComponent, GuiAnimationSystem
-from systems.gui_render_system import GuiRenderSystem
+from systems.screen_render_system import ScreenRenderSystem
 from systems.timer_system import TimerComponent, TimerSystem
+
+from game.roguelike import createRogueLike
 
 
 class SelectButton(ControlComponent):
-    def __init__(self, system:ControlSystem, position:Position, callback:Callable[[bool],None]):
+    def __init__(
+        self,
+        system: ControlSystem,
+        position: Position,
+        callback: Callable[[bool], None],
+    ):
         super().__init__(system)
         self.rect = Rectangle(position.x, position.y, position.x + 60, position.y + 80)
         self.callback = callback
-    
+
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
         if screenPosition in self.rect:
             self.callback(True)
             return True
         return False
-    
-    def mouseClickRight(self, screenPosition: Position, worldPosition: Position) -> bool:
+
+    def mouseClickRight(
+        self, screenPosition: Position, worldPosition: Position
+    ) -> bool:
         if screenPosition in self.rect:
             self.callback(False)
             return True
         return False
 
+
 class ActionButton(ControlComponent):
-    def __init__(self, game:Game, position:Position, callback:Callable[[bool],None]):
+    def __init__(
+        self, game: Game, position: Position, callback: Callable[[bool], None]
+    ):
         super().__init__(game[ControlSystem])
         self.rect = Rectangle(position.x, position.y, position.x + 200, position.y + 50)
         self.callback = callback
-        pressed = game.loadImage('image.gui.button.action.pressed.png')
+        pressed = game.loadImage("image.gui.button.action.pressed.png")
         self.pressedImage = GuiSimpleImage(game, pressed, position)
-        
-    
+
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
         if screenPosition in self.rect:
             self.callback(True)
             return True
         return False
-    
-    def mouseClickRight(self, screenPosition: Position, worldPosition: Position) -> bool:
+
+    def mouseClickRight(
+        self, screenPosition: Position, worldPosition: Position
+    ) -> bool:
         if screenPosition in self.rect:
             self.callback(False)
             return True
         return False
-    
+
     def mousePosition(self, screenPosition: Position, worldPosition: Position) -> None:
         if self.system.buttonLeftDown and screenPosition in self.rect:
             self.pressedImage.enabled = True
@@ -64,68 +78,107 @@ class ActionButton(ControlComponent):
             self.pressedImage.enabled = False
 
 
-def createMainScreenControls(game:Game, dimension:Dimension) -> Entity:
-    entity = Entity()
+def createMainScreenControls(game: Game, screenDimension: Dimension) -> Entity:
+    dimension = Dimension(800, 640)
+    if screenDimension.width < dimension.width:
+        raise ValueError("The minimum width is 800 pixels")
+
+    if screenDimension.height < dimension.height:
+        raise ValueError("The minimum height is 640 pixels")
+
+    offset = Position(
+        (screenDimension.width - dimension.width) // 2,
+        (screenDimension.height - dimension.height) // 2
+    )
 
     backgroundImage = game.loadImage("image.gui.background.mainScreen.png")
-
-    w, h = dimension
-    x, y = backgroundImage.dimension
-    position = Position((w - x) // 2, (h - y) // 2)
-
-    image = GuiSimpleImage(game, backgroundImage, position)
+    image = GuiSimpleImage(game, backgroundImage, offset)
     image.enabled = True
 
     actions = [
-        'exp 1',
-        'exp 2',
-        'exp 3',
-        'exp 4',
-        'exp 5',
-        'party 1',
-        'party 2',
-        'party 3',
-        'party 4',
-        'party 5',
-        'quest 1',
-        'quest 2',
-        'quest 3',
-        'quest 4',
-        'quest 5',
+        "exp 1",
+        "exp 2",
+        "exp 3",
+        "exp 4",
+        "exp 5",
+        "party 1",
+        "party 2",
+        "party 3",
+        "party 4",
+        "party 5",
+        "quest 1",
+        "quest 2",
+        "quest 3",
+        "quest 4",
+        "quest 5",
     ]
 
+    entity = Entity()
+    entity.add(MessageInfoComponent(game, game[ControlSystem]))
+
     def closure(message):
-        def callback(value:bool):
-            print(message,  value)
+        nonlocal entity
+
+        def callback(value: bool):
+            nonlocal entity
+            entity[MessageInfoComponent].showMessage(
+                message + " Right Button: " + str(value)
+            )
+
         return callback
 
     for j in range(3):
         for i in range(5):
             message = actions[j * 5 + i]
             callback = closure(message)
-            position = Position(300 + i * 100, 50 + 150 * j)
+            position = Position(300 + i * 100, 50 + 150 * j) + offset
             component = SelectButton(game[ControlSystem], position, callback)
             entity.add(component)
-    
-    actions = ['options', 'reserach', 'start']
-    for i in range(3):
-        callback = closure(actions[i])
-        position = Position(50 + 250 * i, 500)
-        component = ActionButton(game, position, callback)
-        entity.add(component)
-    
+
+    position = Position(50, 500) + offset
+    component = ActionButton(game, position, closure("options"))
+    entity.add(component)
+
+    position = Position(300, 500) + offset
+    component = ActionButton(game, position, closure("research"))
+    entity.add(component)
+
+    def startNewGame(isRight) -> None:
+        nonlocal game
+        gameLoop = game.gameLoop
+        gameLoop.device.clear()
+        newgame = Game(gameLoop, Random(0))
+        newgame.add(ScreenRenderSystem(newgame, set()))
+        gameLoop.game = createRogueLike(gameLoop)
+
+    position = Position(550, 500) + offset
+    component = ActionButton(game, position, startNewGame)
+    entity.add(component)
+
     callback = lambda isRight: game.exit() if isRight else None
-    position = Position(50, 575)
+    position = Position(50, 575) + offset
     component = ActionButton(game, position, callback)
     entity.add(component)
-    
+
     return entity
 
 
-
 def createMainScreenGame(gameLoop: GameLoop) -> Game:
+    dimension = Dimension(800, 640)
+    screenDimension = gameLoop.device.dimension
+    if screenDimension.width < dimension.width:
+        raise ValueError("The minimum width is 800 pixels")
+
+    if screenDimension.height < dimension.height:
+        raise ValueError("The minimum height is 640 pixels")
+
+    offset = Position(
+        (screenDimension.width - dimension.width) // 2,
+        (screenDimension.height - dimension.height) // 2
+    )
+
     game = Game(gameLoop, Random(0))
-    game.add(GuiRenderSystem(game))
+    game.add(ScreenRenderSystem(game, []))
     game.add(GuiAnimationSystem(game))
     game.add(TimerSystem(game))
     game.add(ControlSystem(game))
@@ -136,13 +189,10 @@ def createMainScreenGame(gameLoop: GameLoop) -> Game:
     )
     sound = game.loadSound("sound.gui.mainTitle.mp3")
 
-    w, h = gameLoop.device.dimension
-    x, y = backgroundImage.dimension
-    position = Position((w - x) // 2, (h - y) // 2)
-
-    image = GuiSimpleImage(game, backgroundImage, position)
+    image = GuiSimpleImage(game, backgroundImage, offset)
     image.enabled = True
 
+    w, h = gameLoop.device.dimension
     x, y = animationSheet.images[0].dimension
     position = Position((w - x) // 2, (h - y) // 2)
 
@@ -150,13 +200,13 @@ def createMainScreenGame(gameLoop: GameLoop) -> Game:
     animation[GuiAnimationComponent].loop = False
 
     entity = Entity()
-    entity.add(TimerComponent(game[TimerSystem], 40))
-    
-    playSound = TimerComponent(game[TimerSystem], 10)
+    entity.add(TimerComponent(game[TimerSystem], entity, 40))
+
+    playSound = TimerComponent(game[TimerSystem], entity, 10)
     playSound.callback = lambda: sound.play()
     entity.add(playSound)
 
-    forceTransition = TimerComponent(game[TimerSystem], 200)
+    forceTransition = TimerComponent(game[TimerSystem], entity, 200)
     entity.add(forceTransition)
 
     entity.add(ControlComponent(game[ControlSystem]))
@@ -173,6 +223,6 @@ def createMainScreenGame(gameLoop: GameLoop) -> Game:
 
     entity[TimerComponent].callback = activate
     entity[ControlComponent].mouseClick = loadGame
-    forceTransition.callback = lambda: loadGame(Position(),Position()) # type: ignore
+    forceTransition.callback = lambda: loadGame(Position(), Position())  # type: ignore
 
     return game

@@ -20,6 +20,16 @@ class ControlComponent:
         pass
 
     @property
+    def lock(self):
+        return self.system.lockComponent is not None
+
+    @lock.setter
+    def lock(self, value):
+        if value:
+            self.system.lockControls = True
+            self.system.lockComponent = self
+
+    @property
     def enabled(self):
         return self._enabled
 
@@ -54,6 +64,7 @@ class ControlSystem:
         self._clickPositionRight:Position = Position()
         self.buttonLeftDown = False
         self.buttonRightDown = False
+        self.lockComponent:ControlComponent | None = None
 
     def mouseClick(self, screenPosition: Position) -> None:
         if self.enabled:
@@ -80,6 +91,7 @@ class ControlSystem:
         self._click = False
         self._clickRight = False
         movePosition = self._position
+
         if not self.lockControls:
             self.buttonLeftDown = self.game.device.buttonLeftDown
             self.buttonRightDown = self.game.device.buttonRightDown
@@ -99,3 +111,22 @@ class ControlSystem:
             worldPosition = self.screenToWorldPosition(movePosition)
             for control in self.components.copy():
                 control.mousePosition(movePosition, worldPosition)
+        
+        elif self.lockComponent is not None:
+            worldPosition = self.screenToWorldPosition(position)
+            if click:
+                if self.lockComponent.mouseClick(position, worldPosition):
+                    self.lockControls = False
+            
+            if self.lockComponent.mousePosition(movePosition, worldPosition):
+                self.lockControls = False
+
+            if clickRight:
+                worldPosition = self.screenToWorldPosition(positionRight)
+                if self.lockComponent.mouseClickRight(positionRight, worldPosition):
+                    self.lockControls = False
+
+        if self.lockComponent is None and self.lockControls:
+            self.lockControls = False
+            self.lockComponent = None
+            

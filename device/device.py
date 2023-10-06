@@ -40,7 +40,8 @@ class Device:
         pygame.display.set_caption(title)
         self.dimension: Dimension = dimension
         dim = (dimension.width, dimension.height)
-        self.screen = pygame.display.set_mode(dim)
+        flags = pygame.FULLSCREEN
+        self.screen = pygame.display.set_mode(dim, vsync=1)
         self.running = True
         self.camera = Camera(dimension)
         self.tick = tick

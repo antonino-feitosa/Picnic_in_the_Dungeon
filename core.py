@@ -128,6 +128,9 @@ class Game(Entity):
     def isRunning(self) -> bool:
         return self.device.running
 
+    def exit(self) -> None:
+        self.device.running = False
+
     def setActive(self):
         self.gameLoop.game = self
 

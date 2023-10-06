@@ -16,8 +16,8 @@ class ControlComponent:
     def mouseClickRight(self, screenPosition: Position, worldPosition: Position) -> bool:
         return False
 
-    def mouseMove(self, screenPosition: Position, worldPosition: Position) -> bool:
-        return False
+    def mousePosition(self, screenPosition: Position, worldPosition: Position) -> None:
+        pass
 
     @property
     def enabled(self):
@@ -44,7 +44,7 @@ class ControlSystem:
         self.enabled = True
         self.game.device.addListenerClick(self.mouseClick)
         self.game.device.addListenerClickRight(self.mouseClickRight)
-        self.game.device.addListenerMove(self.mouseMove)
+        self.game.device.addListenerMove(self.mousePosition)
         self.game.tickSystems.append(self)
         self._position:Position = Position()
         self._lastPosition: Position = Position()
@@ -65,7 +65,7 @@ class ControlSystem:
             self._clickPositionRight = screenPosition
             self._clickRight = True
 
-    def mouseMove(self, screenPosition: Position) -> None:
+    def mousePosition(self, screenPosition: Position) -> None:
         if self.enabled:
             self._position = screenPosition
 
@@ -98,5 +98,4 @@ class ControlSystem:
 
             worldPosition = self.screenToWorldPosition(movePosition)
             for control in self.components.copy():
-                if control.mouseMove(movePosition, worldPosition):
-                    break
+                control.mousePosition(movePosition, worldPosition)

@@ -39,6 +39,7 @@
 
 - [ ] Algumas paredes podem conter passagens secretas. Em vez da entidade colidir com a parede, a passagem secreta será revelada expandindo o campo de visão que antes era limitado pela parede falsa.
 
+- [ ] Alguns poderes estão associados aos sentidos considerando os sentidos básicos e especializados. A visão é responsável pela percepção visual, além de identificar as entidades dentro do campo de visão, ela identifica o nível de dificuldade dos inimigos através de sua cor e também é importante para leitura de mensagens espalhadas no cenário. A audição identifica entidades invisíveis móveis ou ocultas, como mecanismos e armadilhas baseadas em mecanismos, além de escuta de mensagens emitidas pelas entidades. O olfato identifica armadilhas baseadas em veneno e também entidades invisíveis imóveis ou até mesmo rastrear entidades. O tato identifica entidades próximas, como armadilhas e mecanismos baseados em pressão, e também alterações no cenários como tremores. O paladar pode identificar alimentos venenosos além de oferecer bônus e penalidades para preferências alimentares como carnívoro, onívoro e vegetariano. Podemos citar como sentidos especializados a capacidade de sentir a magia nas entidades, sentir o cheiro de sangue, etc.
 
 ## Programação
 

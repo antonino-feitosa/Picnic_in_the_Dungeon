@@ -98,7 +98,7 @@ class SelectPathComponent(ControlComponent):
             return True
         return False
 
-    def mouseMove(self, screenPosition: Position, worldPosition: Position) -> bool:
+    def mousePosition(self, screenPosition: Position, worldPosition: Position) -> bool:
         if self.enabled:
             source = self.selectedEntity[PositionComponent].position
             self.updatePath(source, worldPosition)

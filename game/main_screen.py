@@ -37,13 +37,15 @@ class SelectButton(ControlComponent):
         return False
 
 class ActionButton(ControlComponent):
-    def __init__(self, system:ControlSystem, position:Position, callback:Callable[[bool],None]):
-        super().__init__(system)
+    def __init__(self, game:Game, position:Position, callback:Callable[[bool],None]):
+        super().__init__(game[ControlSystem])
         self.rect = Rectangle(position.x, position.y, position.x + 200, position.y + 50)
         self.callback = callback
+        pressed = game.loadImage('image.gui.button.action.pressed.png')
+        self.pressedImage = GuiSimpleImage(game, pressed, position)
+        
     
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
-        print('Click', self.rect)
         if screenPosition in self.rect:
             self.callback(True)
             return True
@@ -54,6 +56,12 @@ class ActionButton(ControlComponent):
             self.callback(False)
             return True
         return False
+    
+    def mousePosition(self, screenPosition: Position, worldPosition: Position) -> None:
+        if self.system.buttonLeftDown and screenPosition in self.rect:
+            self.pressedImage.enabled = True
+        else:
+            self.pressedImage.enabled = False
 
 
 def createMainScreenControls(game:Game, dimension:Dimension) -> Entity:
@@ -86,30 +94,30 @@ def createMainScreenControls(game:Game, dimension:Dimension) -> Entity:
         'quest 5',
     ]
 
+    def closure(message):
+        def callback(value:bool):
+            print(message,  value)
+        return callback
+
     for j in range(3):
         for i in range(5):
-            def closure(message):
-                def callback(value:bool):
-                    print(message,  value)
-                return callback
-            
             message = actions[j * 5 + i]
             callback = closure(message)
             position = Position(300 + i * 100, 50 + 150 * j)
             component = SelectButton(game[ControlSystem], position, callback)
             entity.add(component)
     
-    actions = ['reserach', 'options', 'start']
+    actions = ['options', 'reserach', 'start']
     for i in range(3):
-        def closure(message):
-            def callback(value:bool):
-                print(message,  value)
-            return callback
-        
         callback = closure(actions[i])
         position = Position(50 + 250 * i, 500)
-        component = ActionButton(game[ControlSystem], position, callback)
+        component = ActionButton(game, position, callback)
         entity.add(component)
+    
+    callback = lambda isRight: game.exit() if isRight else None
+    position = Position(50, 575)
+    component = ActionButton(game, position, callback)
+    entity.add(component)
     
     return entity
 

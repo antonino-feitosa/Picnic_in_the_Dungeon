@@ -82,7 +82,7 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
     game.add(AnimationSystem(game))
     game.add(ControlSystem(game, units))
     game.add(MotionSystem(game, units))
-    game.add(ScreenRenderSystem(game, set()))
+    game.add(ScreenRenderSystem(game, []))
     game.add(RenderIdSystem(game, units))
 
     game[MapSystem].makeBlack()

@@ -178,19 +178,33 @@ class Game(Entity):
         self.device.running = False
 
     def setActive(self):
-        self.gameLoop.game = self
+        other = self.gameLoop._game
+        if other:
+            for system in self.tickSystems:
+                system.enabled = False
+            for system in self.drawSystems:
+                system.enabled = False
+            for system in self.updateSystems:
+                system.enabled = False
+        for system in self.tickSystems:
+            system.enabled = True
+        for system in self.drawSystems:
+            system.enabled = True
+        for system in self.updateSystems:
+            system.enabled = True
+        self.gameLoop._game = self
 
 
 
 class GameLoop:
     def __init__(self, device:Device):
         self.device = device
-        self.game: Game
+        self._game: Game | None = None
     
-    def forever(self, game:Game):
-        self.game = game
-        while self.game.isRunning:
-            game = self.game
-            game.tick()
-            self.device.loop()
-            game.draw()
+    def forever(self):
+        if self._game:
+            while self._game.isRunning:
+                game = self._game
+                game.tick()
+                self.device.loop()
+                game.draw()

@@ -1,4 +1,4 @@
-from typing import Callable, List
+from typing import Callable, List, Set
 from algorithms import Direction, Random
 from algorithms import PathFinding
 from algorithms.dimension import Dimension
@@ -19,6 +19,53 @@ from systems.screen_render_system import ScreenRenderSystem
 from systems.timer_system import TimerComponent, TimerSystem
 
 from game.roguelike import createRogueLike
+
+class GameMenuComponent(ControlComponent):
+    def __init__(self, game:Game, mainScreen:Game):
+        super().__init__(game[ControlSystem])
+        menuImage = game.loadImage("image.gui.background.gameScreen.png")
+        w, h = game.device.dimension
+        x, y = menuImage.dimension
+        offset = Position((w - x) // 2,(h - y) // 2)
+        self.pressedImage = GuiSimpleImage(game, menuImage, offset)
+        self.enabled = True
+
+        messageComp = MessageInfoComponent(game, game[ControlSystem])
+
+        def escapeAction(_):
+            nonlocal mainScreen
+            #createMainScreenGame(mainScreen.gameLoop).setActive()
+            mainScreen.setActive()
+
+        position = Position(50, 50) + offset
+        escapeButton = ActionButton(game, position, escapeAction)
+        escapeButton.enabled = False
+        self.pressedImage.add(escapeButton)
+
+        optionsAction = lambda _: messageComp.showMessage('Options')
+        position = Position(50, 125) + offset
+        optionsButton = ActionButton(game, position, optionsAction)
+        optionsButton.enabled = False
+        self.pressedImage.add(optionsButton)
+
+        exitAction = lambda isRight: game.exit() if isRight else None
+        position = Position(50, 200) + offset
+        exitButton = ActionButton(game, position, exitAction)
+        exitButton.enabled = False
+        self.pressedImage.add(exitButton)
+
+        self.pressedImage.add(messageComp)
+    
+    def keyPressed(self, keys: Set[str]) -> bool:
+        if 'escape' in keys:
+            if self.pressedImage.enabled:
+                self.pressedImage.enabled = False
+                self.lock = False
+            else:
+                self.pressedImage.enabled = True
+                self.lock = True
+            return True
+        return False
 
 
 class SelectButton(ControlComponent):
@@ -56,6 +103,7 @@ class ActionButton(ControlComponent):
         self.callback = callback
         pressed = game.loadImage("image.gui.button.action.pressed.png")
         self.pressedImage = GuiSimpleImage(game, pressed, position)
+        self.buttonLeftDown = False
 
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
         if screenPosition in self.rect:
@@ -71,8 +119,15 @@ class ActionButton(ControlComponent):
             return True
         return False
 
+    def mouseLeft(self, down: bool, screenPosition: Position, worldPosition: Position) -> bool:
+        if down and screenPosition in self.rect:
+            self.buttonLeftDown = True
+        else:
+            self.buttonLeftDown = False
+        return super().mouseLeft(down, screenPosition, worldPosition)
+
     def mousePosition(self, screenPosition: Position, worldPosition: Position) -> None:
-        if self.system.buttonLeftDown and screenPosition in self.rect:
+        if self.buttonLeftDown and screenPosition in self.rect:
             self.pressedImage.enabled = True
         else:
             self.pressedImage.enabled = False
@@ -146,10 +201,9 @@ def createMainScreenControls(game: Game, screenDimension: Dimension) -> Entity:
     def startNewGame(isRight) -> None:
         nonlocal game
         gameLoop = game.gameLoop
-        gameLoop.device.clear()
-        newgame = Game(gameLoop, Random(0))
-        newgame.add(ScreenRenderSystem(newgame, set()))
-        gameLoop.game = createRogueLike(gameLoop)
+        newgame = createRogueLike(gameLoop)
+        GameMenuComponent(newgame, game)
+        newgame.setActive()
 
     position = Position(550, 500) + offset
     component = ActionButton(game, position, startNewGame)

@@ -1,4 +1,4 @@
-from typing import Set
+from typing import List, Set, Tuple
 from algorithms import Dimension
 from algorithms.position import Position
 from core import Game
@@ -8,26 +8,42 @@ class ControlComponent:
     def __init__(self, system: "ControlSystem"):
         self._enabled = True
         self.system = system
-        system.components.add(self)
+        system.components.append(self)
+        self.lock = False
+        self.leftPressed = False
+        self.rightPressed = False
+
+    def mouseLeft(
+        self, down: bool, screenPosition: Position, worldPosition: Position
+    ) -> bool:
+        result = False
+        if self.leftPressed and not down:
+            result = self.mouseClick(screenPosition, worldPosition)
+        self.leftPressed = down
+        return result
+
+    def mouseRight(
+        self, down: bool, screenPosition: Position, worldPosition: Position
+    ) -> bool:
+        result = False
+        if self.rightPressed and not down:
+            result = self.mouseClickRight(screenPosition, worldPosition)
+        self.rightPressed = down
+        return result
 
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
         return False
-    
-    def mouseClickRight(self, screenPosition: Position, worldPosition: Position) -> bool:
+
+    def mouseClickRight(
+        self, screenPosition: Position, worldPosition: Position
+    ) -> bool:
         return False
 
     def mousePosition(self, screenPosition: Position, worldPosition: Position) -> None:
         pass
 
-    @property
-    def lock(self):
-        return self.system.lockComponent is not None
-
-    @lock.setter
-    def lock(self, value):
-        if value:
-            self.system.lockControls = True
-            self.system.lockComponent = self
+    def keyPressed(self, keys: Set[str]) -> bool:
+        return False
 
     @property
     def enabled(self):
@@ -37,48 +53,82 @@ class ControlComponent:
     def enabled(self, value):
         if value and not self._enabled:
             self._enabled = True
-            self.system.components.add(self)
+            self.system.components.append(self)
         if not value and self._enabled:
             self._enabled = False
+            self.lock = False
+            self.leftPressed = False
+            self.rightPressed = False
             self.system.components.remove(self)
+
+    def __repr__(self) -> str:
+        return type(self).__name__
+
+    def __str__(self) -> str:
+        return type(self).__name__
 
 
 class ControlSystem:
-    def __init__(self, game: Game, units: Dimension = Dimension(1,1)):
+    def __init__(self, game: Game, units: Dimension = Dimension(1, 1)):
         self.game = game
         self.units = units
         self.lockControls = False
         w, h = game.device.dimension
-        self.position: Position = Position(w//2, h//2)
-        self.components: Set[ControlComponent] = set()
-        self.enabled = True
-        self.game.device.addListenerClick(self.mouseClick)
-        self.game.device.addListenerClickRight(self.mouseClickRight)
-        self.game.device.addListenerMove(self.mousePosition)
+        self.position: Position = Position(w // 2, h // 2)
+        self.components: List[ControlComponent] = []
+        self._enabled = False
         self.game.tickSystems.append(self)
-        self._position:Position = Position()
-        self._lastPosition: Position = Position()
-        self._click = False
-        self._clickRight = False
-        self._clickPosition:Position = Position()
-        self._clickPositionRight:Position = Position()
-        self.buttonLeftDown = False
-        self.buttonRightDown = False
-        self.lockComponent:ControlComponent | None = None
-
-    def mouseClick(self, screenPosition: Position) -> None:
-        if self.enabled:
-            self._clickPosition = screenPosition
-            self._click = True
+        self._position: Position = Position()
+        self._leftButtonEvent = False
+        self._leftButton: Tuple[bool, Position] = (False, Position())
+        self._rightButtonEvent = False
+        self._rightButton: Tuple[bool, Position] = (False, Position())
+        self._pressed: Set[str] = set()
     
-    def mouseClickRight(self, screenPosition: Position) -> None:
+    @property
+    def enabled(self):
+        return self._enabled
+    
+    @enabled.setter
+    def enabled(self, value):
+        if not self._enabled and value:
+            self._enabled = True
+            self.registerListeners()
+        elif self._enabled and not value:
+            self._leftButtonEvent = False
+            self._rightButtonEvent = False
+            self._enabled = False
+            self.deregisterListeners()
+    
+    def registerListeners(self):
+        self.game.device.onClick.append(self.mouseClick)
+        self.game.device.onClickRight.append(self.mouseClickRight)
+        self.game.device.onMove.append(self.mousePosition)
+        self.game.device.onPressed.append(self.keyPressed)
+    
+    def deregisterListeners(self):
+        self.game.device.onClick.remove(self.mouseClick)
+        self.game.device.onClickRight.remove(self.mouseClickRight)
+        self.game.device.onMove.remove(self.mousePosition)
+        self.game.device.onPressed.remove(self.keyPressed)
+
+    def mouseClick(self, down: bool, screenPosition: Position) -> None:
         if self.enabled:
-            self._clickPositionRight = screenPosition
-            self._clickRight = True
+            self._leftButtonEvent = True
+            self._leftButton = (down, screenPosition)
+
+    def mouseClickRight(self, down: bool, screenPosition: Position) -> None:
+        if self.enabled:
+            self._rightButtonEvent = True
+            self._rightButton = (down, screenPosition)
 
     def mousePosition(self, screenPosition: Position) -> None:
         if self.enabled:
             self._position = screenPosition
+
+    def keyPressed(self, keyName: str) -> None:
+        if self.enabled:
+            self._pressed.add(keyName)
 
     def screenToWorldPosition(self, point: Position):
         w, h = self.units
@@ -86,47 +136,42 @@ class ControlSystem:
         return Position((point.x + x) // w, (point.y + y) // h)
 
     def tick(self):
-        position, click = self._clickPosition, self._click
-        positionRight, clickRight = self._clickPositionRight, self._clickRight
-        self._click = False
-        self._clickRight = False
-        movePosition = self._position
-
         if not self.lockControls:
-            self.buttonLeftDown = self.game.device.buttonLeftDown
-            self.buttonRightDown = self.game.device.buttonRightDown
-
-            if click:
+            leftEvent = self._leftButtonEvent
+            self._leftButtonEvent = False
+            if leftEvent:
+                down, position = self._leftButton
                 worldPosition = self.screenToWorldPosition(position)
-                for control in self.components.copy():
-                    if control.mouseClick(position, worldPosition):
-                        break
-            
-            if clickRight:
-                worldPosition = self.screenToWorldPosition(positionRight)
-                for control in self.components.copy():
-                    if control.mouseClickRight(positionRight, worldPosition):
+                for i in range(len(self.components) - 1, -1, -1):
+                    control = self.components[i]
+                    if control.mouseLeft(down, position, worldPosition) or control.lock:
                         break
 
+            rightEvent = self._rightButtonEvent
+            self._rightButtonEvent = False
+            if rightEvent:
+                down, position = self._rightButton
+                worldPosition = self.screenToWorldPosition(position)
+                for i in range(len(self.components) - 1, -1, -1):
+                    control = self.components[i]
+                    if (
+                        control.mouseRight(down, position, worldPosition)
+                        or control.lock
+                    ):
+                        break
+
+            keys = self._pressed.copy()
+            self._pressed.clear()
+            if keys:
+                for i in range(len(self.components) - 1, -1, -1):
+                    control = self.components[i]
+                    if control.keyPressed(keys) or control.lock:
+                        break
+
+            movePosition = self._position
             worldPosition = self.screenToWorldPosition(movePosition)
-            for control in self.components.copy():
+            for i in range(len(self.components) - 1, -1, -1):
+                control = self.components[i]
                 control.mousePosition(movePosition, worldPosition)
-        
-        elif self.lockComponent is not None:
-            worldPosition = self.screenToWorldPosition(position)
-            if click:
-                if self.lockComponent.mouseClick(position, worldPosition):
-                    self.lockControls = False
-            
-            if self.lockComponent.mousePosition(movePosition, worldPosition):
-                self.lockControls = False
-
-            if clickRight:
-                worldPosition = self.screenToWorldPosition(positionRight)
-                if self.lockComponent.mouseClickRight(positionRight, worldPosition):
-                    self.lockControls = False
-
-        if self.lockComponent is None and self.lockControls:
-            self.lockControls = False
-            self.lockComponent = None
-            
+                if control.lock:
+                    break

@@ -21,6 +21,7 @@ class MessageInfoComponent(ControlComponent):
         position = Position((width - w) // 2, (height - h))
         self._background = GuiSimpleImage(game, self.image, position)
         self.enabled = False
+        self.processing = False
     
     def showMessage(self, info:str):
         self.info = info
@@ -29,11 +30,13 @@ class MessageInfoComponent(ControlComponent):
         self._background.image = image
         self._background.enabled = True
         self.lock = True
+        self.processing = True
         self.enabled = True
     
     def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
-        if self.enabled:
+        if self.enabled and self.processing:
             self.enabled = False
+            self.processing = False
             self._background.enabled = False
             self.callback()
             return True

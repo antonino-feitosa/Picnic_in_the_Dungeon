@@ -46,21 +46,10 @@ class Device:
         self.camera = Camera(dimension)
         self.tick = tick
         self.clock = pygame.time.Clock()
-        self.onClick: List[Callable[[Position], None]] = []
-        self.onClickRight: List[Callable[[Position], None]] = []
+        self.onClick: List[Callable[[bool, Position], None]] = []
+        self.onClickRight: List[Callable[[bool, Position], None]] = []
         self.onMove: List[Callable[[Position], None]] = []
         self.onPressed: List[Callable[[str], None]] = []
-        self.buttonLeftDown: bool = False
-        self.buttonRightDown: bool = False
-
-    def addListenerClick(self, callback: Callable[[Position], None]) -> None:
-        self.onClick.append(callback)
-    
-    def addListenerClickRight(self, callback: Callable[[Position], None]) -> None:
-        self.onClickRight.append(callback)
-
-    def addListenerMove(self, callback: Callable[[Position], None]) -> None:
-        self.onMove.append(callback)
 
     def loadTiledCanvas(
         self, pixelsUnit: Dimension, dimension: Dimension
@@ -126,23 +115,25 @@ class Device:
                 for callback in self.onMove:
                     callback(position)
             
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  
-                self.buttonLeftDown = True
-
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                self.buttonRightDown = True
-
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                self.buttonLeftDown = False
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 position = Position(*pygame.mouse.get_pos())
                 for callback in self.onClick:
-                    callback(position)
-            
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-                self.buttonRightDown = False
+                    callback(True, position)
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 position = Position(*pygame.mouse.get_pos())
                 for callback in self.onClickRight:
-                    callback(position)
+                    callback(True, position)
+
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                position = Position(*pygame.mouse.get_pos())
+                for callback in self.onClick:
+                    callback(False, position)
+            
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                position = Position(*pygame.mouse.get_pos())
+                for callback in self.onClickRight:
+                    callback(False, position)
 
             if event.type == pygame.KEYUP and event.key:
                 keyName = pygame.key.name(event.key)

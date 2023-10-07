@@ -1,7 +1,7 @@
 
 # Casos de Uso
 
-- [ ] Durante o jogo o usuário pode ter a opção de acessar um menu para sair do jogo, reiniciar a partida ou voltar para o menu principal
+- [ ] Durante o jogo o usuário pode ter a opção de acessar um menu para sair do jogo, reiniciar a partida ou voltar para o menu principal.
 
 - [ ] O jogo inicia apresentando uma guilda com o progresso do usuário que consiste nos principais elementos do jogo, isto é, armas, magias, raças, classes, poções, armaduras, etc. Inicialmente estará disponível somente as opções básicas. Além disso, haverá uma seção de pesquisa, outra para recrutamento, outra para missões e outra para exploração. Na aba de pesquisa o usuário pode criar novos elementos, porém, eles só estarão disponíveis após a exploração com sucesso da masmorra associada. A seção de recrutamento oferece a criação novos personagens e equipes considerando os elementos disponíveis. O usuário pode optar pela seleção de missões para liberar elementos secundários como ataques especiais de armas previamente liberadas, variações de magias, etc. Por fim, a aba de exploração permite que o usuário escolha elementos primários que ele deseja explorar que serão liberados após uma exploração efetiva da masmorra. Cada masmorra consiste em 25 níveis com desafios a cada 5 níveis. Uma exploração efetiva consiste em derrotar o desafio associado ao elemento escolhido.
 

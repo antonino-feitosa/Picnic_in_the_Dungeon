@@ -6,10 +6,11 @@ from game.main_screen import createMainScreenGame
 
 def main():
     screenDimension = Dimension(1280, 640)
-    device = Device("Picnic in the Dungeon", screenDimension, tick=40)
+    device = Device("Picnic in the Dungeon", screenDimension, tick=30)
     gameLoop = GameLoop(device)
     game = createMainScreenGame(gameLoop)
-    gameLoop.forever(game)
+    game.setActive()
+    gameLoop.forever()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import json
 
 from algorithms import Dimension, Position, Random
+from algorithms.direction import Direction
 from core import Entity, Game, GameLoop
 from device import TiledCanvas
 from gui import (
@@ -31,6 +32,9 @@ from systems import (
     WorldRenderComponent,
     WorldRenderSystem,
 )
+from systems.camera_system import CameraComponent, CameraSystem
+from systems.control_system import ControlComponent
+from systems.turn_system import TurnComponent, TurnSystem
 
 
 def loadAvatarDataSet(game: Game, entity: Entity, units: Dimension, colorId=1):
@@ -42,14 +46,24 @@ def loadAvatarDataSet(game: Game, entity: Entity, units: Dimension, colorId=1):
 
     colors = [
         # Armas, Poderes, Aleatórios
-        (200, 200, 200),  # 1 0 0
-        (20, 200, 200),  # 2 0 0
-        (20, 200, 20),  # 4 1 0
-        (20, 20, 200),  # 8 2 0
-        (200, 20, 200),  # 8 4 1
-        (200, 200, 20),  # 8 8 2
-        (255, 200, 20),  # 8 8 4
-        (200, 20, 20),  # 8 8 8
+        (50, 50, 50),  # 
+        (100, 100, 100),  # 
+        (200, 200, 200),  #  grey
+        (255, 255, 255),  # 
+        
+        (20, 200, 200),  # 2 0 0 cyan
+
+        (20, 200, 20),  # 4 1 0 green
+
+        (20, 20, 200),  # 8 2 0 blue
+
+
+        (200, 20, 200),  # 8 4 1 purple
+        (200, 200, 20),  # 8 8 2 yellow
+        
+        (255, 100, 20),  # 8 8 4 orange
+        (255, 20, 100),  # 8 8 4 
+        (200, 20, 20),  # 8 8 8 red
     ]
 
     animationControl = entity[AnimationControllerComponent]
@@ -66,13 +80,30 @@ def loadAvatarDataSet(game: Game, entity: Entity, units: Dimension, colorId=1):
     animationControl.playAnimation("idle.right")
 
 
+class RandomIA(TurnComponent):
+    def __init__(self, system:TurnSystem, entity:Entity, turn:int, random:Random):
+        super().__init__(system, turn)
+        self.entity = entity
+        self.random = random
+    
+    def processTurn(self, turn: int):
+        entity = self.entity
+        dir = self.random.choice(Direction.All)
+        entity[CollisionComponent].move(dir)
+        entity[MotionComponent].move(dir)
+        self.endOfTurn()
+
+
 def createRogueLike(gameLoop: GameLoop) -> Game:
     random = Random(1)
     units = Dimension(32, 32)
-    dimension = Dimension(20, 15)
+    dimension = Dimension(20, 20)
 
+    device = gameLoop.device
+    screenDimension = device.dimension
     game = Game(gameLoop, random)
 
+    game.add(TurnSystem(game))
     game.add(MapSystem(dimension, random))
     game.add(PositionSystem(game))
     game.add(CollisionSystem(game))
@@ -82,31 +113,36 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
     game.add(AnimationSystem(game))
     game.add(ControlSystem(game, units))
     game.add(MotionSystem(game, units))
-    game.add(ScreenRenderSystem(game, []))
     game.add(RenderIdSystem(game, units))
+    game.add(ScreenRenderSystem(game, []))
+    game.add(CameraSystem(device.camera, random, units))
 
-    game[MapSystem].makeBlack()
-    # game[MapSystem].makeIsland()
-    game[MapSystem].calculateWalls()
+    #game[MapSystem].makeBlack()
+    game[MapSystem].makeIsland()
+    #game[MapSystem].calculateWalls()
 
     path = "sprite.avatar.white.idle.right.png"
     playerSheet = game.loadSpriteSheet(path, units)
     playerImage = playerSheet.images[0]
 
-    for i in range(0, 4):
-        entity = Entity()
-        position = Position(10 + i // 2, 7 + i % 2)
-        entity.add(PositionComponent(game[PositionSystem], entity, position))
-        entity.add(CollisionComponent(game[CollisionSystem], entity))
-        entity.add(WorldRenderComponent(game[WorldRenderSystem], entity, playerImage))
-        entity.add(AnimationComponent(game[AnimationSystem], entity, playerSheet))
-        entity.add(RenderIdComponent(game, entity, "A"))
-        entity.add(AnimationControllerComponent(entity))
-        entity.add(MotionComponent(game[MotionSystem], entity))
-        loadAvatarDataSet(game, entity, units, i)
+    #center = game[MapSystem].startPosition
+    count = 0
+    for position in game[MapSystem].ground:
+        if random.nextDouble() < 0.9:
+            entity = Entity()
+            entity.add(PositionComponent(game[PositionSystem], entity, position))
+            entity.add(CollisionComponent(game[CollisionSystem], entity))
+            entity.add(WorldRenderComponent(game[WorldRenderSystem], entity, playerImage))
+            entity.add(AnimationComponent(game[AnimationSystem], entity, playerSheet))
+            entity.add(RenderIdComponent(game, entity, "A"))
+            entity.add(AnimationControllerComponent(entity))
+            entity.add(MotionComponent(game[MotionSystem], entity))
+            entity.add(CameraComponent(game[CameraSystem], entity))
+            entity.add(RandomIA(game[TurnSystem], entity, 1, random))
+            entity[CameraComponent].centralize()
+            loadAvatarDataSet(game, entity, units, count)
+            count = (count + 1) % 4
 
-    device = gameLoop.device
-    screenDimension = device.dimension
     canvas = TiledCanvas(device, units, game[MapSystem].dimension)
     path = "sprite.map.ground.basic.png"
     groundSheet = game.loadSpriteSheet(path, Dimension(32, 32))
@@ -117,6 +153,18 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
     groundPaint = MapViewComponent(mapViewSystem, canvas, groundSheet, groundWalls)
     mapEntity = Entity()
     mapEntity.add(groundPaint)
+    mapEntity.add(TurnComponent(game[TurnSystem], 0))
+    endOfTurn = ControlComponent(game[ControlSystem])
+    mapEntity.add(endOfTurn)
+
+    def fireEndOfTurn(screenPosition:Position, worldPosition:Position) -> bool:
+        mapEntity[TurnComponent].endOfTurn()
+        game.update()
+        game.update()
+        return True
+    
+    endOfTurn.mouseClick = fireEndOfTurn
+    
 
     path = "sprite.gui.select.unit.png"
     selectUnit = game.loadSpriteSheet(path, Dimension(32, 32))
@@ -142,9 +190,6 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
             selectUnit.selectedEntity[MotionComponent].move(direction)
         selectUnit.dropSelection()
         game.update()
-        mapEntity[MessageInfoComponent].showMessage(
-            "Texto Longo para comparacao " + str(path)
-        )
 
     selectPath.callback = reset
 

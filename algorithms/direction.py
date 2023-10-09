@@ -41,7 +41,7 @@ class Direction:
         yield self.y
     
     def __eq__(self, other: "Direction"):
-        return self.x == other.x and self.y == other.y
+        return other is not None and self.x == other.x and self.y == other.y
 
     def __ne__(self, other: "Direction"):
         return self.x != other.x or self.y != other.y

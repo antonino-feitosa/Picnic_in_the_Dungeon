@@ -56,7 +56,7 @@ class CollisionComponent:
                 self.system.actualPosition[self.position] = self
                 self._enabled = True
             else:
-                message = "Can not collision on an occupied position: "
+                message = "Occupied position: "
                 raise ValueError(message + str(self.position))
         if not value and self._enabled:
             del self.system.actualPosition[self.position]
@@ -66,7 +66,7 @@ class CollisionComponent:
         return self.__str__()
 
     def __str__(self) -> str:
-        return self.entity.__str__()
+        return self.entity.__str__() + ' ' + str(self.position)
 
 
 class CollisionSystem:
@@ -75,22 +75,29 @@ class CollisionSystem:
         self.actualPosition: Dict[Position, CollisionComponent] = dict()
         self.movingInDirection: Dict[CollisionComponent, Direction] = dict()
         self.tryingToMove: Set[CollisionComponent] = set()
+        self.wallCollision: Set[CollisionComponent] = set()
         game.updateSystems.append(self)
         self.enabled = True
 
     def update(self):
+        for component in self.wallCollision:
+            component.wallCollision = True
+            component.dependency.clear()
+        self.wallCollision.clear()
+        
         self.resolveDependency()
+
         for component, direction in self.movingInDirection.items():
             component.positionComponent.direction = direction
             position = component.position
             destination = direction + position
             other = self.actualPosition[destination]
             other.passiveCollision.add(component)
-            other.dependency.remove(component)
             component.activeCollision = other
             component.dependency.clear()
             component.entity[PositionComponent].direction = direction
         self.movingInDirection.clear()
+        
 
     def resolveDependency(self):
         while self.tryingToMove:
@@ -108,9 +115,10 @@ class CollisionSystem:
                 component.positionComponent.position = destination
                 component.positionComponent.direction = direction
                 if component.dependency:
-                    first = component.dependency.pop()  # TODO randomize or initiative
-                    self.tryingToMove.add(first)
-                    #component.dependency.clear()
+                    for next in component.dependency:
+                        if next in self.movingInDirection:
+                            self.tryingToMove.add(next)
+                    component.dependency.clear()
 
     def move(self, component: CollisionComponent, direction: Direction) -> None:
         component.wallCollision = False
@@ -126,4 +134,4 @@ class CollisionSystem:
             else:
                 self.tryingToMove.add(component)
         else:
-            component.wallCollision = True
+            self.wallCollision.add(component)

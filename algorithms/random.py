@@ -19,6 +19,9 @@ class Random:
     def nextNormal(self, mean: float = 0, sigma: float = 1) -> float:
         return self.rand.normalvariate(mean, sigma)
 
+    def nextDouble(self) -> float:
+        return self.rand.random()
+
     T = TypeVar("T")
 
     def choice(self, elements: Sequence[T]) -> T:

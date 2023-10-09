@@ -25,7 +25,7 @@ class Position:
         return 4096 * (4096 + self.y) + (4096 + self.x)
 
     def __eq__(self, other: "Position"):
-        return self.x == other.x and self.y == other.y
+        return other is not None and self.x == other.x and self.y == other.y
 
     def __ne__(self, other: "Position"):
         return self.x != other.x or self.y != other.y

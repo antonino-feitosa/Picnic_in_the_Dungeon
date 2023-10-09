@@ -36,3 +36,6 @@ from .gui_animation_system import GuiAnimationComponent
 
 from .timer_system import TimerSystem
 from .timer_system import TimerComponent
+
+from .turn_system import TurnSystem
+from .turn_system import TurnComponent

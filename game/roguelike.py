@@ -11,6 +11,7 @@ from gui import (
     SelectEntityComponent,
     SelectPathComponent,
 )
+from gui.selection import ButtonEndOfTurn
 from systems import (
     AnimationComponent,
     AnimationControllerComponent,
@@ -34,6 +35,7 @@ from systems import (
 )
 from systems.camera_system import CameraComponent, CameraSystem
 from systems.control_system import ControlComponent
+from systems.player_system import PlayerComponent, PlayerSystem
 from systems.turn_system import TurnComponent, TurnSystem
 
 
@@ -46,10 +48,10 @@ def loadAvatarDataSet(game: Game, entity: Entity, units: Dimension, colorId=1):
 
     colors = [
         # Armas, Poderes, Aleatórios
+        (255, 255, 255),  # white
         (50, 50, 50),  # 
         (100, 100, 100),  # 
         (200, 200, 200),  #  grey
-        (255, 255, 255),  # 
         
         (20, 200, 200),  # 2 0 0 cyan
 
@@ -116,6 +118,7 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
     game.add(RenderIdSystem(game, units))
     game.add(ScreenRenderSystem(game, []))
     game.add(CameraSystem(device.camera, random, units))
+    game.add(PlayerSystem(game))
 
     #game[MapSystem].makeBlack()
     game[MapSystem].makeIsland()
@@ -134,12 +137,17 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
             entity.add(CollisionComponent(game[CollisionSystem], entity))
             entity.add(WorldRenderComponent(game[WorldRenderSystem], entity, playerImage))
             entity.add(AnimationComponent(game[AnimationSystem], entity, playerSheet))
-            entity.add(RenderIdComponent(game, entity, "A"))
             entity.add(AnimationControllerComponent(entity))
             entity.add(MotionComponent(game[MotionSystem], entity))
-            entity.add(CameraComponent(game[CameraSystem], entity))
-            entity.add(RandomIA(game[TurnSystem], entity, 1, random))
-            entity[CameraComponent].centralize()
+            if count == 0:
+                entity.add(PlayerComponent(game[PlayerSystem], entity))
+                entity.add(CameraComponent(game[CameraSystem], entity))
+                entity[CameraComponent].centralize()
+                loadAvatarDataSet(game, entity, units, 0)
+            else:
+                entity.add(RenderIdComponent(game, entity, "A"))
+                entity.add(RandomIA(game[TurnSystem], entity, 1, random))
+                loadAvatarDataSet(game, entity, units, count)
             loadAvatarDataSet(game, entity, units, count)
             count = (count + 1) % 4
 
@@ -149,22 +157,13 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
     path = "sprite.map.walls.basic.png"
     groundWalls = game.loadSpriteSheet(path, Dimension(32, 32))
 
+    w, h = screenDimension
     mapViewSystem = game[MapViewSystem]
     groundPaint = MapViewComponent(mapViewSystem, canvas, groundSheet, groundWalls)
     mapEntity = Entity()
     mapEntity.add(groundPaint)
     mapEntity.add(TurnComponent(game[TurnSystem], 0))
-    endOfTurn = ControlComponent(game[ControlSystem])
-    mapEntity.add(endOfTurn)
-
-    def fireEndOfTurn(screenPosition:Position, worldPosition:Position) -> bool:
-        mapEntity[TurnComponent].endOfTurn()
-        game.update()
-        game.update()
-        return True
-    
-    endOfTurn.mouseClick = fireEndOfTurn
-    
+    mapEntity.add(ButtonEndOfTurn(game, mapEntity, Position(w - 80, h - 80)))
 
     path = "sprite.gui.select.unit.png"
     selectUnit = game.loadSpriteSheet(path, Dimension(32, 32))
@@ -180,7 +179,11 @@ def createRogueLike(gameLoop: GameLoop) -> Game:
     selectUnit = mapEntity[SelectEntityComponent]
     selectPath = mapEntity[SelectPathComponent]
 
-    selectUnit.callback = lambda e: selectPath.startSelection(e)
+    def newSelectionEvent(entity:Entity):
+        if PlayerComponent in entity:
+            selectPath.startSelection(entity)
+
+    selectUnit.callback = newSelectionEvent
 
     def reset(path):
         if path:

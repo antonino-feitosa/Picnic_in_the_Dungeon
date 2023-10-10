@@ -39,3 +39,6 @@ from .timer_system import TimerComponent
 
 from .turn_system import TurnSystem
 from .turn_system import TurnComponent
+
+from .player_system import PlayerSystem
+from .player_system import PlayerComponent

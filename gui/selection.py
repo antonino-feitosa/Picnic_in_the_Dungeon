@@ -1,12 +1,14 @@
 from typing import Callable, List
 from algorithms.direction import Direction
 from algorithms.pathfinding import PathFinding
+from algorithms.rectangle import Rectangle
 from core import Game
 from core import Entity
 
 from device import SpriteSheet
 
 from algorithms import Position
+from entities.animation import GuiSimpleImage
 
 from systems import ControlSystem
 from systems import ControlComponent
@@ -15,6 +17,36 @@ from systems import PositionComponent
 
 from entities import SimpleAnimation
 from systems.map_system import MapSystem
+from systems.player_system import PlayerComponent
+from systems.turn_system import TurnComponent
+
+
+class ButtonEndOfTurn(ControlComponent):
+    def __init__(self, game:Game, entity:Entity, position:Position):
+        super().__init__(game[ControlSystem])
+        self.game = game
+        self.entity = entity
+        self.imageNextTurn = game.loadImage('image.gui.button.nextturn.png')
+        self.imageWaitTurn = game.loadImage('image.gui.button.waitturn.png')
+        self.image = GuiSimpleImage(game,self.imageNextTurn, position)
+        self.image.enabled = True
+        w, h = self.imageNextTurn.dimension
+        self.rect = Rectangle(position.x, position.y, position.x + w, position.y + h)
+    
+    def mouseClick(self, screenPosition: Position, worldPosition: Position) -> bool:
+        if screenPosition in self.rect:
+            self.entity[TurnComponent].endOfTurn()
+            self.game.update()
+            self.game.update()
+            return True
+        return False
+
+    def tick(self) -> None:
+        if self.game[ControlSystem].lockControls:
+            self.image.image = self.imageWaitTurn
+        else:
+            self.image.image = self.imageNextTurn
+
 
 
 class SelectEntityComponent(ControlComponent):
@@ -82,7 +114,6 @@ class SelectPathComponent(ControlComponent):
         if not value:
             self.clearPath()
         self.selectedAnimation = value
-        
 
     def startSelection(self, selectedEntity:Entity) -> None:
         self.selectedEntity = selectedEntity

@@ -45,6 +45,9 @@ class ControlComponent:
     def keyPressed(self, keys: Set[str]) -> bool:
         return False
 
+    def tick(self) -> None:
+        pass
+
     @property
     def enabled(self):
         return self._enabled
@@ -175,3 +178,6 @@ class ControlSystem:
                 control.mousePosition(movePosition, worldPosition)
                 if control.lock:
                     break
+            
+            for i in range(len(self.components) - 1, -1, -1):
+                control = self.components[i].tick()

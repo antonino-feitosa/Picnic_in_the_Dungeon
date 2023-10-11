@@ -1,4 +1,4 @@
-from typing import Dict, Set
+
 from typing import Callable
 
 from core import Game
@@ -13,7 +13,7 @@ from systems import WorldRenderComponent
 class AnimationControllerComponent:
     def __init__(self, entity: Entity):
         self.entity = entity
-        self.animations: Dict[str, SpriteSheet] = dict()
+        self.animations: dict[str, SpriteSheet] = dict()
         self._shooting = False
         self._enabled = True
         self._idleAnimation: SpriteSheet
@@ -76,7 +76,7 @@ class AnimationComponent:
         self.entity = entity
         self._enabled = True
         self.system.components.add(self)
-        self.callback: Set[Callable[[], None]] = set()
+        self.callback: set[Callable[[], None]] = set()
 
     @property
     def finished(self):
@@ -125,7 +125,7 @@ class AnimationComponent:
 class AnimationSystem:
     def __init__(self, game: Game):
         self.game = game
-        self.components: Set[AnimationComponent] = set()
+        self.components: set[AnimationComponent] = set()
         self.enabled = True
         game.tickSystems.append(self)
 

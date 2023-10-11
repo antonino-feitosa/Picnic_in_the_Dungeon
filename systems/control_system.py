@@ -1,4 +1,4 @@
-from typing import List, Set, Tuple
+
 from algorithms import Dimension
 from algorithms.position import Position
 from core import Game
@@ -42,7 +42,7 @@ class ControlComponent:
     def mousePosition(self, screenPosition: Position, worldPosition: Position) -> None:
         pass
 
-    def keyPressed(self, keys: Set[str]) -> bool:
+    def keyPressed(self, keys: set[str]) -> bool:
         return False
 
     def tick(self) -> None:
@@ -78,15 +78,15 @@ class ControlSystem:
         self.lockControls = False
         w, h = game.device.dimension
         self.position: Position = Position(w // 2, h // 2)
-        self.components: List[ControlComponent] = []
+        self.components: list[ControlComponent] = []
         self._enabled = False
         self.game.tickSystems.append(self)
         self._position: Position = Position()
         self._leftButtonEvent = False
-        self._leftButton: Tuple[bool, Position] = (False, Position())
+        self._leftButton: tuple[bool, Position] = (False, Position())
         self._rightButtonEvent = False
-        self._rightButton: Tuple[bool, Position] = (False, Position())
-        self._pressed: Set[str] = set()
+        self._rightButton: tuple[bool, Position] = (False, Position())
+        self._pressed: set[str] = set()
     
     @property
     def enabled(self):
@@ -96,20 +96,20 @@ class ControlSystem:
     def enabled(self, value):
         if not self._enabled and value:
             self._enabled = True
-            self.registerListeners()
+            self.registerlisteners()
         elif self._enabled and not value:
             self._leftButtonEvent = False
             self._rightButtonEvent = False
             self._enabled = False
-            self.deregisterListeners()
+            self.deregisterlisteners()
     
-    def registerListeners(self):
+    def registerlisteners(self):
         self.game.device.onClick.append(self.mouseClick)
         self.game.device.onClickRight.append(self.mouseClickRight)
         self.game.device.onMove.append(self.mousePosition)
         self.game.device.onPressed.append(self.keyPressed)
     
-    def deregisterListeners(self):
+    def deregisterlisteners(self):
         self.game.device.onClick.remove(self.mouseClick)
         self.game.device.onClickRight.remove(self.mouseClickRight)
         self.game.device.onMove.remove(self.mousePosition)

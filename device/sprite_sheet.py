@@ -1,7 +1,5 @@
 import pygame
 
-from typing import List
-
 from device import Image
 
 from algorithms import Dimension
@@ -11,7 +9,7 @@ class SpriteSheet:
     def __init__(self, sheet: Image, dimension: Dimension):
         self.device = sheet.device
         self.sheet = sheet
-        self.images: List[Image] = []
+        self.images: list[Image] = []
         width, height = dimension
         for y in range(0, sheet.dimension.height, height):
             for x in range(0, sheet.dimension.width, width):

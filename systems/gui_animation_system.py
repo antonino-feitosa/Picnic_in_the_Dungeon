@@ -1,5 +1,4 @@
 
-from typing import Set
 from typing import Callable
 
 from core import Game
@@ -21,7 +20,7 @@ class GuiAnimationComponent:
         self.entity = entity
         self._enabled = True
         self.system.components.add(self)
-        self.callback: Set[Callable[[], None]] = set()
+        self.callback: set[Callable[[], None]] = set()
 
     @property
     def finished(self):
@@ -70,7 +69,7 @@ class GuiAnimationComponent:
 class GuiAnimationSystem:
     def __init__(self, game: Game):
         self.game = game
-        self.components: Set[GuiAnimationComponent] = set()
+        self.components: set[GuiAnimationComponent] = set()
         self.enabled = True
         game.tickSystems.append(self)
 

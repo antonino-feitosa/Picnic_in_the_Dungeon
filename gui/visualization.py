@@ -1,6 +1,5 @@
 
-from algorithms import Rectangle
-from algorithms.dimension import Dimension
+from algorithms import Dimension
 
 from core import Game
 

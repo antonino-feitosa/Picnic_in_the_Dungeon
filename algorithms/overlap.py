@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+
 
 from algorithms.direction import Direction
 
@@ -21,7 +21,7 @@ class Overlap:
     DownLeftRight: "Overlap"
     UpDownLeftRight: "Overlap"
 
-    All: Tuple[
+    All: tuple[
         "Overlap",
         "Overlap",
         "Overlap",
@@ -31,9 +31,9 @@ class Overlap:
         "Overlap",
         "Overlap",
     ]
-    Cardinals: Tuple["Overlap", "Overlap", "Overlap", "Overlap"]
-    Diagonals: Tuple["Overlap", "Overlap", "Overlap", "Overlap"]
-    DirectionToOvelap: Dict[Direction, "Overlap"] = dict()
+    Cardinals: tuple["Overlap", "Overlap", "Overlap", "Overlap"]
+    Diagonals: tuple["Overlap", "Overlap", "Overlap", "Overlap"]
+    DirectionToOvelap: dict[Direction, "Overlap"] = dict()
 
     __slots__ = ["mask"]
 

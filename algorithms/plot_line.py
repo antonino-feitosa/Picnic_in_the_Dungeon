@@ -1,15 +1,13 @@
 """Bresenham Line Algorithm"""
 
-from typing import List
-
 from algorithms import Position
 
 
-def plotLine(start: Position, end: Position) -> List[Position]:
+def plotLine(start: Position, end: Position) -> list[Position]:
     return _plotLine(start.x, start.y, end.x, end.y)
 
 
-def _plotLine(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
+def _plotLine(x0: int, y0: int, x1: int, y1: int) -> list[Position]:
     if abs(y1 - y0) < abs(x1 - x0):
         if x0 > x1:
             result = _plotLineLow(x1, y1, x0, y0)
@@ -26,7 +24,7 @@ def _plotLine(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
             return _plotLineHigh(x0, y0, x1, y1)
 
 
-def _plotLineHigh(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
+def _plotLineHigh(x0: int, y0: int, x1: int, y1: int) -> list[Position]:
     dx = x1 - x0
     dy = y1 - y0
     xi = 1
@@ -35,7 +33,7 @@ def _plotLineHigh(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
         dx = -dx
     D = (2 * dx) - dy
     x = x0
-    points: List[Position] = []
+    points: list[Position] = []
     for y in range(y0, y1 + 1):
         points.append(Position(x, y))
         if D > 0:
@@ -46,7 +44,7 @@ def _plotLineHigh(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
     return points
 
 
-def _plotLineLow(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
+def _plotLineLow(x0: int, y0: int, x1: int, y1: int) -> list[Position]:
     dx = x1 - x0
     dy = y1 - y0
     yi = 1
@@ -56,7 +54,7 @@ def _plotLineLow(x0: int, y0: int, x1: int, y1: int) -> List[Position]:
     D = (2 * dy) - dx
     y = y0
 
-    points: List[Position] = []
+    points: list[Position] = []
     for x in range(x0, x1 + 1):
         points.append(Position(x, y))
         if D > 0:

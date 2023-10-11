@@ -1,19 +1,19 @@
-from typing import Any, Dict, Generic, List, Set, Type, TypeVar
+from typing import Any, Generic, Type, TypeVar
 
 from algorithms import Dimension, Random
 from device import Device, Image, SpriteSheet
 
 TypeComponent = TypeVar("TypeComponent")
 class System(Generic[TypeComponent]):
-    def __init__(self, game:'Game', components:List[TypeComponent] | Set[TypeComponent]):
+    def __init__(self, game:'Game', components:list[TypeComponent] | set[TypeComponent]):
         self.enabled = True
         self.game = game
         if type(components) is set:
-            self.components:Set[TypeComponent] = components # type: ignore
+            self.components:set[TypeComponent] = components # type: ignore
             self.add = self.components.add
             self.remove = self.components.remove
         elif type(components) is list:
-            self.components:List[TypeComponent] = components
+            self.components:list[TypeComponent] = components
             self.add = self.components.append
             self.remove = self.components.remove
 
@@ -56,7 +56,7 @@ class Entity:
     def __init__(self):
         Entity.countId += 1
         self.id = Entity.countId
-        self.typeToComponent: Dict[Type, Any] = dict()
+        self.typeToComponent: dict[Type, Any] = dict()
         self._enabled = True
 
     @property
@@ -85,7 +85,7 @@ class Entity:
     
     T = TypeVar("T")
 
-    def getAll(self, typeOfComponent: Type[T]) -> List[T]:
+    def getAll(self, typeOfComponent: Type[T]) -> list[T]:
         return self.typeToComponent[typeOfComponent]
 
     def __getitem__(self, typeOfComponent: Type[T]) -> T:
@@ -126,8 +126,8 @@ class Game(Entity):
         self.tickSystems = []
         self.drawSystems = []
         self.updateSystems = []
-        self._loadedImages: Dict[str, Image] = dict()
-        self._loadedSpriteSheets: Dict[str, SpriteSheet] = dict()
+        self._loadedImages: dict[str, Image] = dict()
+        self._loadedSpriteSheets: dict[str, SpriteSheet] = dict()
 
         self.loadTiledCanvas = self.device.loadTiledCanvas
 

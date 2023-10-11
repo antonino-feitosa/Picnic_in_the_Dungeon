@@ -1,9 +1,4 @@
-import heapq
 
-from typing import Set
-from typing import Dict
-from typing import List
-from typing import Tuple
 from typing import Sequence
 
 from algorithms import Position
@@ -11,14 +6,14 @@ from algorithms import Direction
 
 
 class PathFinding:
-    def __init__(self, ground: Set[Position], directions: Sequence[Direction]):
+    def __init__(self, ground: set[Position], directions: Sequence[Direction]):
         self.ground = ground
         self.directions = directions
 
-    def searchPath(self, source: Position, dest: Position) -> List[Position]:
-        queue: List[Position] = [source]
-        dist: Dict[Position, int] = {source: 0}
-        previous: Dict[Position, Position] = dict()
+    def searchPath(self, source: Position, dest: Position) -> list[Position]:
+        queue: list[Position] = [source]
+        dist: dict[Position, int] = {source: 0}
+        previous: dict[Position, Position] = dict()
         visited = set()
 
         while len(queue) > 0:
@@ -40,9 +35,9 @@ class PathFinding:
         return []
 
     def _postProcess(
-        self, dest: Position, previous: Dict[Position, Position]
-    ) -> List[Position]:
-        path: List[Position] = []
+        self, dest: Position, previous: dict[Position, Position]
+    ) -> list[Position]:
+        path: list[Position] = []
         path.insert(0, dest)
         while dest in previous:
             next = previous[dest]

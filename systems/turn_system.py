@@ -1,6 +1,4 @@
 
-from typing import List, Set
-
 from core import Game
 
 
@@ -34,7 +32,7 @@ class TurnSystem:
     def __init__(self, game:Game, numOfteams = 2):
         self.numOfTeams = numOfteams
         self.numOfTurns = 0
-        self.teams:List[Set[TurnComponent]] = []
+        self.teams:list[set[TurnComponent]] = []
         self.enabled = True
         self.game = game
         self.game.updateSystems.append(self)

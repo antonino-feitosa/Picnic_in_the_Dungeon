@@ -1,4 +1,4 @@
-from typing import Callable, Set, Tuple
+from typing import Callable
 
 from algorithms import Dimension, Direction, Position
 from core import Component, Entity, Game, System
@@ -26,8 +26,8 @@ class MotionSystem(System[MotionComponent]):
         super().__init__(game, set())
         self.unitPixels = unitPixels
         self.lockControls = False
-        self.toMove: Set[Tuple[MotionComponent, Direction]] = set()
-        self.moving: Set[Tuple[WorldRenderComponent, Position, int]] = set()
+        self.toMove: set[tuple[MotionComponent, Direction]] = set()
+        self.moving: set[tuple[WorldRenderComponent, Position, int]] = set()
         self.enabled = True
         self.game.updateSystems.append(self)
         self.game.tickSystems.append(self)
@@ -53,7 +53,7 @@ class MotionSystem(System[MotionComponent]):
     def tick(self) -> None:
         lock = False
         if len(self.moving) > 0:
-            moving: Set[Tuple[WorldRenderComponent, Position, int]] = set()
+            moving: set[tuple[WorldRenderComponent, Position, int]] = set()
             for render, delta, spd in self.moving:
                 spd -= 1
                 if spd == 0:

@@ -1,7 +1,7 @@
-from typing import Callable, List
-from algorithms.direction import Direction
-from algorithms.pathfinding import PathFinding
-from algorithms.rectangle import Rectangle
+from typing import Callable
+from algorithms import Direction
+from algorithms import PathFinding
+from algorithms import Rectangle
 from core import Game
 from core import Entity
 
@@ -97,11 +97,11 @@ class SelectPathComponent(ControlComponent):
         self.pathSize = 1  # TODO num of moves, turn component
         self.selectedEntity: Entity
 
-        self.callback: Callable[[List[Position]], None] = lambda _: None
+        self.callback: Callable[[list[Position]], None] = lambda _: None
 
-        self.path: List[Position] = []
+        self.path: list[Position] = []
         self.pathFinding = PathFinding(game[MapSystem].ground, Direction.All)
-        self.pathAnimations: List[SimpleAnimation] = []
+        self.pathAnimations: list[SimpleAnimation] = []
         for _ in range(self.pathSize):
             self.pathAnimations.append(
                 SimpleAnimation(game, spriteSheet, Position(0, 0))

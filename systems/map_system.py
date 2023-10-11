@@ -1,4 +1,4 @@
-from typing import Dict, Set
+
 from algorithms import Dimension, Direction, Position, Random, RandomWalk
 
 
@@ -8,15 +8,15 @@ class MapSystem:
         self.dimension = dimension
         self.endPosition: Position = Position()
         self.startPosition: Position = Position()
-        self.ground: Set[Position] = set()
-        self.walls: Set[Position] = set()
-        self._groundToWalls: Dict[Position, Set[Position]] = dict()
-        self._wallToGround: Dict[Position, Set[Position]] = dict()
+        self.ground: set[Position] = set()
+        self.walls: set[Position] = set()
+        self._groundToWalls: dict[Position, set[Position]] = dict()
+        self._wallToGround: dict[Position, set[Position]] = dict()
 
-    def getWallsForGround(self, ground: Position) -> Set[Position]:
+    def getWallsForGround(self, ground: Position) -> set[Position]:
         return self._groundToWalls[ground]
 
-    def getWallsForArea(self, ground: Set[Position]) -> Set[Position]:
+    def getWallsForArea(self, ground: set[Position]) -> set[Position]:
         area = set()
         for pos in ground:
             area.update(self._groundToWalls[pos])
@@ -28,7 +28,7 @@ class MapSystem:
         return border
 
     @staticmethod
-    def _neighborhood(position: Position, ground: Set[Position]) -> Set[Position]:
+    def _neighborhood(position: Position, ground: set[Position]) -> set[Position]:
         neigh = set()
         for dir in Direction.All:
             pos = dir + position

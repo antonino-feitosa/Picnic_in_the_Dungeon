@@ -1,6 +1,5 @@
 from core import Entity, Game
-from typing import Dict, List, Set
-from algorithms import Direction, FieldOfView, Position
+from algorithms import FieldOfView, Position
 from systems import PositionComponent, MapSystem
 
 
@@ -19,7 +18,7 @@ class ViewComponent:
         self.entity = entity
         self.radius = radius
         self.focalDistance = 0
-        self.visible: Set[Position] = set()
+        self.visible: set[Position] = set()
         self.angle = ViewComponent.AngleRadial
         self.format = ViewComponent.FormatOctal
         self._lastPosition = Position()
@@ -45,7 +44,7 @@ class ViewSystem:
         self.lineOfSight = lineOfSight
         self.algorithm = FieldOfView(1, self.game[MapSystem].ground)
         self.activeComponent: ViewComponent
-        self.visible: Set[Position] = set()
+        self.visible: set[Position] = set()
         game.updateSystems.append(self)
         self.enabled = True
 

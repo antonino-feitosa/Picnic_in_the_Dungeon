@@ -1,5 +1,5 @@
-from typing import Set
-from typing import Sequence, Set
+
+from typing import Sequence
 
 from algorithms import Random
 from algorithms import Position
@@ -17,8 +17,8 @@ class RandomWalk:
     def lastPosition(self):
         return self._lastPosition
 
-    def makeRandom(self, center: Position) -> Set[Position]:
-        positions: Set[Position] = set()
+    def makeRandom(self, center: Position) -> set[Position]:
+        positions: set[Position] = set()
         current = center
         lastDirection = None
         directions = self.directions
@@ -35,8 +35,8 @@ class RandomWalk:
         self._lastPosition = current
         return positions
 
-    def makeForward(self, center: Position) -> Set[Position]:
-        positions: Set[Position] = set()
+    def makeForward(self, center: Position) -> set[Position]:
+        positions: set[Position] = set()
         directions = self.directions
         dir = self.rand.choice(directions)
         current = center
@@ -47,8 +47,8 @@ class RandomWalk:
         self._lastPosition = current
         return positions
 
-    def makeStart(self, center: Position) -> Set[Position]:
-        positions: Set[Position] = set()
+    def makeStart(self, center: Position) -> set[Position]:
+        positions: set[Position] = set()
         validPair = [
             (Direction.Up, Direction.Left),
             (Direction.Up, Direction.Right),

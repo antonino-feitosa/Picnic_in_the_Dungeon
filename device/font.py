@@ -1,4 +1,4 @@
-from typing import Tuple
+
 from typing import TYPE_CHECKING
 
 import pygame
@@ -17,8 +17,8 @@ class Font:
     def __init__(self, device: "Device", font: pygame.freetype.Font):
         self.font = font
         self.device = device
-        self.foreground: Tuple[int, int, int, int] = (0, 0, 0, 255)
-        self.background: Tuple[int, int, int, int] = (0, 0, 0, 0)
+        self.foreground: tuple[int, int, int, int] = (0, 0, 0, 255)
+        self.background: tuple[int, int, int, int] = (0, 0, 0, 0)
 
     def drawAtImage(self, text: str, image: Image, position: Position):
         surface = self._createSurface(text)

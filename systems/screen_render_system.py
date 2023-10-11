@@ -1,6 +1,4 @@
 
-from typing import List, Set
-
 from core import Game, Entity, Component, System
 
 from device import Image
@@ -20,7 +18,7 @@ class ScreenRenderComponent(Component):
 
 
 class ScreenRenderSystem(System[ScreenRenderComponent]):
-    def __init__(self, game: Game, components: Set[ScreenRenderComponent] | List[ScreenRenderComponent]):
+    def __init__(self, game: Game, components: set[ScreenRenderComponent] | list[ScreenRenderComponent]):
         super().__init__(game, components)
         game.drawSystems.append(self)
 

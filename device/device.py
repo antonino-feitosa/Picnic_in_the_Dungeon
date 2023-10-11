@@ -2,7 +2,6 @@ import os
 import pygame
 import pygame.freetype
 
-from typing import List
 from typing import Callable
 
 from device import Font
@@ -15,6 +14,8 @@ from device import TiledCanvas
 from algorithms import Position
 from algorithms import Dimension
 
+
+Color = tuple[int,int,int]
 
 class DeviceError(Exception):
     def __init__(self, message):
@@ -46,10 +47,10 @@ class Device:
         self.camera = Camera(dimension)
         self.tick = tick
         self.clock = pygame.time.Clock()
-        self.onClick: List[Callable[[bool, Position], None]] = []
-        self.onClickRight: List[Callable[[bool, Position], None]] = []
-        self.onMove: List[Callable[[Position], None]] = []
-        self.onPressed: List[Callable[[str], None]] = []
+        self.onClick: list[Callable[[bool, Position], None]] = []
+        self.onClickRight: list[Callable[[bool, Position], None]] = []
+        self.onMove: list[Callable[[Position], None]] = []
+        self.onPressed: list[Callable[[str], None]] = []
 
     def loadTiledCanvas(
         self, pixelsUnit: Dimension, dimension: Dimension

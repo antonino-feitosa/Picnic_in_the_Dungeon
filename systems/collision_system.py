@@ -1,11 +1,3 @@
-from typing import Set
-from typing import Dict
-from typing import List
-from typing import Deque
-from typing import Tuple
-
-from collections import deque
-
 
 from core import Game
 from core import Entity
@@ -23,10 +15,10 @@ class CollisionComponent:
     def __init__(self, system: "CollisionSystem", entity: Entity):
         self.system = system
         self.entity = entity
-        self.passiveCollision: Set[CollisionComponent] = set()
+        self.passiveCollision: set[CollisionComponent] = set()
         self.activeCollision: CollisionComponent | None = None
         self.wallCollision: bool = False
-        self.dependency: Set[CollisionComponent] = set()
+        self.dependency: set[CollisionComponent] = set()
         self._enabled = True
         self.system.actualPosition[self.position] = self
 
@@ -72,10 +64,10 @@ class CollisionComponent:
 class CollisionSystem:
     def __init__(self, game: Game):
         self.game = game
-        self.actualPosition: Dict[Position, CollisionComponent] = dict()
-        self.movingInDirection: Dict[CollisionComponent, Direction] = dict()
-        self.tryingToMove: Set[CollisionComponent] = set()
-        self.wallCollision: Set[CollisionComponent] = set()
+        self.actualPosition: dict[Position, CollisionComponent] = dict()
+        self.movingInDirection: dict[CollisionComponent, Direction] = dict()
+        self.tryingToMove: set[CollisionComponent] = set()
+        self.wallCollision: set[CollisionComponent] = set()
         game.updateSystems.append(self)
         self.enabled = True
 
@@ -124,7 +116,7 @@ class CollisionSystem:
         component.wallCollision = False
         component.activeCollision = None
         component.passiveCollision.clear()
-        ground: Set[Position] = self.game[MapSystem].ground
+        ground: set[Position] = self.game[MapSystem].ground
         destination = direction + component.position
         if destination in ground:
             self.movingInDirection[component] = direction

@@ -1,12 +1,11 @@
 import pygame
 
-from typing import Tuple
 from typing import TYPE_CHECKING
 
 from device import Image
 
 if TYPE_CHECKING:
-    from device import Device
+    from device import Device, Color
 
 from algorithms import Position
 from algorithms import Dimension
@@ -34,7 +33,7 @@ class TiledCanvas:
         return area
 
     def clear(
-        self, position: Position, color: Tuple[int, int, int] = (0, 0, 0)
+        self, position: Position, color: Color = (0, 0, 0)
     ) -> None:
         area = self._getArea(position)
         self.canvas.fill(color, area)

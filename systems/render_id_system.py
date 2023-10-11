@@ -1,5 +1,3 @@
-from typing import List
-from typing import Tuple
 
 from core import Game
 from core import Entity

@@ -1,14 +1,12 @@
 import pygame
 
-from typing import Tuple
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from device import Device
+    from device import Device, Color
 
 from algorithms import Position
 from algorithms import Dimension
-
 
 class Image:
     def __init__(self, device: "Device", image: pygame.Surface):
@@ -26,7 +24,7 @@ class Image:
         image = self.image.copy()
         return Image(self.device, image)
 
-    def replaceColor(self, source: Tuple[int, int, int], destination: Tuple[int, int, int]):
+    def replaceColor(self, source: Color, destination: Color):
         imageDest = self.image.copy()
         pygame.transform.threshold(imageDest, self.image, source, set_color=destination, inverse_set=True)
         self.image = imageDest

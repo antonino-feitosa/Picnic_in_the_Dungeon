@@ -1,6 +1,3 @@
-from typing import Dict
-from typing import Tuple
-
 
 class Direction:
     Up: "Direction"
@@ -12,7 +9,7 @@ class Direction:
     DownLeft: "Direction"
     DownRight: "Direction"
 
-    All: Tuple[
+    All: tuple[
         "Direction",
         "Direction",
         "Direction",
@@ -22,10 +19,10 @@ class Direction:
         "Direction",
         "Direction",
     ]
-    Cardinals: Tuple["Direction", "Direction", "Direction", "Direction"]
-    Diagonals: Tuple["Direction", "Direction", "Direction", "Direction"]
+    Cardinals: tuple["Direction", "Direction", "Direction", "Direction"]
+    Diagonals: tuple["Direction", "Direction", "Direction", "Direction"]
 
-    _names: Dict["Direction", str]
+    _names: dict["Direction", str]
 
     __slots__ = ["x", "y"]
 

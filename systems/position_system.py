@@ -1,4 +1,3 @@
-from typing import Set, Tuple
 
 from algorithms import Direction, Position
 from core import Entity, Game
@@ -26,12 +25,12 @@ class PositionComponent:
 class PositionSystem:
     def __init__(self, game: Game):
         self.game = game
-        self.toMove: Set[Tuple[PositionComponent, Direction]] = set()
+        self.toMove: set[tuple[PositionComponent, Direction]] = set()
         game.updateSystems.append(self)
         self.enabled = True
 
     def update(self):
-        self.ground: Set[Position] = self.game[MapSystem].ground
+        self.ground: set[Position] = self.game[MapSystem].ground
         for component, direction in self.toMove:
             destination = component.position + direction
             component.direction = direction

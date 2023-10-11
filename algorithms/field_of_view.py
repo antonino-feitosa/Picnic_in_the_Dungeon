@@ -1,5 +1,4 @@
-from typing import Set
-from typing import List
+
 from typing import Callable
 
 from algorithms import plotLine
@@ -7,8 +6,8 @@ from algorithms import Position
 from algorithms import Direction
 
 
-def _getRaysOctant(center: Position, radius: int, octant: int) -> List[List[Position]]:
-    rays: List[List[Position]] = []
+def _getRaysOctant(center: Position, radius: int, octant: int) -> list[list[Position]]:
+    rays: list[list[Position]] = []
     up = center.y - radius
     down = center.y + radius
     left = center.x - radius
@@ -51,8 +50,8 @@ def _getRaysOctant(center: Position, radius: int, octant: int) -> List[List[Posi
 
 def _getRaysSquare(
     center: Position, radius: int, direction: Direction
-) -> List[List[Position]]:
-    rays: List[List[Position]] = []
+) -> list[list[Position]]:
+    rays: list[list[Position]] = []
     for y in range(center.y - radius, center.y + radius + 1):
         rays.append(plotLine(center, Position(center.x - radius, y)))
         rays.append(plotLine(center, Position(center.x + radius, y)))
@@ -64,7 +63,7 @@ def _getRaysSquare(
 
 def _getRaysCone(
     center: Position, radius: int, direction: Direction
-) -> List[List[Position]]:
+) -> list[list[Position]]:
     octants = (0, 0)
     match direction:
         case Direction.Up:
@@ -83,7 +82,7 @@ def _getRaysCone(
             octants = (5, 6)
         case Direction.DownRight:
             octants = (3, 4)
-    rays: List[List[Position]] = []
+    rays: list[list[Position]] = []
     rays = [
         *_getRaysOctant(center, radius, octants[0]),
         *_getRaysOctant(center, radius, octants[1]),
@@ -93,7 +92,7 @@ def _getRaysCone(
 
 def _getRaysPeripheral(
     center: Position, radius: int, direction: Direction
-) -> List[List[Position]]:
+) -> list[list[Position]]:
     octants = []
     match direction:
         case Direction.Up:
@@ -112,7 +111,7 @@ def _getRaysPeripheral(
             octants = [4, 5, 6, 7]
         case Direction.DownRight:
             octants = [2, 3, 4, 5]
-    rays: List[List[Position]] = []
+    rays: list[list[Position]] = []
     for oct in octants:
         rays += _getRaysOctant(center, radius, oct)
     return rays
@@ -128,15 +127,15 @@ class FieldOfView:
     FormatSquare = "square"
     FormatDiamond = "diamond"
 
-    def __init__(self, radius: int, ground: Set[Position]):
+    def __init__(self, radius: int, ground: set[Position]):
         self.radius = radius
-        self.ground: Set[Position] = ground
+        self.ground: set[Position] = ground
         self.focalDistance: int = 0
         self._formatFunction: Callable[
             [Position, Position], float
         ] = lambda p1, p2: p1.distanceSquare(p2)
         self._angleFunction: Callable[
-            [Position, int, Direction], List[List[Position]]
+            [Position, int, Direction], list[list[Position]]
         ] = _getRaysSquare
 
     @property
@@ -173,8 +172,8 @@ class FieldOfView:
             case _:
                 raise ValueError("Expected: octal, square, circle or diamond")
 
-    def rayCasting(self, center: Position, direction: Direction) -> Set[Position]:
-        visible: Set[Position] = set()
+    def rayCasting(self, center: Position, direction: Direction) -> set[Position]:
+        visible: set[Position] = set()
         for line in self._angleFunction(center, self.radius, direction):
             i = 0
             while i < len(line) and line[i] in self.ground:

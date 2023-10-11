@@ -1,4 +1,3 @@
-from typing import List, Set
 
 from core import Game
 
@@ -21,7 +20,7 @@ class MapViewComponent:
         self.canvas = canvas
         self.wallSheet = walls
         self.groundSheet = ground
-        self.wallsPositions: Set[Position] = set()
+        self.wallsPositions: set[Position] = set()
         self.enabled = True
         system.components.append(self)
 
@@ -31,7 +30,7 @@ class MapViewComponent:
     def drawAtScreen(self, position: Position):
         self.canvas.drawAtScreen(position)
 
-    def addGround(self, ground: Set[Position], rand: Random) -> None:
+    def addGround(self, ground: set[Position], rand: Random) -> None:
         dimension = self.canvas.dimension
         sheet = self.groundSheet
         for position in ground:
@@ -40,7 +39,7 @@ class MapViewComponent:
                 self.clearPositions({position})
                 self.canvas.drawAtCanvas(image, position)
 
-    def addWall(self, wall: Set[Position]) -> None:
+    def addWall(self, wall: set[Position]) -> None:
         for position in wall:
             self.updateWall(position)
             for dir in Direction.All:
@@ -56,11 +55,11 @@ class MapViewComponent:
             self.canvas.drawAtCanvas(image, position)
             self.wallsPositions.add(position)
 
-    def clearPositions(self, positions: Set[Position]) -> None:
+    def clearPositions(self, positions: set[Position]) -> None:
         for position in positions:
             self.canvas.clear(position)
 
-    def shadowPositions(self, positions: Set[Position]) -> None:
+    def shadowPositions(self, positions: set[Position]) -> None:
         for position in positions:
             self.canvas.shadow(position)
 
@@ -68,7 +67,7 @@ class MapViewComponent:
         self.canvas.drawAtCanvas(image, position)
 
     @staticmethod
-    def calculateWallIndexInSheet(point: Position, walls: Set[Position]) -> int:
+    def calculateWallIndexInSheet(point: Position, walls: set[Position]) -> int:
         mask = 0
         for dir in Direction.Cardinals:
             if dir + point in walls:
@@ -81,9 +80,9 @@ class MapViewSystem:
         self.game = game
         game.drawSystems.append(self)
         game.updateSystems.append(self)
-        self.wallsPositions: Set[Position] = set()
-        self._visible: Set[Position] = set()
-        self.components: List[MapViewComponent] = []
+        self.wallsPositions: set[Position] = set()
+        self._visible: set[Position] = set()
+        self.components: list[MapViewComponent] = []
         self.enabled = True
 
     def update(self):

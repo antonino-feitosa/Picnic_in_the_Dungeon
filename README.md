@@ -25,7 +25,7 @@ Simple ARPG with rogue like game elements:
 - [ ] Puzzles (like Zelda[^3], Pokemon[^4], video games[^5], Goof a Troop[^16] and RPG[^6]);
 - [ ] Races, Classes and Weapons (race customization by user choices);
 - [ ] Dialog and Conversation Strategies;
-- [ ] Environment Interaction (like Brogue[^14], Pokemon[^13] and Metroid[^15]);
+- [ ] Environment Interaction (like Brogue[^14], Pokemon[^13], Metroid[^15] and Divinity Original Sin 2[^25]);
 - [ ] Map Height, Walter, Caves (like Zelda[^3], Pokemon[^13] and Metroid[^15]);
 - [ ] Weapons Strategy (like Brogue[^12]);
 - [ ] Strange and Hostil Environment (like Roadside Picnic[^7] and Annihilation[^8] with elements of Debris[^9], Doctor Who[^10] and Darker than Black[^19]);
@@ -227,6 +227,7 @@ https://www.1001freefonts.com/alphacode-beyond.font
 [^22]: [Left for Dead - Horde](https://left4dead.fandom.com/wiki/Common_Infected#The_Horde)
 [^23]: [Formações de Combate - Jogos](https://www.tagmar.com.br/wiki/Default.aspx?PageName=Forma%C3%A7%C3%A3o%20de%20Combate)
 [^24]: [Formações de Combate - Aérea](https://www.aereo.jor.br/2010/08/11/mais-sobre-formacoes-de-combate/)
+[^25]: [Interações de Ambiente in DOS2](https://divinityoriginalsin2.wiki.fextralife.com/Environmental+Effects)
 
 [^32]: [Pygame](https://www.pygame.org/news)
 [^33]: [Comparative study of field of view algorithms for 2D grid based worlds](https://www.roguebasin.com/index.php/Comparative_study_of_field_of_view_algorithms_for_2D_grid_based_worlds)

@@ -1,8 +1,8 @@
 import math
 
-from core import Entity
+from core import Entity, Random
 
-from coordinates import Position
+from coordinates import Position, Dimension
 
 
 class CameraComponent:
@@ -14,6 +14,15 @@ class CameraComponent:
         self.ticks = 8
         self.magnitude = 4
         self.enabled = True
+        self._position: Position = Position()
+    
+    @property
+    def position(self) -> Position:
+        return self._position
+    
+    @position.setter
+    def position(self, pos:Position) -> None:
+        self._position = pos
 
     def focus(self) -> None:
         self.system.focus(self)
@@ -33,11 +42,11 @@ class CameraComponent:
 
 
 class CameraSystem:
-    def __init__(self, rand: Random, pixelsUnit: Dimension):
-        self.rand = rand
-        self.camera = camera
+    def __init__(self, rand: Random, screenDimension:Dimension, pixelsUnit: Dimension):
+        self.rand = rand                       
         self.withDelay: bool = True
         self.pixelsUnit = pixelsUnit
+        self.screenDimension = screenDimension
         self.active: CameraComponent
         self._offset: Position = Position(0, 0)
         self._countShake = 0
@@ -47,16 +56,25 @@ class CameraSystem:
         self._waitingToApply = 0
         self._destination: Position = Position(0, 0)
         self._speed: Position = Position(0, 0)
+        self._position: Position = Position()
+    
+    @property
+    def position(self) -> Position:
+        return self._position
+    
+    @position.setter
+    def position(self, pos:Position) -> None:
+        self._position = pos
 
     def focus(self, component: "CameraComponent") -> None:
         self.active = component
         if self.withDelay:
-            self._current = self.camera.translate
+            self._current = self._position
             self._waitingToApply = component.delay
             self._applying = True
-            position = self.active.entity[PositionComponent].position
+            position = self.active.position
             position = self.toScreenUnit(position)
-            self._destination = self.camera.referenceToCenter(position)
+            self._destination = self.referenceToCenter(position)
             if self._current != self._destination:
                 direction = self._current.relativeDirection(self._destination)
                 sx, sy = component.speed
@@ -65,14 +83,27 @@ class CameraSystem:
             self.centralize()
 
     def centralize(self):
-        position = self.active.entity[PositionComponent].position
+        position = self.active.position
         x, y = self.toScreenUnit(position)
         offx, offy = self._offset
-        self.camera.centralize(Position(x + offx, y + offy))
+        position = Position(x + offx, y + offy)
+        self._position = self.referenceToCenter(position)
+       
+    def isVisible(self, point:Position, dimension:Dimension | None = None) -> bool:
+        dimension = dimension or self.pixelsUnit
+        x, y = self._position
+        w, h = self.screenDimension
+        w += x
+        h += y
+        return point.x >= x and point.y >= y and point.x + dimension.width < w and point.y + dimension.height < h
 
     def toScreenUnit(self, point: Position) -> Position:
         ux, uy = self.pixelsUnit
         return Position(point.x * ux, point.y * uy)
+    
+    def referenceToCenter(self, position: Position) -> Position:
+        width, height = self.screenDimension
+        return Position(position.x - width // 2, position.y - height // 2)
 
     def shake(self, component: "CameraComponent") -> None:
         self._countShake = component.ticks
@@ -92,7 +123,7 @@ class CameraSystem:
         y = source.y + sy if abs(source.y - dest.y) >= abs(sy) else dest.y
         self._current = Position(x, y)
         offx, offy = self._offset
-        self.camera.translate = Position(x + offx, y + offy)
+        self._position = Position(x + offx, y + offy)
         return self._current != self._destination
 
     def update(self) -> None:

@@ -1,46 +1,7 @@
+from typing import Any, Generic, Type, TypeVar
 
-import random
-
-from typing import Any, Generic, Type, TypeVar, Sequence
-
-from coordinates import Dimension
+from algorithms import Dimension, Random
 from device import Device, Image, SpriteSheet
-
-
-
-class Random:
-    def __init__(self, seed: int | None = None):
-        self.seed = seed
-        self.rand = random.Random(seed)
-
-    def nextInt(self, max: int) -> int:
-        return self.rand.randint(0, max - 1)
-
-    def nextRange(self, min: int, max: int) -> int:
-        return self.rand.randint(min, max - 1)
-
-    def nextNormal(self, mean: float = 0, sigma: float = 1) -> float:
-        return self.rand.normalvariate(mean, sigma)
-
-    def nextDouble(self) -> float:
-        return self.rand.random()
-
-    T = TypeVar("T")
-
-    def choice(self, elements: Sequence[T]) -> T:
-        index = self.choiceIndex(elements)
-        return elements[index]
-
-    def choiceIndex(self, elements: Sequence[Any]) -> int:
-        size = len(elements)
-        if size <= 0:
-            raise ValueError("The list can not be empty!")
-        return self.rand.randint(0, size - 1)
-
-
-
-
-
 
 TypeComponent = TypeVar("TypeComponent")
 class System(Generic[TypeComponent]):
@@ -55,8 +16,6 @@ class System(Generic[TypeComponent]):
             self.components:list[TypeComponent] = components
             self.add = self.components.append
             self.remove = self.components.remove
-
-
 
 
 TypeSystem = TypeVar("TypeSystem", bound = System)
@@ -89,8 +48,6 @@ class Component(Generic[TypeSystem]):
         if self.entity is not None:
             message += f"{self.entity.__str__()}"
         return message
-
-
 
 
 class Entity:
@@ -160,19 +117,19 @@ class Entity:
         return f"Entity({self.id})"
 
 
-
-
 class Game(Entity):
-    def __init__(self, device: Device, random: Random):
+    def __init__(self, gameLoop:'GameLoop', random: Random):
         super().__init__()
-        self._enabled = True
+        self.gameLoop: 'GameLoop' = gameLoop
         self.rand = random
-        self.device = device
+        self.device = gameLoop.device
         self.tickSystems = []
         self.drawSystems = []
         self.updateSystems = []
         self._loadedImages: dict[str, Image] = dict()
         self._loadedSpriteSheets: dict[str, SpriteSheet] = dict()
+
+        self.loadTiledCanvas = self.device.loadTiledCanvas
 
         pathFonts = "_resources/_fonts/"
         pathSounds = "_resources/_sounds/"
@@ -181,31 +138,6 @@ class Game(Entity):
         self.loadFont = lambda path, size: self.device.loadFont(pathFonts + path, size)
         self.loadSound = lambda path: self.device.loadSound(pathSounds + path)
         self.loadMusic = lambda path, f: self.device.loadMusic(pathMusics + path, f)
-
-    @property
-    def enabled(self):
-        return self._enabled
-
-    @enabled.setter
-    def enabled(self, value):
-        if value and not self._enabled:
-            for system in self.tickSystems:
-                system.enabled = True
-            for system in self.drawSystems:
-                system.enabled = True
-            for system in self.updateSystems:
-                system.enabled = True
-            self._enabled = True
-            self.device.onLoop.append(self.update)
-        if not value and self._enabled:
-            for system in self.tickSystems:
-                system.enabled = False
-            for system in self.drawSystems:
-                system.enabled = False
-            for system in self.updateSystems:
-                system.enabled = False
-            self._enabled = False
-            self.device.onLoop.remove(self.update)
 
     def tick(self) -> None:
         active = filter(lambda system: system.enabled, self.tickSystems)
@@ -244,3 +176,35 @@ class Game(Entity):
 
     def exit(self) -> None:
         self.device.running = False
+
+    def setActive(self):
+        other = self.gameLoop._game
+        if other:
+            for system in self.tickSystems:
+                system.enabled = False
+            for system in self.drawSystems:
+                system.enabled = False
+            for system in self.updateSystems:
+                system.enabled = False
+        for system in self.tickSystems:
+            system.enabled = True
+        for system in self.drawSystems:
+            system.enabled = True
+        for system in self.updateSystems:
+            system.enabled = True
+        self.gameLoop._game = self
+
+
+
+class GameLoop:
+    def __init__(self, device:Device):
+        self.device = device
+        self._game: Game | None = None
+    
+    def forever(self):
+        if self._game:
+            while self._game.isRunning:
+                game = self._game
+                game.tick()
+                self.device.loop()
+                game.draw()

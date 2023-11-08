@@ -7,7 +7,7 @@ import pygame.freetype
 from coordinates import Position, Dimension
 
 
-Color = tuple[int, int, int]
+Color = tuple[int, int, int, int]
 
 
 class DeviceError(Exception):
@@ -54,8 +54,8 @@ class Font:
     def __init__(self, device: "Device", font: pygame.freetype.Font):
         self.font = font
         self.device = device
-        self.foreground: tuple[int, int, int, int] = (0, 0, 0, 255)
-        self.background: tuple[int, int, int, int] = (0, 0, 0, 0)
+        self.foreground: Color = (0, 0, 0, 255)
+        self.background: Color = (0, 0, 0, 0)
 
     def drawAtImage(self, text: str, image: Image, position: Position):
         surface = self._createSurface(text)
@@ -168,7 +168,7 @@ class Device:
         self.onClick: list[Callable[[bool, Position], None]] = []
         self.onClickRight: list[Callable[[bool, Position], None]] = []
         self.onMove: list[Callable[[Position], None]] = []
-        self.onPressed: list[Callable[[str], None]] = []
+        self.onPressed: list[Callable[[set[str]], None]] = []
         self.onLoop: list[Callable[[], None]] = []
 
     def loadImage(self, path: str) -> Image:
@@ -214,8 +214,11 @@ class Device:
         self.screen.fill(color, pygame.Rect((0, 0), dim))
 
     def loop(self) -> None:
+        keys = set()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print("QUIT")
                 self.running = False
 
             if event.type == pygame.MOUSEMOTION:
@@ -242,15 +245,19 @@ class Device:
                 position = Position(*pygame.mouse.get_pos())
                 for callback in self.onClickRight:
                     callback(False, position)
-
+            
             if event.type == pygame.KEYUP and event.key:
                 keyName = pygame.key.name(event.key)
-                for callback in self.onPressed:
-                    callback(keyName)
+                keys.add(keyName)
+
+        if keys:
+            for callback in self.onPressed:
+                callback(keys)    
         
         for callback in self.onLoop:
             callback()
         
+        print("KEY")
         self.clock.tick(self.tick)
 
         

@@ -7,17 +7,12 @@ import pygame.freetype
 from coordinates import Position, Dimension
 
 
-
 Color = tuple[int, int, int]
-
-
 
 
 class DeviceError(Exception):
     def __init__(self, message):
         super().__init__(message)
-
-
 
 
 class Image:
@@ -26,11 +21,8 @@ class Image:
         self.image = image
         self.dimension = Dimension(image.get_width(), image.get_height())
 
-    def draw(self, position: Position = Position(0, 0)) -> None:
-        self.device.drawImage(self, position)
-
-    def drawAtScreen(self, position: Position = Position(0, 0)) -> None:
-        self.device.drawImage(self, position)
+    def draw(self, x: int, y: int) -> None:
+        self.device.drawImage(self, x, y)
 
     def clone(self) -> "Image":
         image = self.image.copy()
@@ -38,10 +30,10 @@ class Image:
 
     def replaceColor(self, source: Color, destination: Color):
         imageDest = self.image.copy()
-        pygame.transform.threshold(imageDest, self.image, source, set_color=destination, inverse_set=True)
+        pygame.transform.threshold(
+            imageDest, self.image, source, set_color=destination, inverse_set=True
+        )
         self.image = imageDest
-
-
 
 
 class SpriteSheet:
@@ -58,9 +50,6 @@ class SpriteSheet:
                 self.images.append(Image(sheet.device, image))
 
 
-
-
-
 class Font:
     def __init__(self, device: "Device", font: pygame.freetype.Font):
         self.font = font
@@ -72,18 +61,18 @@ class Font:
         surface = self._createSurface(text)
         x, y = position
         image.image.blit(surface, (x, y))
-    
-    def drawAtImageCenter(self, text: str, image: Image, offset:Position = Position()):
+
+    def drawAtImageCenter(self, text: str, image: Image, offset: Position = Position()):
         surface = self._createSurface(text)
         w, h = image.dimension
-        x = (w - surface.get_width())//2 + offset.x
-        y = (h - surface.get_height())//2 + offset.y
+        x = (w - surface.get_width()) // 2 + offset.x
+        y = (h - surface.get_height()) // 2 + offset.y
         image.image.blit(surface, (x, y))
 
-    def drawAtScreen(self, text: str, position: Position):
+    def drawAtScreen(self, text: str, x: int, y: int):
         textSurface = self._createSurface(text)
         image = Image(self.device, textSurface)
-        self.device.drawImage(image, position)
+        self.device.drawImage(image, x, y)
 
     def _createSurface(self, text: str):
         messages = text.split("\n")
@@ -105,16 +94,13 @@ class Font:
         return canvas
 
 
-
-
-
 class Sound:
     def __init__(self, sound: pygame.mixer.Sound):
         self.sound = sound
 
     def play(self):
         self.sound.play()
-    
+
     def stop(self):
         self.sound.stop()
 
@@ -125,9 +111,6 @@ class Sound:
     @volume.setter
     def volume(self, value) -> None:
         self.sound.set_volume(value)
-
-
-
 
 
 class Music:
@@ -169,9 +152,6 @@ class Music:
     @volume.setter
     def volume(self, value) -> None:
         pygame.mixer.music.set_volume(value)
-
-
-
 
 
 class Device:
@@ -223,9 +203,8 @@ class Device:
         else:
             raise DeviceError("Can not find the file: " + path)
 
-    def drawImage(self, image: Image, position: Position) -> None:
-        (x,y) = position
-        self.screen.blit(image.image, (x,y))
+    def drawImage(self, image: Image, x: int, y: int) -> None:
+        self.screen.blit(image.image, (x, y))
 
     def draw(self) -> None:
         pygame.display.flip()
@@ -235,7 +214,6 @@ class Device:
         self.screen.fill(color, pygame.Rect((0, 0), dim))
 
     def loop(self) -> None:
-        self.clock.tick(self.tick)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -269,6 +247,10 @@ class Device:
                 keyName = pygame.key.name(event.key)
                 for callback in self.onPressed:
                     callback(keyName)
+        
+        for callback in self.onLoop:
+            callback()
+        
+        self.clock.tick(self.tick)
 
-            for callback in self.onLoop:
-                    callback()
+        

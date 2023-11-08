@@ -1,6 +1,6 @@
 
 from coordinates import Position, Direction
-from core import Entity, Game
+from core2 import Entity, Game
 
 
 class PositionComponent:

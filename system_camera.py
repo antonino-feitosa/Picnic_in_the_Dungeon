@@ -1,6 +1,6 @@
 import math
 
-from core import Entity, Random
+from core2 import Entity, Random
 
 from coordinates import Position, Dimension
 
@@ -88,8 +88,7 @@ class CameraSystem:
         offx, offy = self._offset
         position = Position(x + offx, y + offy)
         self._position = self.referenceToCenter(position)
-<<<<<<< HEAD
-       
+
     def isVisible(self, point:Position, dimension:Dimension | None = None) -> bool:
         dimension = dimension or self.pixelsUnit
         x, y = self._position
@@ -97,8 +96,6 @@ class CameraSystem:
         w += x
         h += y
         return point.x >= x and point.y >= y and point.x + dimension.width < w and point.y + dimension.height < h
-=======
->>>>>>> a79b17861c8d96ab73819066d208ac0b19202da8
 
     def toScreenUnit(self, point: Position) -> Position:
         ux, uy = self.pixelsUnit

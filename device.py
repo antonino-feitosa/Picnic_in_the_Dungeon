@@ -257,7 +257,6 @@ class Device:
         for callback in self.onLoop:
             callback()
         
-        print("KEY")
         self.clock.tick(self.tick)
 
         

@@ -1,6 +1,6 @@
 
 from algorithms import Point
-from core import ECS, Component
+from core import ECS, Component, Entity
 from device import Color, Font, Image
 
 
@@ -107,3 +107,22 @@ class BlocksTile(Component):
 
     def __init__(self):
         super().__init__(BlocksTile.id)
+
+class CombatStats(Component):
+    id = ECS.nextSignature()
+    __slots__ = ["maxHP", "HP", "defense", "power"]
+
+    def __init__(self, maxHP:int, defense:int, power:int):
+        super().__init__(CombatStats.id)
+        self.maxHP = maxHP
+        self.HP = maxHP
+        self.defense = defense
+        self.power = power
+
+class WantsToMelee(Component):
+    id = ECS.nextSignature()
+    __slots__ = ["target"]
+
+    def __init__(self, target:Entity):
+        super().__init__(WantsToMelee.id)
+        self.target = target

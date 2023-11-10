@@ -10,6 +10,10 @@ def tryMovePlayer(dx: int, dy: int):
     for entity in entities:
         position: Position = entity[Position.id]
         nextPoint = Point(position.x + dx, position.y + dy)
+
+        #for potentialTarget in map.tileContent[nextPoint] or []:
+        #    target = 
+
         if nextPoint not in map.blocked:
             position.x = nextPoint.x
             position.y = nextPoint.y

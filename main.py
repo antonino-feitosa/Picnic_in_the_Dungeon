@@ -1,6 +1,6 @@
 from enum import Enum
 from algorithms import Random, Point
-from component import BlocksTile, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
+from component import BlocksTile, CombatStats, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Scene
 from device import Device
 from map import drawMap, Map
@@ -76,6 +76,7 @@ def main():
     player.add(Player())
     player.add(Viewshed(8))
     player.add(BlocksTile())
+    player.add(CombatStats(30, 2, 5))
 
     count = 1
     for room in map.rooms[1:]:
@@ -93,6 +94,7 @@ def main():
         monster.add(Monster())
         monster.add(Name(monsterName))
         monster.add(BlocksTile())
+        monster.add(CombatStats(16, 1, 4))
 
     device.onLoop.append(update)
     device.onPressed.append(processInput)

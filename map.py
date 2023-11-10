@@ -2,7 +2,7 @@ from enum import Enum
 
 from algorithms import Random, Point
 from component import Glyph
-from core import ECS
+from core import ECS, Entity
 
 
 class TileType(Enum):
@@ -43,6 +43,7 @@ class Map:
         self.revealedTiles: set[Point] = set()
         self.rooms: list[Rect] = list()
         self.blocked: set[Point] = set()
+        self.tileContent: dict[Point, list[Entity]]
 
     def clearMap(self) -> None:
         self.tiles.clear()
@@ -50,6 +51,7 @@ class Map:
         self.revealedTiles.clear()
         self.rooms.clear()
         self.blocked.clear()
+        self.tileContent.clear()
         for row in range(0, self.height):
             for col in range(0, self.width):
                 self.tiles[Point(col, row)] = TileType.Wall
@@ -61,8 +63,9 @@ class Map:
                 point = Point(col, row)
                 if self.tiles[point] == TileType.Wall:
                     self.blocked.add(point)
-                
-
+    
+    def clearContentIndex(self):
+        self.tileContent.clear()
 
     def applyRoomToMap(self, room:Rect) -> None:
         for y in range(room.y1 + 1, room.y2 + 1):

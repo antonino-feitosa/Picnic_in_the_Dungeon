@@ -11,6 +11,11 @@ def mapIndexSystem():
     map: Map = ECS.scene.retrieve("map")
 
     map.populateBlocked()
+    map.clearContentIndex()
     for entity in entities:
         position:Position = entity[Position.id]
-        map.blocked.add(Point(position.x, position.y))
+        point = Point(position.x, position.y)
+        map.blocked.add(point)
+        content = map.tileContent[point] or []
+        content.append(entity)
+        map.tileContent[point] = content

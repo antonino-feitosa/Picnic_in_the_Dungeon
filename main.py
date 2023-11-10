@@ -1,22 +1,43 @@
-from algorithms import Random
-from component import Glyph, Player, Position, Renderable, Viewshed
+from enum import Enum
+from algorithms import Random, Point
+from component import Glyph, Monster, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Scene
 from device import Device
 from map import drawMap, Map
 from player import playerInput
+from system.monsterAI import monsterAISystem
 from system.visibility import visibilitySystem
 
 
+class RunState(Enum):
+    Paused = 0,
+    Running = 1
+
+runState = RunState.Running
+
 def update():
-    visibilitySystem()
+    global runState
+    if runState == RunState.Running:
+        visibilitySystem()
+        monsterAISystem()
+        runState = RunState.Paused
+
     drawMap()
 
+    map: Map = ECS.scene.retrieve("map")
     width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
     for entity in entities:
         position: Position = entity[Position.id]
-        render: Renderable = entity[Renderable.id]
-        render.glyph.draw(position.x * width, position.y * height)
+        if Point(position.x, position.y) in map.visibleTiles:
+            render: Renderable = entity[Renderable.id]
+            render.glyph.draw(position.x * width, position.y * height)
+
+
+def processInput(keys:set[str]):
+    global runState
+    if runState == RunState.Paused and playerInput(keys):
+        runState = RunState.Running
 
 
 def main():
@@ -45,6 +66,7 @@ def main():
     scene.store("glyph wall", glyphWall)
     scene.store("glyph floor", glyphFloor)
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
+    scene.store("player position", (xplayer, yplayer))
 
     player = scene.create()
     player.add(Position(xplayer, yplayer))
@@ -52,8 +74,24 @@ def main():
     player.add(Player())
     player.add(Viewshed(8))
 
+    count = 1
+    for room in map.rooms[1:]:
+        x, y = room.center()
+        monsterType = "g" if rand.nextBool() else "o"
+        monsterName = "Goblin" if monsterType == "g" else "Orc"
+        monsterName = f"{monsterName} #{count}"
+        count += 1
+        render = Renderable(Glyph(background, font, monsterType))
+        render.glyph.foreground = (255, 0, 0, 255)
+        monster = scene.create()
+        monster.add(Position(x,y))
+        monster.add(render)
+        monster.add(Viewshed(8))
+        monster.add(Monster())
+        monster.add(Name(monsterName))
+
     device.onLoop.append(update)
-    device.onPressed.append(playerInput)
+    device.onPressed.append(processInput)
 
     ECS.scene = scene
 

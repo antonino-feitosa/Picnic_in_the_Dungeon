@@ -85,3 +85,20 @@ class Viewshed(Component):
         self.dirty = True
         self.range = range
         self.visibleTiles: set[Point] = set()
+
+
+class Monster(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(Monster.id)
+
+
+class Name(Component):
+    id = ECS.nextSignature()
+    __slots__ = 'name'
+
+    def __init__(self, name:str):
+        super().__init__(Name.id)
+        self.name = name
+

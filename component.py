@@ -102,3 +102,8 @@ class Name(Component):
         super().__init__(Name.id)
         self.name = name
 
+class BlocksTile(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(BlocksTile.id)

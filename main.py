@@ -1,10 +1,11 @@
 from enum import Enum
 from algorithms import Random, Point
-from component import Glyph, Monster, Name, Player, Position, Renderable, Viewshed
+from component import BlocksTile, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Scene
 from device import Device
 from map import drawMap, Map
 from player import playerInput
+from system.mapIndexSystem import mapIndexSystem
 from system.monsterAI import monsterAISystem
 from system.visibility import visibilitySystem
 
@@ -20,6 +21,7 @@ def update():
     if runState == RunState.Running:
         visibilitySystem()
         monsterAISystem()
+        mapIndexSystem()
         runState = RunState.Paused
 
     drawMap()
@@ -73,6 +75,7 @@ def main():
     player.add(Renderable(Glyph(background, font, "@")))
     player.add(Player())
     player.add(Viewshed(8))
+    player.add(BlocksTile())
 
     count = 1
     for room in map.rooms[1:]:
@@ -89,6 +92,7 @@ def main():
         monster.add(Viewshed(8))
         monster.add(Monster())
         monster.add(Name(monsterName))
+        monster.add(BlocksTile())
 
     device.onLoop.append(update)
     device.onPressed.append(processInput)

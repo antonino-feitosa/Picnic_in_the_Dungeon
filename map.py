@@ -42,12 +42,27 @@ class Map:
         self.visibleTiles: set[Point] = set()
         self.revealedTiles: set[Point] = set()
         self.rooms: list[Rect] = list()
+        self.blocked: set[Point] = set()
 
     def clearMap(self) -> None:
         self.tiles.clear()
+        self.visibleTiles.clear()
+        self.revealedTiles.clear()
+        self.rooms.clear()
+        self.blocked.clear()
         for row in range(0, self.height):
             for col in range(0, self.width):
                 self.tiles[Point(col, row)] = TileType.Wall
+    
+    def populateBlocked(self):
+        self.blocked.clear()
+        for row in range(0, self.height):
+            for col in range(0, self.width):
+                point = Point(col, row)
+                if self.tiles[point] == TileType.Wall:
+                    self.blocked.add(point)
+                
+
 
     def applyRoomToMap(self, room:Rect) -> None:
         for y in range(room.y1 + 1, room.y2 + 1):

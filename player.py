@@ -9,13 +9,13 @@ def tryMovePlayer(dx: int, dy: int):
     entities = ECS.scene.filter(Position.id | Player.id | Viewshed.id)
     for entity in entities:
         position: Position = entity[Position.id]
-        nextPosition = Position(position.x + dx, position.y + dy)
-        if map.tiles[Point(nextPosition.x, nextPosition.y)] == TileType.Floor:
-            position.x = nextPosition.x
-            position.y = nextPosition.y
+        nextPoint = Point(position.x + dx, position.y + dy)
+        if nextPoint not in map.blocked:
+            position.x = nextPoint.x
+            position.y = nextPoint.y
             view: Viewshed = entity[Viewshed.id]
             view.dirty = True
-            ECS.scene.store("player position", (position.x, position.y))
+            ECS.scene.store("player position", (nextPoint.x, nextPoint.y))
 
 
 def playerInput(keys: set[str]) -> bool:
@@ -27,6 +27,14 @@ def playerInput(keys: set[str]) -> bool:
         tryMovePlayer(-1, 0)
     elif "right" in keys or "l" in keys or "[6]" in keys:
         tryMovePlayer(+1, 0)
+    elif "y" in keys or "[9]" in keys:
+        tryMovePlayer(+1, -1)
+    elif "u" in keys or "[7]" in keys:
+        tryMovePlayer(-1, -1)
+    elif "n" in keys or "[3]" in keys:
+        tryMovePlayer(+1, +1)
+    elif "b" in keys or "[1]" in keys:
+        tryMovePlayer(-1, +1)
     else:
         return False
     return True

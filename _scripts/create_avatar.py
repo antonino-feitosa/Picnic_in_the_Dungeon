@@ -6,7 +6,7 @@ import pygame
 sys.path.append("..")
 
 from algorithms import Dimension
-from algorithms import Position
+from algorithms import Point
 
 from device import Device
 

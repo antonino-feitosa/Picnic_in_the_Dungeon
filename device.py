@@ -4,8 +4,6 @@ from typing import Callable
 import pygame
 import pygame.freetype
 
-from coordinates import Position, Dimension
-
 
 Color = tuple[int, int, int, int]
 
@@ -19,7 +17,8 @@ class Image:
     def __init__(self, device: "Device", image: pygame.Surface):
         self.device = device
         self.image = image
-        self.dimension = Dimension(image.get_width(), image.get_height())
+        self.width = image.get_width()
+        self.height = image.get_height()
 
     def draw(self, x: int, y: int) -> None:
         self.device.drawImage(self, x, y)
@@ -37,13 +36,12 @@ class Image:
 
 
 class SpriteSheet:
-    def __init__(self, sheet: Image, dimension: Dimension):
+    def __init__(self, sheet: Image, width: int, height: int):
         self.device = sheet.device
         self.sheet = sheet
         self.images: list[Image] = []
-        width, height = dimension
-        for y in range(0, sheet.dimension.height, height):
-            for x in range(0, sheet.dimension.width, width):
+        for y in range(0, sheet.height, height):
+            for x in range(0, sheet.width, width):
                 rect = pygame.Rect(x, y, width, height)
                 image = pygame.Surface(rect.size, pygame.SRCALPHA)
                 image.blit(self.sheet.image, (0, 0), rect)
@@ -57,16 +55,14 @@ class Font:
         self.foreground: Color = (0, 0, 0, 255)
         self.background: Color = (0, 0, 0, 0)
 
-    def drawAtImage(self, text: str, image: Image, position: Position):
+    def drawAtImage(self, text: str, image: Image, x: int = 0, y: int = 0):
         surface = self._createSurface(text)
-        x, y = position
         image.image.blit(surface, (x, y))
 
-    def drawAtImageCenter(self, text: str, image: Image, offset: Position = Position()):
+    def drawAtImageCenter(self, text: str, image: Image, xoff: int = 0, yoff=0):
         surface = self._createSurface(text)
-        w, h = image.dimension
-        x = (w - surface.get_width()) // 2 + offset.x
-        y = (h - surface.get_height()) // 2 + offset.y
+        x = (image.width - surface.get_width()) // 2 + xoff
+        y = (image.height - surface.get_height()) // 2 + yoff
         image.image.blit(surface, (x, y))
 
     def drawAtScreen(self, text: str, x: int, y: int):
@@ -77,20 +73,20 @@ class Font:
     def _createSurface(self, text: str):
         messages = text.split("\n")
         renders = []
-        dimension = Dimension(0, 0)
+        width, height = 0, 0
         for msg in messages:
             image, rect = self.font.render(msg, self.foreground, self.background)
             renders.append(image)
-            if rect.width > dimension.width:
-                dimension = Dimension(rect.width, dimension.height)
-            if rect.height > dimension.height:
-                dimension = Dimension(dimension.width, rect.height)
-        dim = (dimension.width, dimension.height * len(renders))
+            if rect.width > width:
+                width = rect.width
+            if rect.height > height:
+                height = rect.height
+        dim = (width, height * len(renders))
         canvas = pygame.Surface(dim, pygame.SRCALPHA)
         y = 0
         for render in renders:
             canvas.blit(render, dest=(0, y))
-            y += dimension.height
+            y += height
         return canvas
 
 
@@ -155,21 +151,22 @@ class Music:
 
 
 class Device:
-    def __init__(self, title: str = "", dimension=Dimension(800, 600), tick=60):
+    def __init__(self, title: str = "", tick=60, width=800, height=600):
         pygame.init()
         pygame.display.set_caption(title)
-        self.dimension: Dimension = dimension
-        dim = (dimension.width, dimension.height)
-        flags = pygame.FULLSCREEN
-        self.screen = pygame.display.set_mode(dim, vsync=1)
+        self.width = width
+        self.height = height
+        # flags = pygame.FULLSCREEN
+        self.screen = pygame.display.set_mode((width, height), vsync=1)
         self.running = True
         self.tick = tick
         self.clock = pygame.time.Clock()
-        self.onClick: list[Callable[[bool, Position], None]] = []
-        self.onClickRight: list[Callable[[bool, Position], None]] = []
-        self.onMove: list[Callable[[Position], None]] = []
+        self.onClick: list[Callable[[bool, int, int], None]] = []
+        self.onClickRight: list[Callable[[bool, int, int], None]] = []
+        self.onMove: list[Callable[[int, int], None]] = []
         self.onPressed: list[Callable[[set[str]], None]] = []
         self.onLoop: list[Callable[[], None]] = []
+        self._keys:set[str] = set()
 
     def loadImage(self, path: str) -> Image:
         try:
@@ -178,9 +175,9 @@ class Device:
         except pygame.error as err:
             raise DeviceError(err)
 
-    def loadSpriteSheet(self, path: str, dimension: Dimension) -> SpriteSheet:
+    def loadSpriteSheet(self, path: str, width: int, height: int) -> SpriteSheet:
         image = self.loadImage(path)
-        sheet = SpriteSheet(image, dimension)
+        sheet = SpriteSheet(image, width, height)
         return sheet
 
     def loadFont(self, path: str, size: int) -> Font:
@@ -210,53 +207,53 @@ class Device:
         pygame.display.flip()
 
     def clear(self, color=(0, 0, 0)) -> None:
-        dim = (self.dimension.width, self.dimension.height)
+        dim = (self.width, self.height)
         self.screen.fill(color, pygame.Rect((0, 0), dim))
 
     def loop(self) -> None:
-        keys = set()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print("QUIT")
                 self.running = False
 
             if event.type == pygame.MOUSEMOTION:
-                position = Position(*pygame.mouse.get_pos())
+                x, y = pygame.mouse.get_pos()
                 for callback in self.onMove:
-                    callback(position)
+                    callback(x, y)
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                position = Position(*pygame.mouse.get_pos())
+                x, y = pygame.mouse.get_pos()
                 for callback in self.onClick:
-                    callback(True, position)
+                    callback(True, x, y)
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                position = Position(*pygame.mouse.get_pos())
+                x, y = pygame.mouse.get_pos()
                 for callback in self.onClickRight:
-                    callback(True, position)
+                    callback(True, x, y)
 
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                position = Position(*pygame.mouse.get_pos())
+                x, y = pygame.mouse.get_pos()
                 for callback in self.onClick:
-                    callback(False, position)
+                    callback(False, x, y)
 
             if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-                position = Position(*pygame.mouse.get_pos())
+                x, y = pygame.mouse.get_pos()
                 for callback in self.onClickRight:
-                    callback(False, position)
+                    callback(False, x, y)
             
+            if event.type == pygame.KEYDOWN and event.key:
+                keyName = pygame.key.name(event.key)
+                self._keys.add(keyName)
+
             if event.type == pygame.KEYUP and event.key:
                 keyName = pygame.key.name(event.key)
-                keys.add(keyName)
+                self._keys.remove(keyName)
 
-        if keys:
+        if self._keys:
             for callback in self.onPressed:
-                callback(keys)    
-        
+                callback(self._keys)
+
         for callback in self.onLoop:
             callback()
-        
-        self.clock.tick(self.tick)
 
-        
+        self.clock.tick(self.tick)

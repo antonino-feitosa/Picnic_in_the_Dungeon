@@ -1,5 +1,5 @@
 from algorithms import Point
-from component import Player, Position, Viewshed
+from component import CombatStats, Player, Position, Viewshed, WantsToMelee
 from core import ECS
 from map import Map, TileType
 
@@ -11,8 +11,10 @@ def tryMovePlayer(dx: int, dy: int):
         position: Position = entity[Position.id]
         nextPoint = Point(position.x + dx, position.y + dy)
 
-        #for potentialTarget in map.tileContent[nextPoint] or []:
-        #    target = 
+        for potentialTarget in map.tileContent[nextPoint] or []:
+            if potentialTarget.has(CombatStats.id):
+               wantsToMelee = WantsToMelee(potentialTarget)
+               entity.add(wantsToMelee)
 
         if nextPoint not in map.blocked:
             position.x = nextPoint.x

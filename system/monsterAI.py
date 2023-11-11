@@ -2,30 +2,35 @@
 
 from algorithms import PathFinding, Point
 from algorithms.direction import Direction
-from component import Monster, Position, Viewshed, Name
-from core import ECS
+from component import Monster, Position, Viewshed, Name, WantsToMelee
+from core import ECS, Entity
 from map import Map
 
 
 def monsterAISystem():
     entities = ECS.scene.filter(Position.id | Viewshed.id | Monster.id | Name.id)
-    xplayer, yplayer = ECS.scene.retrieve("player position")
+    player:Entity = ECS.scene.retrieve("player")
+    playerPosition:Position = player[Position.id]
+    playerPoint = Point(playerPosition.x, playerPosition.y)
     map: Map = ECS.scene.retrieve("map")
 
     for entity in entities:
         view:Viewshed = entity[Viewshed.id]
         name:Name = entity[Name.id]
         position: Position = entity[Position.id]
-        if Point(xplayer, yplayer) in view.visibleTiles:
+        if playerPoint in view.visibleTiles:
             print(f"{name.name} shouts insults!")
             isExit = lambda point: point not in map.blocked
             astar = PathFinding(isExit, Direction.All)
-            path = astar.searchPath(Point(position.x, position.y), Point(xplayer, yplayer))
+            path = astar.searchPath(Point(position.x, position.y), playerPoint)
             if len(path) >= 2:
-                nextPosition = path[1]
-                if nextPosition == Point(xplayer, yplayer):
-                    print('Goes Attack!')
+                nextPoint = path[1]
+                if nextPoint == playerPoint:
+                    wantsToMelee = WantsToMelee(player)
+                    entity.add(wantsToMelee)
                 else:
-                    position.x = nextPosition.x
-                    position.y = nextPosition.y
+                    map.blocked.remove(Point(position.x, position.y))
+                    position.x = nextPoint.x
+                    position.y = nextPoint.y
                     view.dirty = True
+                    map.blocked.add(nextPoint)

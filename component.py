@@ -126,3 +126,20 @@ class WantsToMelee(Component):
     def __init__(self, target:Entity):
         super().__init__(WantsToMelee.id)
         self.target = target
+
+
+class SufferDamage(Component):
+    id = ECS.nextSignature()
+    __slots__ = ["amount"]
+
+    def __init__(self, amount:int):
+        super().__init__(SufferDamage.id)
+        self.amount = amount
+
+
+def doDamage(victim:Entity, amount:int):
+    if victim.has(SufferDamage.id):
+        sufferDamage:SufferDamage = victim[SufferDamage.id]
+        sufferDamage.amount += amount
+    else:
+        victim.add(SufferDamage(amount))

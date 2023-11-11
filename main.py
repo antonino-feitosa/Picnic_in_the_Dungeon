@@ -5,7 +5,9 @@ from core import ECS, Scene
 from device import Device
 from map import drawMap, Map
 from player import playerInput
+from system.damage import damageSystem, deleteTheDead
 from system.mapIndexSystem import mapIndexSystem
+from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
 from system.visibility import visibilitySystem
 
@@ -22,6 +24,9 @@ def update():
         visibilitySystem()
         monsterAISystem()
         mapIndexSystem()
+        meleeCombatSystem()
+        damageSystem()
+        deleteTheDead()
         runState = RunState.Paused
 
     drawMap()
@@ -68,7 +73,6 @@ def main():
     scene.store("glyph wall", glyphWall)
     scene.store("glyph floor", glyphFloor)
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
-    scene.store("player position", (xplayer, yplayer))
 
     player = scene.create()
     player.add(Position(xplayer, yplayer))
@@ -77,6 +81,9 @@ def main():
     player.add(Viewshed(8))
     player.add(BlocksTile())
     player.add(CombatStats(30, 2, 5))
+    player.add(Name("Player"))
+
+    scene.store("player", player)
 
     count = 1
     for room in map.rooms[1:]:

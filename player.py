@@ -18,8 +18,6 @@ def tryMovePlayer(dx: int, dy: int):
                entity.add(wantsToMelee)
 
         if nextPoint not in map.blocked:
-            map.blocked.remove(Point(position.x, position.y))
-            map.blocked.add(nextPoint)
             position.x = nextPoint.x
             position.y = nextPoint.y
             view: Viewshed = entity[Viewshed.id]

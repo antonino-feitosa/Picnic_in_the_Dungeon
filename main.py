@@ -1,11 +1,12 @@
 from enum import Enum
 from algorithms import Random, Point
-from component import BlocksTile, CombatStats, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
+from component import BlocksTile, CombatStats, GUIDescription, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Scene
-from device import Device
+from device import Device, Font
 from map import drawMap, Map
 from player import playerInput
 from system.damage import damageSystem, deleteTheDead
+from system.guiSystem import guiSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
@@ -20,7 +21,11 @@ runState = RunState.Running
 
 def update():
     global runState
+
+    logger:list[str] = ECS.scene.retrieve("logger")
     if runState == RunState.Running:
+        if logger:
+            logger.pop()
         visibilitySystem()
         monsterAISystem()
         mapIndexSystem()
@@ -30,7 +35,6 @@ def update():
         runState = RunState.Paused
 
     drawMap()
-
     map: Map = ECS.scene.retrieve("map")
     width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
@@ -39,6 +43,18 @@ def update():
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
             render.glyph.draw(position.x * width, position.y * height)
+    guiSystem()
+
+    font:Font = ECS.scene.retrieve("font")
+    font.background = (0, 0, 0, 0)
+    font.foreground = (200, 200, 200, 255)
+    size = len(logger)
+    if size > 10:
+        logger = logger[-10:]
+        ECS.scene.store("logger", logger)
+    msg = "\n".join(logger)
+    font.drawAtScreen(msg, 10, 300)    
+
 
 
 def processInput(keys:set[str]):
@@ -63,6 +79,7 @@ def main():
     map = Map(width, height)
     map.newMapRoomsAndCorridors(rand)
     xplayer, yplayer = map.rooms[0].center()
+    logger:list[str] = []
 
     scene = Scene()
     scene.store("background", background)
@@ -73,15 +90,16 @@ def main():
     scene.store("glyph wall", glyphWall)
     scene.store("glyph floor", glyphFloor)
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
+    scene.store("logger", logger)
 
     player = scene.create()
     player.add(Position(xplayer, yplayer))
     player.add(Renderable(Glyph(background, font, "@")))
     player.add(Player())
     player.add(Viewshed(8))
-    player.add(BlocksTile())
     player.add(CombatStats(30, 2, 5))
     player.add(Name("Player"))
+    player.add(GUIDescription())
 
     scene.store("player", player)
 
@@ -102,6 +120,7 @@ def main():
         monster.add(Name(monsterName))
         monster.add(BlocksTile())
         monster.add(CombatStats(16, 1, 4))
+        monster.add(GUIDescription())
 
     device.onLoop.append(update)
     device.onPressed.append(processInput)

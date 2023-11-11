@@ -13,13 +13,14 @@ def monsterAISystem():
     playerPosition:Position = player[Position.id]
     playerPoint = Point(playerPosition.x, playerPosition.y)
     map: Map = ECS.scene.retrieve("map")
+    logger:list[str] = ECS.scene.retrieve("logger")
 
     for entity in entities:
         view:Viewshed = entity[Viewshed.id]
         name:Name = entity[Name.id]
         position: Position = entity[Position.id]
         if playerPoint in view.visibleTiles:
-            print(f"{name.name} shouts insults!")
+            logger.append(f"{name.name} shouts insults!")
             isExit = lambda point: point not in map.blocked or point == playerPoint
             astar = PathFinding(isExit, Direction.All)
             path = astar.searchPath(Point(position.x, position.y), playerPoint)

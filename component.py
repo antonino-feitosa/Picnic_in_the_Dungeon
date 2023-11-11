@@ -118,6 +118,9 @@ class CombatStats(Component):
         self.HP = maxHP
         self.defense = defense
         self.power = power
+    
+    def __repr__(self) -> str:
+        return f"HP: {self.HP}/{self.maxHP} P:{self.power} D:{self.defense}"
 
 class WantsToMelee(Component):
     id = ECS.nextSignature()
@@ -143,3 +146,12 @@ def doDamage(victim:Entity, amount:int):
         sufferDamage.amount += amount
     else:
         victim.add(SufferDamage(amount))
+
+
+class GUIDescription(Component):
+    id = ECS.nextSignature()
+    __slots__ = ["description"]
+
+    def __init__(self, description:list[str] = []):
+        super().__init__(GUIDescription.id)
+        self.description = description

@@ -11,12 +11,15 @@ def tryMovePlayer(dx: int, dy: int):
         position: Position = entity[Position.id]
         nextPoint = Point(position.x + dx, position.y + dy)
 
-        for potentialTarget in map.tileContent[nextPoint] or []:
+        tileContent = map.tileContent[nextPoint] if nextPoint in map.tileContent else []
+        for potentialTarget in tileContent:
             if potentialTarget.has(CombatStats.id):
                wantsToMelee = WantsToMelee(potentialTarget)
                entity.add(wantsToMelee)
 
         if nextPoint not in map.blocked:
+            map.blocked.remove(Point(position.x, position.y))
+            map.blocked.add(nextPoint)
             position.x = nextPoint.x
             position.y = nextPoint.y
             view: Viewshed = entity[Viewshed.id]

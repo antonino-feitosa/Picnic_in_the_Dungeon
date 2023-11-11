@@ -43,7 +43,7 @@ class Map:
         self.revealedTiles: set[Point] = set()
         self.rooms: list[Rect] = list()
         self.blocked: set[Point] = set()
-        self.tileContent: dict[Point, list[Entity]]
+        self.tileContent: dict[Point, list[Entity]] = dict()
 
     def clearMap(self) -> None:
         self.tiles.clear()

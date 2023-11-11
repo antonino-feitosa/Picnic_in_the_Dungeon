@@ -16,6 +16,6 @@ def mapIndexSystem():
         position:Position = entity[Position.id]
         point = Point(position.x, position.y)
         map.blocked.add(point)
-        content = map.tileContent[point] or []
+        content = map.tileContent[point] if point in map.tileContent else []
         content.append(entity)
         map.tileContent[point] = content

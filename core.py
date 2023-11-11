@@ -42,7 +42,7 @@ class Entity:
         return self
 
     def remove(self, signature: int):
-        self.signature = signature & ~self.signature
+        self.signature = self.signature & ~signature
         self.components.pop(signature)
 
     def has(self, signature: int) -> bool:

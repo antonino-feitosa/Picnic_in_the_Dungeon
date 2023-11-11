@@ -20,7 +20,7 @@ def monsterAISystem():
         position: Position = entity[Position.id]
         if playerPoint in view.visibleTiles:
             print(f"{name.name} shouts insults!")
-            isExit = lambda point: point not in map.blocked
+            isExit = lambda point: point not in map.blocked or point == playerPoint
             astar = PathFinding(isExit, Direction.All)
             path = astar.searchPath(Point(position.x, position.y), playerPoint)
             if len(path) >= 2:
@@ -30,7 +30,8 @@ def monsterAISystem():
                     entity.add(wantsToMelee)
                 else:
                     map.blocked.remove(Point(position.x, position.y))
+                    map.blocked.add(nextPoint)
                     position.x = nextPoint.x
                     position.y = nextPoint.y
                     view.dirty = True
-                    map.blocked.add(nextPoint)
+                    

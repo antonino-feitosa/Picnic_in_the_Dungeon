@@ -21,7 +21,6 @@ runState = RunState.Running
 
 def update():
     global runState
-
     logger:list[str] = ECS.scene.retrieve("logger")
     if runState == RunState.Running:
         if logger:
@@ -32,6 +31,9 @@ def update():
         meleeCombatSystem()
         damageSystem()
         deleteTheDead()
+        mapIndexSystem()
+        turn:int  = ECS.scene.retrieve("turn")
+        ECS.scene.store("turn", turn + 1)
         runState = RunState.Paused
 
     drawMap()
@@ -53,7 +55,8 @@ def update():
         logger = logger[-10:]
         ECS.scene.store("logger", logger)
     msg = "\n".join(logger)
-    font.drawAtScreen(msg, 10, 300)    
+    font.drawAtScreen(msg, 10, 300)
+    
 
 
 
@@ -91,6 +94,7 @@ def main():
     scene.store("glyph floor", glyphFloor)
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
     scene.store("logger", logger)
+    scene.store("turn", 1)
 
     player = scene.create()
     player.add(Position(xplayer, yplayer))

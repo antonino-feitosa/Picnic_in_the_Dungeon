@@ -2,6 +2,7 @@
 
 from component import CombatStats, Player, SufferDamage, Name
 from core import ECS
+from utils import Logger
 
 def damageSystem():
     entities = ECS.scene.filter(CombatStats.id | SufferDamage.id)
@@ -14,16 +15,15 @@ def damageSystem():
 
 def deleteTheDead():
     entities = ECS.scene.filter(CombatStats.id)
-    logger:list[str] = ECS.scene.retrieve("logger")
-    turn:int  = ECS.scene.retrieve("turn")
+    logger:Logger = ECS.scene.retrieve("logger")
     for entity in entities:
         combatStats:CombatStats = entity[CombatStats.id]
         if combatStats.HP < 1:
             if entity.has(Player.id):
-                logger.append(f"Turn {turn}: You are dead!")
+                logger.log("You are dead!")
             else:
                 ECS.scene.destroy(entity)
                 if entity.has(Name.id):
                     name:Name = entity[Name.id]
-                    logger.append(f"Turn {turn}: {name.name} is dead!")
+                    logger.log(f"{name.name} is dead!")
 

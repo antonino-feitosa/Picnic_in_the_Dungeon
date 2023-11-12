@@ -11,6 +11,7 @@ from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
 from system.visibility import visibilitySystem
+from utils import Logger
 
 
 class RunState(Enum):
@@ -19,12 +20,12 @@ class RunState(Enum):
 
 runState = RunState.Running
 
+
+
 def update():
     global runState
-    logger:list[str] = ECS.scene.retrieve("logger")
+    logger:Logger = ECS.scene.retrieve("logger")
     if runState == RunState.Running:
-        if logger:
-            logger.pop()
         visibilitySystem()
         monsterAISystem()
         mapIndexSystem()
@@ -32,8 +33,7 @@ def update():
         damageSystem()
         deleteTheDead()
         mapIndexSystem()
-        turn:int  = ECS.scene.retrieve("turn")
-        ECS.scene.store("turn", turn + 1)
+        logger.turn += 1
         runState = RunState.Paused
 
     drawMap()
@@ -46,16 +46,7 @@ def update():
             render: Renderable = entity[Renderable.id]
             render.glyph.draw(position.x * width, position.y * height)
     guiSystem()
-
-    font:Font = ECS.scene.retrieve("font")
-    font.background = (0, 0, 0, 0)
-    font.foreground = (200, 200, 200, 255)
-    size = len(logger)
-    if size > 10:
-        logger = logger[-10:]
-        ECS.scene.store("logger", logger)
-    msg = "\n".join(logger)
-    font.drawAtScreen(msg, 10, 300)
+    logger.print()
     
 
 
@@ -82,7 +73,7 @@ def main():
     map = Map(width, height)
     map.newMapRoomsAndCorridors(rand)
     xplayer, yplayer = map.rooms[0].center()
-    logger:list[str] = []
+    logger = Logger(font, 10, 10, 300)
 
     scene = Scene()
     scene.store("background", background)

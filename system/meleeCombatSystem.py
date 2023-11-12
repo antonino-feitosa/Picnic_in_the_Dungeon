@@ -1,12 +1,12 @@
 
 from component import CombatStats, Name, WantsToMelee, doDamage
 from core import ECS
+from utils import Logger
 
 
 def meleeCombatSystem():
     entities = ECS.scene.filter(WantsToMelee.id | Name.id | CombatStats.id)
-    logger:list[str] = ECS.scene.retrieve("logger")
-    turn:int  = ECS.scene.retrieve("turn")
+    logger:Logger = ECS.scene.retrieve("logger")
     for entity in entities:
         combatStats = entity[CombatStats.id]
         if combatStats.HP > 0:
@@ -17,8 +17,8 @@ def meleeCombatSystem():
             damage = combatStats.power - targetStats.defense
             name:Name = entity[Name.id]
             if damage <= 0:
-                logger.append(f"Turn {turn}: {name.name} is unable to hurt {targetName.name}")
+                logger.log(f"{name.name} is unable to hurt {targetName.name}")
             else:
-                logger.append(f"Turn {turn}: {name.name} hits {targetName.name}, for {damage} hp.")
+                logger.log(f"{name.name} hits {targetName.name}, for {damage} hp.")
                 doDamage(target, damage)
             entity.remove(WantsToMelee.id)

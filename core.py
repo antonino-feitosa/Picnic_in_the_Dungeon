@@ -1,5 +1,5 @@
 from typing import TypeVar, Any
-
+from algorithms import Point
 
 class Component:
     __slots__ = "signature"
@@ -8,23 +8,38 @@ class Component:
         self.signature = signature
 
 
+class Context:
+    def __init__(self):
+        self.keys:set[str] = set()
+        self.mousePosition:Point = Point()
+        self.mouseLeftPressed = False
+    
+    def clear(self):
+        self.keys.clear()
+        self.mouseLeftPressed = False
+
+
+
 class EntityComponentSystem:
     def __init__(self):
         self.signature: int = 1
         self.id: int = 0
         self.scene: Scene
+        self.context: Context
 
-    def nextSignature(self):
+    def nextSignature(self) -> int:
         current = self.signature
         self.signature = self.signature << 1
         return current
 
-    def nextId(self):
+    def nextId(self) -> int:
         self.id += 1
         return self.id
 
-    def run(self, scene):
+    def run(self, scene:'Scene', context:Context) -> None:
         self.scene = scene
+        self.context = context
+
 
 
 ECS = EntityComponentSystem()
@@ -55,6 +70,7 @@ class Entity:
 
     def __getitem__(self, signature: int) -> Any:
         return self.get(signature)
+
 
 
 class Scene:

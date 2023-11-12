@@ -1,7 +1,7 @@
 from enum import Enum
 from algorithms import Random, Point
 from component import BlocksTile, CombatStats, GUIDescription, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
-from core import ECS, Scene
+from core import ECS, Context, Scene
 from device import Device, Font
 from map import drawMap, Map
 from player import playerInput
@@ -15,16 +15,16 @@ from utils import Logger
 
 
 class RunState(Enum):
-    Paused = 0,
+    WaitingInput = 0,
     Running = 1
 
 runState = RunState.Running
 
 
-
 def update():
     global runState
     logger:Logger = ECS.scene.retrieve("logger")
+    
     if runState == RunState.Running:
         visibilitySystem()
         monsterAISystem()
@@ -34,7 +34,10 @@ def update():
         deleteTheDead()
         mapIndexSystem()
         logger.turn += 1
-        runState = RunState.Paused
+        runState = RunState.WaitingInput
+    elif runState == RunState.WaitingInput:
+        if playerInput(ECS.context.keys):
+            runState = RunState.Running
 
     drawMap()
     map: Map = ECS.scene.retrieve("map")
@@ -48,14 +51,6 @@ def update():
     guiSystem()
     logger.print()
     
-
-
-
-def processInput(keys:set[str]):
-    global runState
-    if runState == RunState.Paused and playerInput(keys):
-        runState = RunState.Running
-
 
 def main():
     device = Device("Picnic in the Dungeon", tick=12, width=1280, height=640)
@@ -117,10 +112,13 @@ def main():
         monster.add(CombatStats(16, 1, 4))
         monster.add(GUIDescription())
 
-    device.onLoop.append(update)
-    device.onPressed.append(processInput)
-
     ECS.scene = scene
+    ECS.context = Context()
+
+    device.onLoop.append(update)
+    device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))
+    device.onMove.append(lambda x, y: setattr(ECS.context, 'mousePosition', Point(x,y)))
+    device.onClick.append(lambda pressed, x, y: setattr(ECS.context, 'mouseLeftPressed', pressed))
 
     while device.running:
         device.clear()

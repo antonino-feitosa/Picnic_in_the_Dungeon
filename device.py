@@ -164,7 +164,7 @@ class Device:
         self.onClick: list[Callable[[bool, int, int], None]] = []
         self.onClickRight: list[Callable[[bool, int, int], None]] = []
         self.onMove: list[Callable[[int, int], None]] = []
-        self.onPressed: list[Callable[[set[str]], None]] = []
+        self.onKeyPressed: list[Callable[[set[str]], None]] = []
         self.onLoop: list[Callable[[], None]] = []
         self._keys:set[str] = set()
 
@@ -250,7 +250,7 @@ class Device:
                 self._keys.remove(keyName)
 
         if self._keys:
-            for callback in self.onPressed:
+            for callback in self.onKeyPressed:
                 callback(self._keys)
 
         for callback in self.onLoop:

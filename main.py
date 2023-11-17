@@ -5,6 +5,7 @@ from core import ECS, Context, Scene
 from device import Device, Font
 from map import drawMap, Map
 from player import playerInput
+from spawner import createPlayer, createRandomMonster
 from system.damage import damageSystem, deleteTheDead
 from system.guiSystem import guiSystem
 from system.mapIndexSystem import mapIndexSystem
@@ -82,35 +83,12 @@ def main():
     scene.store("logger", logger)
     scene.store("turn", 1)
 
-    player = scene.create()
-    player.add(Position(xplayer, yplayer))
-    player.add(Renderable(Glyph(background, font, "@")))
-    player.add(Player())
-    player.add(Viewshed(8))
-    player.add(CombatStats(30, 2, 5))
-    player.add(Name("Player"))
-    player.add(GUIDescription())
-
+    player = createPlayer(scene, xplayer, yplayer)
     scene.store("player", player)
 
-    count = 1
     for room in map.rooms[1:]:
         x, y = room.center()
-        monsterType = "g" if rand.nextBool() else "o"
-        monsterName = "Goblin" if monsterType == "g" else "Orc"
-        monsterName = f"{monsterName} #{count}"
-        count += 1
-        render = Renderable(Glyph(background, font, monsterType))
-        render.glyph.foreground = (255, 0, 0, 255)
-        monster = scene.create()
-        monster.add(Position(x,y))
-        monster.add(render)
-        monster.add(Viewshed(8))
-        monster.add(Monster())
-        monster.add(Name(monsterName))
-        monster.add(BlocksTile())
-        monster.add(CombatStats(16, 1, 4))
-        monster.add(GUIDescription())
+        createRandomMonster(scene, x, y)
 
     ECS.scene = scene
     ECS.context = Context()

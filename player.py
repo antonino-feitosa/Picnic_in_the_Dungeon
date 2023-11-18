@@ -1,5 +1,5 @@
 from algorithms import Point
-from component import CombatStats, Player, Position, Viewshed, WantsToMelee
+from component import CombatStats, Item, Player, Position, Viewshed, WantsToMelee, WantsToPickupItem
 from core import ECS
 from map import Map, TileType
 
@@ -25,23 +25,16 @@ def tryMovePlayer(dx: int, dy: int):
             ECS.scene.store("player position", (nextPoint.x, nextPoint.y))
 
 
-def playerInput(keys: set[str]) -> bool:
-    if "up" in keys or "k" in keys or "[8]" in keys:
-        tryMovePlayer(0, -1)
-    elif "down" in keys or "j" in keys or "[2]" in keys:
-        tryMovePlayer(0, +1)
-    elif "left" in keys or "h" in keys or "[4]" in keys:
-        tryMovePlayer(-1, 0)
-    elif "right" in keys or "l" in keys or "[6]" in keys:
-        tryMovePlayer(+1, 0)
-    elif "y" in keys or "[9]" in keys:
-        tryMovePlayer(+1, -1)
-    elif "u" in keys or "[7]" in keys:
-        tryMovePlayer(-1, -1)
-    elif "n" in keys or "[3]" in keys:
-        tryMovePlayer(+1, +1)
-    elif "b" in keys or "[1]" in keys:
-        tryMovePlayer(-1, +1)
-    else:
-        return False
-    return True
+def getItem():
+    # TODO multiple items
+    players = ECS.scene.filter(Position.id | Player.id)
+    items = ECS.scene.filter(Position.id | Item.id)
+    for player in players:
+        playerPosition:Position = player[Position.id]
+        for item in items:
+            itemPosition:Position = item[Position.id]
+            if playerPosition == itemPosition:
+                pickUp = WantsToPickupItem(player, item)
+                player.add(pickUp)
+                return True
+    return False

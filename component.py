@@ -155,3 +155,39 @@ class GUIDescription(Component):
     def __init__(self, description:list[str] = []):
         super().__init__(GUIDescription.id)
         self.description = description
+
+
+class Item(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(Item.id)
+
+
+class Potion(Component):
+    id = ECS.nextSignature()
+    __slots__ = 'heal_amount'
+
+    def __init__(self, amount:int):
+        super().__init__(Potion.id)
+        self.heal_amount = amount
+
+
+class InBackpack(Component):
+    id = ECS.nextSignature()
+    __slots__ = 'owner'
+
+    def __init__(self, owner:Entity):
+        super().__init__(InBackpack.id)
+        self.owner = owner
+
+
+class WantsToPickupItem(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['collectedBy', 'item']
+
+    def __init__(self, collectedBy:Entity, item:Entity):
+        super().__init__(WantsToPickupItem.id)
+        self.collectedBy = collectedBy
+        self.item = item
+

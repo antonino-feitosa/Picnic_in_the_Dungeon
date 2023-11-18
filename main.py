@@ -5,7 +5,7 @@ from core import ECS, Context, Scene
 from device import Device, Font
 from map import drawMap, Map
 from player import playerInput
-from spawner import createPlayer, createRandomMonster
+from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, createRandomMonster, spawnRoom
 from system.damage import damageSystem, deleteTheDead
 from system.guiSystem import guiSystem
 from system.mapIndexSystem import mapIndexSystem
@@ -63,10 +63,9 @@ def main():
     glyphWall.foreground = (0, 255, 0, 255)
     glyphFloor = Glyph(background, font, ".")
     glyphFloor.foreground = (127, 127, 127, 255)
-    width, height = 80, 40
     pixelsUnit = 16
 
-    map = Map(width, height)
+    map = Map(MAP_WIDTH, MAP_HEIGHT)
     map.newMapRoomsAndCorridors(rand)
     xplayer, yplayer = map.rooms[0].center()
     logger = Logger(font, 10, 10, 300)
@@ -82,16 +81,15 @@ def main():
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
     scene.store("logger", logger)
     scene.store("turn", 1)
+    
+    ECS.scene = scene
+    ECS.context = Context()
 
     player = createPlayer(scene, xplayer, yplayer)
     scene.store("player", player)
 
     for room in map.rooms[1:]:
-        x, y = room.center()
-        createRandomMonster(scene, x, y)
-
-    ECS.scene = scene
-    ECS.context = Context()
+        spawnRoom(scene, room)
 
     device.onLoop.append(update)
     device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))

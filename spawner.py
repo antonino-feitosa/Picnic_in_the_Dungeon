@@ -1,7 +1,30 @@
 
+from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
 from component import BlocksTile, CombatStats, GUIDescription, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
+from map import Rect
+
+
+MAP_WIDTH = 80
+MAP_HEIGHT = 40
+MAX_MONSTERS = 4
+MAX_ITENS = 2
+
+
+def spawnRoom(scene:Scene, room:Rect):
+    rand:Random = ECS.scene.retrieve('rand')
+    numMonsters = rand.nextInt(MAX_MONSTERS + 1)
+    positions:set[Point] = set()
+    errors = 10
+    while(len(positions) < numMonsters and errors > 0):
+        x = (room.x1 + 1) + rand.nextInt((room.x2 - room.x1) - 1)
+        y = (room.y1 + 1) + rand.nextInt((room.y2 - room.y1) - 1)
+        point = Point(x,y)
+        if point not in positions:
+            positions.add(point)
+    for point in positions:
+        createRandomMonster(scene, point.x, point.y)
 
 
 def createPlayer(scene:Scene, x:int, y:int) -> Entity:

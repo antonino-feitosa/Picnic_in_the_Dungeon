@@ -1,3 +1,4 @@
+
 # Picnic in the Dungeon
 
 
@@ -40,67 +41,14 @@ Simple ARPG with rogue like game elements:
 
 ## Progresso
 
-1. Geração aleatória de mapas simples através do algoritmo de passeio aleatório.
-<p float="left">
-    <img src="_docs/readme_images/RandomWalk0.png" width="100"> &nbsp;
-    <img src="_docs/readme_images/RandomWalk1.png" width="100"> &nbsp;
-    <img src="_docs/readme_images/RandomWalk2.png" width="100">
-</p>
-2. Geração de minimapa acessado pela tecla 'tab'.
-<p float="left">
-    <img src="_docs/readme_images/Minimap0.png" width="100"> &nbsp;
-    <img src="_docs/readme_images/Minimap1.png" width="100"> &nbsp;
-    <img src="_docs/readme_images/Minimap2.png" width="100">
-</p>
-3. Movimentação do Personagem
-<p float="left">
-    <img src="_docs/readme_images/Player_Moviment.gif" width="300">
-</p>
-4. Câmera com Foco no Personagem
-<p float="left">
-    <img src="_docs/readme_images/Camera.gif" width="300">
-</p>
-5. Minimapa com Posição do Personagem
-<p float="left">
-    <img src="_docs/readme_images/CameraMinimap.gif" width="300">
-</p>
-6. Campo de Visão
-<p float="left">
-    <img src="_docs/readme_images/FieldOfView.gif" width="300">
-</p>
-7. Animações de Sprites
-<p float="left">
-    <img src="_docs/readme_images/Animation.gif" width="300">
-</p>
-8. Câmera com Foco, Tremor, Atraso
-<p float="left">
-    <img src="_docs/readme_images/Camera_Focus.gif" width="300"> &nbsp;
-    <img src="_docs/readme_images/Camera_Shake.gif" width="300"> &nbsp;
-    <img src="_docs/readme_images/Camera_Delay.gif" width="300"> &nbsp;
-</p>
-9. Controlador de Animações (alterna a execução de animações retornando para a animação anterior ao fim da sequência de uma animação de maior prioridade)
-<p float="left">
-    <img src="_docs/readme_images/Animation_Controller.gif" width="300">
-</p>
-10. Movimentações das Animações
-<p float="left">
-    <img src="_docs/readme_images/Motion.gif" width="300">
-</p>
-11. Ângulos de Visão para o Campo de Visão (radial, cone e periférico para um campo de visão circular)
-<p float="left">
-    <img src="_docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
-    <img src="_docs/readme_images/FOV_Cone.png" width="300"> &nbsp;
-    <img src="_docs/readme_images/FOV_Peripheral.png" width="300">
-</p>
-12. Formatos do Campo de Visão (para o ângulo de visão radial)
-<p float="left">
-    <img src="_docs/readme_images/FOV_Square.png" width="300"> &nbsp;
-    <img src="_docs/readme_images/FOV_Circle.png" width="300"> &nbsp;
-    <img src="_docs/readme_images/FOV_Diamond.png" width="300"> &nbsp;
-    <img src="_docs/readme_images/FOV_Octal.png" width="300">
-</p>
-
 ## Detalhes de Implementação
+
+Projeto pessoal em desenvolvimento. Para executar, use:
+
+```python
+python3 -m pip install -U pygame --user
+python3 main.py
+```
 
 ### Algoritmo de Passeio Aleatório
 
@@ -130,11 +78,11 @@ Trabalho Futuro
 
 ### Dependências
 
-Pygame [^32]: para implementação de recursos básicos como janela, tratamento de imagens, etc.
+Densevolvimento em Python 3 com Pygame [^32] para implementação de recursos básicos como janela, tratamento de imagens, etc.
 
 ```pip3 install pygame```
 
-Todas as imagens são de autoria própria, reservada.
+Todas as imagens são de autoria própria.
 
 Todas as músicas, sons e fontes foram obtidas como licença GPL. Para cada recurso, indicamos o link usado para obtenção e incluímos a licença associada, sempre que disponível. Caso algum autor seja contra o uso de seu material, entre em contato para remoção do conteúdo.
 

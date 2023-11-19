@@ -105,7 +105,7 @@ def update():
     map: Map = ECS.scene.retrieve("map")
     width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
-    for entity in entities:
+    for entity in sorted(entities, key = lambda entity: entity[Renderable.id].render_order, reverse = True):
         position: Position = entity[Position.id]
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
@@ -115,7 +115,7 @@ def update():
     
 
 def main():
-    device = Device("Picnic in the Dungeon", tick=12, width=1280, height=640)
+    device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./_resources/_roguelike/gadaj.otf", 16)

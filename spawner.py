@@ -38,7 +38,7 @@ def createPlayer(scene:Scene, x:int, y:int) -> Entity:
     font = scene.retrieve("font")
     player = scene.create()
     player.add(Position(x, y))
-    player.add(Renderable(Glyph(background, font, "@")))
+    player.add(Renderable(Glyph(background, font, "@"), 0))
     player.add(Player())
     player.add(Viewshed(8))
     player.add(CombatStats(30, 2, 5))
@@ -69,7 +69,7 @@ def createGoblin(scene:Scene, x:int, y:int) -> Entity:
 def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
     background = scene.retrieve("background")
     font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, glyph))
+    render = Renderable(Glyph(background, font, glyph), 1)
     render.glyph.foreground = (255, 0, 0, 255)
     monster = scene.create()
     monster.add(Position(x,y))
@@ -86,7 +86,7 @@ def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
 def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
     background = scene.retrieve("background")
     font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, 'i'))
+    render = Renderable(Glyph(background, font, 'i'), 2)
     render.glyph.foreground = (255, 0, 0, 255)
     potion = scene.create()
     potion.add(Position(x,y))

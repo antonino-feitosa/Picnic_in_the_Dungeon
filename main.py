@@ -1,15 +1,15 @@
 
 from enum import Enum
 from algorithms import Random, Point
-from component import Glyph, Player, Position, Renderable, Name, WantsToDrinkPotion
+from component import Glyph, Player, Position, Renderable, Name, WantsToDrinkPotion, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device
 from map import drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
-from system.guiSystem import ItemMenuResult, guiSystem, showInventory
-from system.inventorySystem import itemCollectionSystem, potionUseSystem
+from system.guiSystem import ItemMenuResult, dropItemMenu, guiSystem, showInventory
+from system.inventorySystem import itemCollectionSystem, itemDropSystem, potionUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
@@ -22,6 +22,7 @@ class RunState(Enum):
     PlayerTurn = 1
     MonsterTurn = 2
     ShowInventory = 3
+    DropItem = 4
 
 runState = RunState.PlayerTurn
 
@@ -49,6 +50,8 @@ def playerInput(keys: set[str]) -> RunState:
             return RunState.WaitingInput
     elif "i" in keys:
         return RunState.ShowInventory
+    elif "d" in keys:
+        return RunState.DropItem
     else:
         return RunState.WaitingInput
     return RunState.PlayerTurn
@@ -65,6 +68,7 @@ def runSystems():
     mapIndexSystem()
     itemCollectionSystem()
     potionUseSystem()
+    itemDropSystem()
 
 def update():
     global runState
@@ -86,6 +90,14 @@ def update():
         elif result == ItemMenuResult.Selected and entity is not None:
             player:Entity = ECS.scene.retrieve('player')
             player.add(WantsToDrinkPotion(entity))
+            runState = RunState.PlayerTurn
+    elif runState == RunState.DropItem:
+        result, entity = dropItemMenu(ECS.context.keys)
+        if result == ItemMenuResult.Cancel:
+            runState = RunState.WaitingInput
+        elif result == ItemMenuResult.Selected and entity is not None:
+            player:Entity = ECS.scene.retrieve('player')
+            player.add(WantsToDropItem(entity))
             runState = RunState.PlayerTurn
 
 

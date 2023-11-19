@@ -199,3 +199,11 @@ class WantsToDrinkPotion(Component):
     def __init__(self, potion:Entity):
         super().__init__(WantsToDrinkPotion.id)
         self.potion = potion
+
+class WantsToDropItem(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['item']
+
+    def __init__(self, item:Entity):
+        super().__init__(WantsToDropItem.id)
+        self.item = item

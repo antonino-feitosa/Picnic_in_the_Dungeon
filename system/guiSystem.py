@@ -91,3 +91,35 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
             return (ItemMenuResult.Selected, item)
 
     return (ItemMenuResult.NoResponse, None)
+
+
+
+def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
+    ux, uy = ECS.scene.retrieve("pixels unit")
+    player:Entity = ECS.scene.retrieve('player')
+    font:Font = ECS.scene.retrieve('font')
+    items = ECS.scene.filter(InBackpack.id | Item.id)
+    items = [item for item in items if item[InBackpack.id].owner == player]
+    index = ord('a')
+    y = 200
+    x = 400
+    font.background = (255, 255, 255, 255)
+    font.foreground = (127, 0, 127, 255)
+    font.drawAtScreen('  Drop Which Item? (ESC to cancel)', x, y)
+    y += uy
+    y += uy
+    for item in items:
+        itemName:Name = item[Name.id]
+        font.drawAtScreen(f' ({chr(index)}): {itemName.name}', x, y)
+        index += 1
+        y += uy
+    
+    if 'escape' in keys:
+        return (ItemMenuResult.Cancel, None)
+
+    index = ord('a')
+    for item in items:
+        if chr(index) in keys:
+            return (ItemMenuResult.Selected, item)
+
+    return (ItemMenuResult.NoResponse, None)

@@ -1,6 +1,6 @@
 
-from component import CombatStats, InBackpack, Name, Player, Position, Potion, WantsToDrinkPotion, WantsToPickupItem
-from core import ECS
+from component import CombatStats, InBackpack, Name, Player, Position, Potion, WantsToDrinkPotion, WantsToDropItem, WantsToPickupItem
+from core import ECS, Entity
 from utils import Logger
 
 
@@ -30,3 +30,17 @@ def potionUseSystem():
         ECS.scene.destroy(wants.potion)
         entity.remove(WantsToDrinkPotion.id)
         
+
+def itemDropSystem():
+    entities = ECS.scene.filter(Name.id | WantsToDropItem.id)
+    logger:Logger = ECS.scene.retrieve("logger")
+    player:Entity = ECS.scene.retrieve('player')
+    for entity in entities:
+        position = entity[Position.id]
+        wants:WantsToDropItem = entity[WantsToDropItem.id]
+        item:Entity = wants.item
+        item.add(Position(position.x, position.y))
+        item.remove(InBackpack.id)
+        entity.remove(WantsToDropItem.id)
+        if entity == player:
+            logger.log(f"You drop the {item[Name.id].name}.")

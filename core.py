@@ -71,6 +71,11 @@ class Entity:
     def __getitem__(self, signature: int) -> Any:
         return self.get(signature)
 
+    def __eq__(self, other: "Entity"):
+        return other is not None and self.id == other.id
+    
+    def __hash__(self) -> int:
+        return self.id
 
 
 class Scene:

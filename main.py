@@ -1,14 +1,15 @@
+
 from enum import Enum
 from algorithms import Random, Point
-from component import BlocksTile, CombatStats, GUIDescription, Glyph, Monster, Name, Player, Position, Renderable, Viewshed
-from core import ECS, Context, Scene
-from device import Device, Font
+from component import Glyph, Player, Position, Renderable, Name, WantsToDrinkPotion
+from core import ECS, Context, Entity, Scene
+from device import Device
 from map import drawMap, Map
 from player import getItem, tryMovePlayer
-from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, createRandomMonster, spawnRoom
+from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
-from system.guiSystem import guiSystem
-from system.inventorySystem import itemCollectionSystem
+from system.guiSystem import ItemMenuResult, guiSystem, showInventory
+from system.inventorySystem import itemCollectionSystem, potionUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
@@ -18,18 +19,20 @@ from utils import Logger
 
 class RunState(Enum):
     WaitingInput = 0,
-    Running = 1
+    PlayerTurn = 1
+    MonsterTurn = 2
+    ShowInventory = 3
 
-runState = RunState.Running
+runState = RunState.PlayerTurn
 
-def playerInput(keys: set[str]) -> bool:
-    if "up" in keys or "k" in keys or "[8]" in keys:
+def playerInput(keys: set[str]) -> RunState:
+    if "k" in keys or "[8]" in keys or "up" in keys:
         tryMovePlayer(0, -1)
-    elif "down" in keys or "j" in keys or "[2]" in keys:
+    elif "j" in keys or "[2]" in keys or "down" in keys:
         tryMovePlayer(0, +1)
-    elif "left" in keys or "h" in keys or "[4]" in keys:
+    elif "h" in keys or "[4]" in keys or "left" in keys:
         tryMovePlayer(-1, 0)
-    elif "right" in keys or "l" in keys or "[6]" in keys:
+    elif "l" in keys or "[6]" in keys or "right" in keys:
         tryMovePlayer(+1, 0)
     elif "y" in keys or "[9]" in keys:
         tryMovePlayer(+1, -1)
@@ -43,30 +46,48 @@ def playerInput(keys: set[str]) -> bool:
         if not getItem():
             logger:Logger = ECS.scene.retrieve("logger")
             logger.log("There is nothing here to pick up.")
-            return False
+            return RunState.WaitingInput
+    elif "i" in keys:
+        return RunState.ShowInventory
     else:
-        return False
-    return True
+        return RunState.WaitingInput
+    return RunState.PlayerTurn
 
+def runSystems():
+    global runState
+    visibilitySystem()
+    if runState == RunState.MonsterTurn:
+        monsterAISystem()
+    mapIndexSystem()
+    meleeCombatSystem()
+    damageSystem()
+    deleteTheDead()
+    mapIndexSystem()
+    itemCollectionSystem()
+    potionUseSystem()
 
 def update():
     global runState
     logger:Logger = ECS.scene.retrieve("logger")
     
-    if runState == RunState.Running:
-        visibilitySystem()
-        monsterAISystem()
-        mapIndexSystem()
-        meleeCombatSystem()
-        damageSystem()
-        deleteTheDead()
-        mapIndexSystem()
-        itemCollectionSystem()
+    if runState == RunState.PlayerTurn:
+        runSystems()
         logger.turn += 1
+        runState = RunState.MonsterTurn
+    elif runState == RunState.MonsterTurn:
+        runSystems()
         runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
-        if playerInput(ECS.context.keys):
-            runState = RunState.Running
+        runState = playerInput(ECS.context.keys)
+    elif runState == RunState.ShowInventory:
+        result, entity = showInventory(ECS.context.keys)
+        if result == ItemMenuResult.Cancel:
+            runState = RunState.WaitingInput
+        elif result == ItemMenuResult.Selected and entity is not None:
+            player:Entity = ECS.scene.retrieve('player')
+            player.add(WantsToDrinkPotion(entity))
+            runState = RunState.PlayerTurn
+
 
     drawMap()
     map: Map = ECS.scene.retrieve("map")

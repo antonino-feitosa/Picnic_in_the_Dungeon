@@ -1,6 +1,7 @@
 
+from enum import Enum
 from algorithms.point import Point
-from component import CombatStats, GUIDescription, Name, Player, Position, Viewshed
+from component import CombatStats, GUIDescription, InBackpack, Item, Name, Player, Position, Viewshed
 from core import ECS, Entity
 from device import Font
 from map import Map
@@ -55,3 +56,38 @@ def drawTooltips():
             font.background = (255, 255, 255, 255)
             font.foreground = (  0, 200,   0, 255)
             font.drawAtScreen(name, (point.x + 2) * ux, point.y * uy)
+
+class ItemMenuResult(Enum):
+    NoResponse = 0,
+    Cancel = 1
+    Selected = 2
+
+def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
+    ux, uy = ECS.scene.retrieve("pixels unit")
+    player:Entity = ECS.scene.retrieve('player')
+    font:Font = ECS.scene.retrieve('font')
+    items = ECS.scene.filter(InBackpack.id | Item.id)
+    items = [item for item in items if item[InBackpack.id].owner == player]
+    index = ord('a')
+    y = 200
+    x = 400
+    font.background = (255, 255, 255, 255)
+    font.foreground = (127, 0, 127, 255)
+    font.drawAtScreen('  Inventory (ESC to cancel)', x, y)
+    y += uy
+    y += uy
+    for item in items:
+        itemName:Name = item[Name.id]
+        font.drawAtScreen(f' ({chr(index)}): {itemName.name}', x, y)
+        index += 1
+        y += uy
+    
+    if 'escape' in keys:
+        return (ItemMenuResult.Cancel, None)
+
+    index = ord('a')
+    for item in items:
+        if chr(index) in keys:
+            return (ItemMenuResult.Selected, item)
+
+    return (ItemMenuResult.NoResponse, None)

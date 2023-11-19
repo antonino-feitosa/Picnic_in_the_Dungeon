@@ -191,3 +191,11 @@ class WantsToPickupItem(Component):
         self.collectedBy = collectedBy
         self.item = item
 
+
+class WantsToDrinkPotion(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['potion']
+
+    def __init__(self, potion:Entity):
+        super().__init__(WantsToDrinkPotion.id)
+        self.potion = potion

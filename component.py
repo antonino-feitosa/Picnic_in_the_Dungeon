@@ -64,10 +64,10 @@ class Renderable(Component):
     id = ECS.nextSignature()
     __slots__ = ["glyph", "render_order"]
 
-    def __init__(self, glyph: Glyph, render_order:int):
+    def __init__(self, glyph: Glyph, render_order: int):
         super().__init__(Renderable.id)
         self.glyph: Glyph = glyph
-        self.render_order:int = render_order
+        self.render_order: int = render_order
 
 
 class Player(Component):
@@ -99,9 +99,10 @@ class Name(Component):
     id = ECS.nextSignature()
     __slots__ = 'name'
 
-    def __init__(self, name:str):
+    def __init__(self, name: str):
         super().__init__(Name.id)
         self.name = name
+
 
 class BlocksTile(Component):
     id = ECS.nextSignature()
@@ -109,25 +110,27 @@ class BlocksTile(Component):
     def __init__(self):
         super().__init__(BlocksTile.id)
 
+
 class CombatStats(Component):
     id = ECS.nextSignature()
     __slots__ = ["maxHP", "HP", "defense", "power"]
 
-    def __init__(self, maxHP:int, defense:int, power:int):
+    def __init__(self, maxHP: int, defense: int, power: int):
         super().__init__(CombatStats.id)
         self.maxHP = maxHP
         self.HP = maxHP
         self.defense = defense
         self.power = power
-    
+
     def __repr__(self) -> str:
         return f"HP: {self.HP}/{self.maxHP} P:{self.power} D:{self.defense}"
+
 
 class WantsToMelee(Component):
     id = ECS.nextSignature()
     __slots__ = ["target"]
 
-    def __init__(self, target:Entity):
+    def __init__(self, target: Entity):
         super().__init__(WantsToMelee.id)
         self.target = target
 
@@ -136,14 +139,14 @@ class SufferDamage(Component):
     id = ECS.nextSignature()
     __slots__ = ["amount"]
 
-    def __init__(self, amount:int):
+    def __init__(self, amount: int):
         super().__init__(SufferDamage.id)
         self.amount = amount
 
 
-def doDamage(victim:Entity, amount:int):
+def doDamage(victim: Entity, amount: int):
     if victim.has(SufferDamage.id):
-        sufferDamage:SufferDamage = victim[SufferDamage.id]
+        sufferDamage: SufferDamage = victim[SufferDamage.id]
         sufferDamage.amount += amount
     else:
         victim.add(SufferDamage(amount))
@@ -153,7 +156,7 @@ class GUIDescription(Component):
     id = ECS.nextSignature()
     __slots__ = ["description"]
 
-    def __init__(self, description:list[str] = []):
+    def __init__(self, description: list[str] = []):
         super().__init__(GUIDescription.id)
         self.description = description
 
@@ -165,12 +168,12 @@ class Item(Component):
         super().__init__(Item.id)
 
 
-class Potion(Component):
+class ProvidesHealing(Component):
     id = ECS.nextSignature()
     __slots__ = 'heal_amount'
 
-    def __init__(self, amount:int):
-        super().__init__(Potion.id)
+    def __init__(self, amount: int):
+        super().__init__(ProvidesHealing.id)
         self.heal_amount = amount
 
 
@@ -178,7 +181,7 @@ class InBackpack(Component):
     id = ECS.nextSignature()
     __slots__ = 'owner'
 
-    def __init__(self, owner:Entity):
+    def __init__(self, owner: Entity):
         super().__init__(InBackpack.id)
         self.owner = owner
 
@@ -187,24 +190,32 @@ class WantsToPickupItem(Component):
     id = ECS.nextSignature()
     __slots__ = ['collectedBy', 'item']
 
-    def __init__(self, collectedBy:Entity, item:Entity):
+    def __init__(self, collectedBy: Entity, item: Entity):
         super().__init__(WantsToPickupItem.id)
         self.collectedBy = collectedBy
         self.item = item
 
 
-class WantsToDrinkPotion(Component):
+class WantsToUseItem(Component):
     id = ECS.nextSignature()
     __slots__ = ['potion']
 
-    def __init__(self, potion:Entity):
-        super().__init__(WantsToDrinkPotion.id)
+    def __init__(self, potion: Entity):
+        super().__init__(WantsToUseItem.id)
         self.potion = potion
+
 
 class WantsToDropItem(Component):
     id = ECS.nextSignature()
     __slots__ = ['item']
 
-    def __init__(self, item:Entity):
+    def __init__(self, item: Entity):
         super().__init__(WantsToDropItem.id)
         self.item = item
+
+
+class Consumable(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(Consumable.id)

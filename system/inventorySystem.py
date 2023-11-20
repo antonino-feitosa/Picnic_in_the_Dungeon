@@ -1,5 +1,5 @@
 
-from component import CombatStats, InBackpack, Name, Player, Position, Potion, WantsToDrinkPotion, WantsToDropItem, WantsToPickupItem
+from component import CombatStats, Consumable, InBackpack, Name, Player, Position, ProvidesHealing, WantsToUseItem, WantsToDropItem, WantsToPickupItem
 from core import ECS, Entity
 from utils import Logger
 
@@ -17,18 +17,23 @@ def itemCollectionSystem():
         itemName:Name = item[Name.id]
         logger.log(f"{name.name} pick up the {itemName.name}")
 
-def potionUseSystem():
-    entities = ECS.scene.filter(Name.id | WantsToDrinkPotion.id | CombatStats.id)
+def itemUseSystem():
+    entities = ECS.scene.filter(Name.id | WantsToUseItem.id | CombatStats.id)
     logger:Logger = ECS.scene.retrieve("logger")
     for entity in entities:
-        wants:WantsToDrinkPotion = entity[WantsToDrinkPotion.id]
+        wants:WantsToUseItem = entity[WantsToUseItem.id]
+        entityItem = wants.potion
         stats:CombatStats = entity[CombatStats.id]
-        potion:Potion = wants.potion[Potion.id]
-        stats.HP = min(stats.maxHP, stats.HP + potion.heal_amount)
-        if entity.has(Player.id):
-            logger.log(f"You drink the {wants.potion[Name.id].name}, healing {potion.heal_amount} hp.")
-        ECS.scene.destroy(wants.potion)
-        entity.remove(WantsToDrinkPotion.id)
+
+        if entityItem.has(ProvidesHealing.id):
+            potion:ProvidesHealing = wants.potion[ProvidesHealing.id]
+            stats.HP = min(stats.maxHP, stats.HP + potion.heal_amount)
+            if entity.has(Player.id):
+                logger.log(f"You drink the {entityItem[Name.id].name}, healing {potion.heal_amount} hp.")
+        
+        if entityItem.has(Consumable.id):
+            ECS.scene.destroy(entityItem)
+        entity.remove(WantsToUseItem.id)
         
 
 def itemDropSystem():

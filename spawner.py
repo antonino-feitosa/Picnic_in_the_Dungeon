@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import BlocksTile, CombatStats, GUIDescription, Glyph, Item, Monster, Name, Player, Position, Potion, Renderable, Viewshed
+from component import BlocksTile, CombatStats, Consumable, GUIDescription, Glyph, Item, Monster, Name, Player, Position, ProvidesHealing, Renderable, Viewshed
 from map import Rect
 
 
@@ -93,6 +93,7 @@ def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
     potion.add(render)
     potion.add(Name('Health Potion'))
     potion.add(Item())
-    potion.add(Potion(8))
+    potion.add(Consumable())
+    potion.add(ProvidesHealing(8))
     return potion
 

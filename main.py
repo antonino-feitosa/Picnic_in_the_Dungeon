@@ -1,7 +1,7 @@
 
 from enum import Enum
 from algorithms import Random, Point
-from component import Glyph, Player, Position, Renderable, Name, WantsToDrinkPotion, WantsToDropItem
+from component import Glyph, Player, Position, Renderable, Name, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device
 from map import drawMap, Map
@@ -9,7 +9,7 @@ from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
 from system.guiSystem import ItemMenuResult, dropItemMenu, guiSystem, showInventory
-from system.inventorySystem import itemCollectionSystem, itemDropSystem, potionUseSystem
+from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
@@ -67,7 +67,7 @@ def runSystems():
     deleteTheDead()
     mapIndexSystem()
     itemCollectionSystem()
-    potionUseSystem()
+    itemUseSystem()
     itemDropSystem()
 
 def update():
@@ -89,7 +89,7 @@ def update():
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and entity is not None:
             player:Entity = ECS.scene.retrieve('player')
-            player.add(WantsToDrinkPotion(entity))
+            player.add(WantsToUseItem(entity))
             runState = RunState.PlayerTurn
     elif runState == RunState.DropItem:
         result, entity = dropItemMenu(ECS.context.keys)

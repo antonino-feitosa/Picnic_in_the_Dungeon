@@ -2,7 +2,7 @@
 
 from algorithms import PathFinding, Point
 from algorithms.direction import Direction
-from component import Monster, Position, Viewshed, Name, WantsToMelee
+from component import Confusion, Monster, Position, Viewshed, Name, WantsToMelee
 from core import ECS, Entity
 from map import Map
 from utils import Logger
@@ -17,6 +17,19 @@ def monsterAISystem():
     logger:Logger = ECS.scene.retrieve("logger")
 
     for entity in entities:
+        if entity.has(Confusion.id):
+            confusion = entity[Confusion.id]
+            confusion.turns -= 1
+            if confusion.turns <= 0:
+                entity.remove(Confusion.id)
+            else:
+                view:Viewshed = entity[Viewshed.id]
+                name:Name = entity[Name.id]
+                position: Position = entity[Position.id]
+                if playerPoint in view.visibleTiles:
+                    logger.log(f"{name.name} is confused!")
+                break
+        
         view:Viewshed = entity[Viewshed.id]
         name:Name = entity[Name.id]
         position: Position = entity[Position.id]

@@ -1,6 +1,6 @@
 
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Consumable, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
+from component import AreaOfEffect, CombatStats, Confusion, Consumable, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
 from core import ECS, Entity
 from map import Map
 from utils import Logger
@@ -40,8 +40,15 @@ def itemUseSystem():
                         for entityTarget in content:
                             if entityTarget.has(CombatStats.id):
                                 targets.add(entityTarget)
+        elif wants.target is not None:
+            target = wants.target
+            content = map.tileContent[target] if target in map.tileContent else []
+            for entityTarget in content:
+                if entityTarget.has(CombatStats.id):
+                    targets.add(entityTarget)
         else:
             targets.add(entity)
+
 
         if entityItem.has(ProvidesHealing.id):
             for target in targets:
@@ -59,7 +66,18 @@ def itemUseSystem():
                         itemName:Name = entityItem[Name.id]
                         targetName:Name = target[Name.id]
                         logger.log(f"You use {itemName.name} on {targetName.name}, inflicting {inflicts.damage} hp.")
+
+        if entityItem.has(Confusion.id):
+            for target in targets:
+                if target.has(CombatStats.id):
+                    confusion:Confusion = entityItem[Confusion.id]
+                    target.add(Confusion(confusion.turns))
+                    if entity.has(Player.id):
+                        itemName:Name = entityItem[Name.id]
+                        targetName:Name = target[Name.id]
+                        logger.log(f"You use {itemName.name} on {targetName.name}, confusing them.")
         
+
         if entityItem.has(Consumable.id):
             ECS.scene.destroy(entityItem)
         entity.remove(WantsToUseItem.id)

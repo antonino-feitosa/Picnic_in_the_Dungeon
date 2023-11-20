@@ -247,3 +247,11 @@ class AreaOfEffect(Component):
     def __init__(self, radius: int):
         super().__init__(AreaOfEffect.id)
         self.radius = radius
+
+class Confusion(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['turns']
+
+    def __init__(self, turns: int):
+        super().__init__(Confusion.id)
+        self.turns = turns

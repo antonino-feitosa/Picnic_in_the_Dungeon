@@ -97,6 +97,7 @@ https://www.dafont.com/pt/haunting-spirits.font
 [ ] Apresentação dos tooltips quando monstro e um item ocupam o mesmo espaço.
 [ ] Se o usuário possuir muitos itens, alguns deles não serão apresentados na tela, pois a renderização assume uma tela infinita.
 [ ] Mensagens dificultam a visualização do mapa nas laterais.
+[ ] Falta feedback para uso de magias em posições vazias.
 
 
 <!--

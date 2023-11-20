@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Consumable, GUIDescription, Glyph, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, GUIDescription, Glyph, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
 from map import Rect
 
 
@@ -85,7 +85,7 @@ def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
 
 def createRandomItem(scene:Scene, x:int, y:int) -> Entity:
     rand:Random = scene.retrieve("rand")
-    index = rand.nextInt(3)
+    index = rand.nextInt(4)
     match index:
         case 0:
             return createHealthPotion(scene, x, y)
@@ -93,6 +93,8 @@ def createRandomItem(scene:Scene, x:int, y:int) -> Entity:
             return createMagicMissileScroll(scene, x, y)
         case 2:
             return createFireballScroll(scene, x, y)
+        case 3:
+            return createConfusionScroll(scene, x, y)
     raise Exception()
 
 
@@ -145,3 +147,20 @@ def createFireballScroll(scene:Scene, x:int, y:int) -> Entity:
     scroll.add(AreaOfEffect(3))
     scroll.add(GUIDescription())
     return scroll
+
+def createConfusionScroll(scene:Scene, x:int, y:int) -> Entity:
+    background = scene.retrieve("background")
+    font = scene.retrieve("font")
+    render = Renderable(Glyph(background, font, ')'), 2)
+    render.glyph.foreground = (255, 0, 0, 255)
+    scroll = scene.create()
+    scroll.add(Position(x,y))
+    scroll.add(render)
+    scroll.add(Name('Confusion Scroll'))
+    scroll.add(Item())
+    scroll.add(Consumable())
+    scroll.add(Ranged(6))
+    scroll.add(Confusion(4))
+    scroll.add(GUIDescription())
+    return scroll
+

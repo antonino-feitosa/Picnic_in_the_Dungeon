@@ -200,7 +200,7 @@ class WantsToUseItem(Component):
     id = ECS.nextSignature()
     __slots__ = ['item', 'target']
 
-    def __init__(self, potion: Entity, target:Point = Point()):
+    def __init__(self, potion: Entity, target:Point|None = None):
         super().__init__(WantsToUseItem.id)
         self.item = potion
         self.target = target
@@ -238,3 +238,12 @@ class InflictsDamage (Component):
     def __init__(self, damage: int):
         super().__init__(InflictsDamage .id)
         self.damage = damage
+
+
+class AreaOfEffect(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['radius']
+
+    def __init__(self, radius: int):
+        super().__init__(AreaOfEffect.id)
+        self.radius = radius

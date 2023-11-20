@@ -80,6 +80,21 @@ class Map:
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[Point(x,y)] = TileType.Floor
 
+    def newTestMap (self) -> None:
+        self.clearMap()
+        room1 = Rect(10, 5, 10, 10)
+        room2 = Rect(25, 5, 10, 10)
+        room3 = Rect(40, 5, 10, 10)
+        self.rooms.append(room1)
+        self.rooms.append(room2)
+        self.rooms.append(room3)
+        self.applyRoomToMap(room1)
+        self.applyRoomToMap(room2)
+        self.applyRoomToMap(room3)
+        self.applyHorizontalTunnel(15, 30, 10)
+        self.applyHorizontalTunnel(30, 45, 10)
+
+
     def newMapRoomsAndCorridors (self, rand: Random) -> None:
         self.clearMap()
 

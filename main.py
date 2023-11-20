@@ -18,12 +18,13 @@ from utils import Logger
 
 
 class RunState(Enum):
-    WaitingInput = 0,
-    PlayerTurn = 1
-    MonsterTurn = 2
-    ShowInventory = 3
-    DropItem = 4
-    ShowTargeting = 5
+    PreRun = 0
+    WaitingInput = 1
+    PlayerTurn = 2
+    MonsterTurn = 3
+    ShowInventory = 4
+    DropItem = 5
+    ShowTargeting = 6
 
 
 runState = RunState.PlayerTurn
@@ -68,13 +69,12 @@ def runSystems():
     if runState == RunState.MonsterTurn:
         monsterAISystem()
     mapIndexSystem()
-    meleeCombatSystem()
-    damageSystem()
-    deleteTheDead()
-    mapIndexSystem()
     itemCollectionSystem()
     itemUseSystem()
     itemDropSystem()
+    meleeCombatSystem()
+    damageSystem()
+    deleteTheDead()
 
 
 def update():
@@ -83,10 +83,10 @@ def update():
 
     if runState == RunState.PlayerTurn:
         runSystems()
-        logger.turn += 1
         runState = RunState.MonsterTurn
     elif runState == RunState.MonsterTurn:
         runSystems()
+        logger.turn += 1
         runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
@@ -136,7 +136,7 @@ def update():
 
 
 def main():
-    rand = Random(1)
+    rand = Random(0)
     device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
@@ -148,7 +148,8 @@ def main():
     pixelsUnit = 16
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
-    map.newMapRoomsAndCorridors(rand)
+    #map.newMapRoomsAndCorridors(rand)
+    map.newTestMap()
     xplayer, yplayer = map.rooms[0].center()
     logger = Logger(font, 10, 10, 300)
 

@@ -198,11 +198,12 @@ class WantsToPickupItem(Component):
 
 class WantsToUseItem(Component):
     id = ECS.nextSignature()
-    __slots__ = ['potion']
+    __slots__ = ['item', 'target']
 
-    def __init__(self, potion: Entity):
+    def __init__(self, potion: Entity, target:Point = Point()):
         super().__init__(WantsToUseItem.id)
-        self.potion = potion
+        self.item = potion
+        self.target = target
 
 
 class WantsToDropItem(Component):
@@ -219,3 +220,21 @@ class Consumable(Component):
 
     def __init__(self):
         super().__init__(Consumable.id)
+
+
+class Ranged(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['range']
+
+    def __init__(self, range: int):
+        super().__init__(Ranged.id)
+        self.range = range
+
+
+class InflictsDamage (Component):
+    id = ECS.nextSignature()
+    __slots__ = ['damage']
+
+    def __init__(self, damage: int):
+        super().__init__(InflictsDamage .id)
+        self.damage = damage

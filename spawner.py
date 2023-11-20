@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import BlocksTile, CombatStats, Consumable, GUIDescription, Glyph, Item, Monster, Name, Player, Position, ProvidesHealing, Renderable, Viewshed
+from component import BlocksTile, CombatStats, Consumable, GUIDescription, Glyph, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
 from map import Rect
 
 
@@ -29,7 +29,7 @@ def spawnRoom(scene:Scene, room:Rect):
         if count < numMonsters:
             createRandomMonster(scene, point.x, point.y)
         else:
-            createHealthPotion(scene, point.x, point.y)
+            createRandomItem(scene, point.x, point.y)
         count += 1
 
 
@@ -83,6 +83,17 @@ def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
     return monster
 
 
+def createRandomItem(scene:Scene, x:int, y:int) -> Entity:
+    rand:Random = scene.retrieve("rand")
+    index = rand.nextInt(2)
+    match index:
+        case 0:
+            return createHealthPotion(scene, x, y)
+        case 1:
+            return createMagicMissileScroll(scene, x, y)
+    raise Exception()
+
+
 def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
     background = scene.retrieve("background")
     font = scene.retrieve("font")
@@ -95,5 +106,22 @@ def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
     potion.add(Item())
     potion.add(Consumable())
     potion.add(ProvidesHealing(8))
+    potion.add(GUIDescription())
     return potion
 
+
+def createMagicMissileScroll(scene:Scene, x:int, y:int) -> Entity:
+    background = scene.retrieve("background")
+    font = scene.retrieve("font")
+    render = Renderable(Glyph(background, font, ')'), 2)
+    render.glyph.foreground = (255, 0, 0, 255)
+    scroll = scene.create()
+    scroll.add(Position(x,y))
+    scroll.add(render)
+    scroll.add(Name('Magic Missile Scroll'))
+    scroll.add(Item())
+    scroll.add(Consumable())
+    scroll.add(Ranged(6))
+    scroll.add(InflictsDamage(8))
+    scroll.add(GUIDescription())
+    return scroll

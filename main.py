@@ -1,14 +1,14 @@
 
 from enum import Enum
 from algorithms import Random, Point
-from component import Glyph, Player, Position, Renderable, Name, WantsToUseItem, WantsToDropItem
+from component import Glyph, Player, Position, Ranged, Renderable, Name, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device
 from map import drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
-from system.guiSystem import ItemMenuResult, dropItemMenu, guiSystem, showInventory
+from system.guiSystem import ItemMenuResult, dropItemMenu, guiSystem, rangedTarget, showInventory
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
@@ -23,8 +23,13 @@ class RunState(Enum):
     MonsterTurn = 2
     ShowInventory = 3
     DropItem = 4
+    ShowTargeting = 5
+
 
 runState = RunState.PlayerTurn
+targetingRange: int = 6
+targetingItem: Entity
+
 
 def playerInput(keys: set[str]) -> RunState:
     if "k" in keys or "[8]" in keys or "up" in keys:
@@ -45,7 +50,7 @@ def playerInput(keys: set[str]) -> RunState:
         tryMovePlayer(-1, +1)
     elif "g" in keys or "[5]" in keys:
         if not getItem():
-            logger:Logger = ECS.scene.retrieve("logger")
+            logger: Logger = ECS.scene.retrieve("logger")
             logger.log("There is nothing here to pick up.")
             return RunState.WaitingInput
     elif "i" in keys:
@@ -55,6 +60,7 @@ def playerInput(keys: set[str]) -> RunState:
     else:
         return RunState.WaitingInput
     return RunState.PlayerTurn
+
 
 def runSystems():
     global runState
@@ -70,10 +76,11 @@ def runSystems():
     itemUseSystem()
     itemDropSystem()
 
+
 def update():
     global runState
-    logger:Logger = ECS.scene.retrieve("logger")
-    
+    logger: Logger = ECS.scene.retrieve("logger")
+
     if runState == RunState.PlayerTurn:
         runSystems()
         logger.turn += 1
@@ -88,38 +95,52 @@ def update():
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and entity is not None:
-            player:Entity = ECS.scene.retrieve('player')
-            player.add(WantsToUseItem(entity))
-            runState = RunState.PlayerTurn
+            if entity.has(Ranged.id):
+                global targetingRange, targetingItem
+                ranged: Ranged = entity[Ranged.id]
+                targetingRange = ranged.range
+                targetingItem = entity
+                runState = RunState.ShowTargeting
+            else:
+                player: Entity = ECS.scene.retrieve('player')
+                player.add(WantsToUseItem(entity))
+                runState = RunState.PlayerTurn
     elif runState == RunState.DropItem:
         result, entity = dropItemMenu(ECS.context.keys)
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and entity is not None:
-            player:Entity = ECS.scene.retrieve('player')
+            player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToDropItem(entity))
             runState = RunState.PlayerTurn
-
+    elif runState == RunState.ShowTargeting:
+        result, point = rangedTarget(targetingRange)
+        if result == ItemMenuResult.Cancel:
+            runState = RunState.WaitingInput
+        elif result == ItemMenuResult.Selected and point is not None:
+            player: Entity = ECS.scene.retrieve('player')
+            player.add(WantsToUseItem(targetingItem, point))
+            runState = RunState.PlayerTurn
 
     drawMap()
     map: Map = ECS.scene.retrieve("map")
     width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
-    for entity in sorted(entities, key = lambda entity: entity[Renderable.id].render_order, reverse = True):
+    for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         position: Position = entity[Position.id]
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
             render.glyph.draw(position.x * width, position.y * height)
     guiSystem()
     logger.print()
-    
+
 
 def main():
+    rand = Random(1)
     device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./_resources/_roguelike/gadaj.otf", 16)
-    rand = Random(6)
     glyphWall = Glyph(background, font, "#")
     glyphWall.foreground = (0, 255, 0, 255)
     glyphFloor = Glyph(background, font, ".")
@@ -135,7 +156,7 @@ def main():
     scene.store("background", background)
     scene.store("font", font)
     scene.store("rand", rand)
-    
+
     scene.store("map", map)
     scene.store("glyph wall", glyphWall)
     scene.store("glyph floor", glyphFloor)
@@ -154,8 +175,10 @@ def main():
 
     device.onLoop.append(update)
     device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))
-    device.onMove.append(lambda x, y: setattr(ECS.context, 'mousePosition', Point(x,y)))
-    device.onClick.append(lambda pressed, x, y: setattr(ECS.context, 'mouseLeftPressed', pressed))
+    device.onMove.append(lambda x, y: setattr(
+        ECS.context, 'mousePosition', Point(x, y)))
+    device.onClick.append(lambda pressed, x, y: setattr(
+        ECS.context, 'mouseLeftPressed', pressed))
 
     while device.running:
         device.clear()

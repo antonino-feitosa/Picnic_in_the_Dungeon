@@ -98,7 +98,8 @@ https://www.dafont.com/pt/haunting-spirits.font
 [ ] Se o usuário possuir muitos itens, alguns deles não serão apresentados na tela, pois a renderização assume uma tela infinita.
 [ ] Mensagens dificultam a visualização do mapa nas laterais.
 [ ] Falta feedback para uso de magias em posições vazias.
-
+[ ] Feedback de alvos afetados por possível dano em área.
+[ ] Salvar estado do jogo com imagens. Imagens devem ser carregadas salvando somente uma referência para elas.
 
 <!--
 https://all-free-download.com/font/download/laizzier_comic_6911249.html

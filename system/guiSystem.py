@@ -1,10 +1,25 @@
 
+import os.path
+
 from enum import Enum
 from algorithms.point import Point
 from component import CombatStats, GUIDescription, InBackpack, Item, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Entity
 from device import Font
-from map import Map
+
+
+class ItemMenuResult(Enum):
+    NoResponse = 0
+    Cancel = 1
+    Selected = 2
+
+
+class MainMenuResult(Enum):
+    NoResponse = 0
+    Quit = 1
+    NewGame = 2
+    Continue = 3
+    About = 4
 
 
 def guiSystem():
@@ -58,10 +73,6 @@ def drawTooltips():
             font.drawAtScreen(name, (point.x + 2) * ux, point.y * uy)
 
 
-class ItemMenuResult(Enum):
-    NoResponse = 0
-    Cancel = 1
-    Selected = 2
 
 
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
@@ -146,3 +157,56 @@ def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Cancel, None)
     return (ItemMenuResult.NoResponse, None)
+
+
+
+waiting = 0
+menuState = 0
+def showMenu(keys: set[str]) -> MainMenuResult:
+    font: Font = ECS.scene.retrieve('font')
+    if "escape" in keys:
+        return MainMenuResult.Quit
+    else:
+        global menuState
+        if "return" in keys:
+            match menuState:
+                case 0: return MainMenuResult.NewGame
+                case 1: return MainMenuResult.Continue
+                case 3: return MainMenuResult.Quit
+        
+        existsSave = os.path.exists('./save.data')
+
+        global waiting
+        if waiting == 0:
+            waiting = 2
+            if "down" in keys or "[2]" in keys:
+                menuState = min(menuState + 1, 3)
+                if menuState == 1 and not existsSave:
+                    menuState = 2
+            if "up" in keys or "[8]" in keys:
+                menuState = max(menuState - 1, 0)
+                if menuState == 1 and not existsSave:
+                    menuState = 0
+        else:
+            waiting -= 1
+
+
+        text = ["New Game", "Continue", "About", "Quit"]
+        for i in range(0,4):
+            font.background = (0, 0, 0, 255)
+            font.foreground = (255, 255, 255, 255)
+            if menuState == i:
+                font.background = (127, 127, 127, 255)
+            if i == 1 and not existsSave:
+                font.foreground = (127, 127, 127, 255)
+            font.drawAtScreen(text[i], 200, 200 + i * 20)
+
+        font.background = (0, 0, 0, 255)
+        if menuState == 2:
+            font.drawAtScreen("Development: Antonino Feitosa", 400, 200)
+            font.drawAtScreen("antonino_feitosa@yahoo.com.br", 400, 220)
+            font.drawAtScreen("Font: GNU Unifont Glyphs (GNU GPLv2+)", 400, 260)
+            font.drawAtScreen("https://unifoundry.com/unifont/index.html", 400, 280)
+            font.drawAtScreen("Images: Antonino Feitosa", 400, 320)
+            
+    return MainMenuResult.NoResponse

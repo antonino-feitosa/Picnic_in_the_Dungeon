@@ -1,4 +1,6 @@
 
+import pickle
+
 from enum import Enum
 from algorithms import Random, Point
 from component import Glyph, Player, Position, Ranged, Renderable, Name, WantsToUseItem, WantsToDropItem
@@ -8,7 +10,7 @@ from map import drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
-from system.guiSystem import ItemMenuResult, dropItemMenu, guiSystem, rangedTarget, showInventory
+from system.guiSystem import ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
@@ -18,18 +20,13 @@ from utils import Logger
 
 
 class RunState(Enum):
-    PreRun = 0
+    MainMenu = 0
     WaitingInput = 1
     PlayerTurn = 2
     MonsterTurn = 3
     ShowInventory = 4
     DropItem = 5
     ShowTargeting = 6
-
-
-runState = RunState.PlayerTurn
-targetingRange: int = 6
-targetingItem: Entity
 
 
 def playerInput(keys: set[str]) -> RunState:
@@ -64,7 +61,7 @@ def playerInput(keys: set[str]) -> RunState:
 
 
 def runSystems():
-    global runState
+    runState: RunState = ECS.scene.retrieve("state")
     visibilitySystem()
     if runState == RunState.MonsterTurn:
         monsterAISystem()
@@ -78,15 +75,29 @@ def runSystems():
 
 
 def update():
-    global runState
+    global ECS
+    runState: RunState = ECS.scene.retrieve("state")
     logger: Logger = ECS.scene.retrieve("logger")
 
-    if runState == RunState.PlayerTurn:
+    if runState == RunState.MainMenu:
+        response = showMenu(ECS.context.keys)
+        if response == MainMenuResult.Quit:
+            exit(0)
+        elif response == MainMenuResult.NewGame:
+            ECS.scene.store("state", RunState.PlayerTurn)
+        elif response == MainMenuResult.Continue:
+            # with open("./save.data", "rb") as infile:  
+            #     ECS = pickle.load(infile)
+                ECS.scene.store("state", RunState.PlayerTurn)
+        return
+    elif runState == RunState.PlayerTurn:
         runSystems()
         runState = RunState.MonsterTurn
     elif runState == RunState.MonsterTurn:
         runSystems()
         logger.turn += 1
+        # with open("./save.data", "wb") as outfile:
+            # pickle.dump(ECS, outfile)
         runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
@@ -96,10 +107,9 @@ def update():
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and entity is not None:
             if entity.has(Ranged.id):
-                global targetingRange, targetingItem
                 ranged: Ranged = entity[Ranged.id]
-                targetingRange = ranged.range
-                targetingItem = entity
+                ECS.scene.store("targeting range", ranged.range)
+                ECS.scene.store("targeting element", entity)
                 runState = RunState.ShowTargeting
             else:
                 player: Entity = ECS.scene.retrieve('player')
@@ -114,13 +124,16 @@ def update():
             player.add(WantsToDropItem(entity))
             runState = RunState.PlayerTurn
     elif runState == RunState.ShowTargeting:
-        result, point = rangedTarget(targetingRange)
+        range: int = ECS.scene.retrieve("targeting range")
+        result, point = rangedTarget(range)
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and point is not None:
+            targeting: Entity = ECS.scene.retrieve("targeting element")
             player: Entity = ECS.scene.retrieve('player')
-            player.add(WantsToUseItem(targetingItem, point))
+            player.add(WantsToUseItem(targeting, point))
             runState = RunState.PlayerTurn
+    ECS.scene.store("state", runState)
 
     drawMap()
     map: Map = ECS.scene.retrieve("map")
@@ -140,7 +153,7 @@ def main():
     device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
-    font = device.loadFont("./_resources/_roguelike/gadaj.otf", 16)
+    font = device.loadFont("./_resources/_roguelike/unifont-15.1.04.otf", 16)
     glyphWall = Glyph(background, font, "#")
     glyphWall.foreground = (0, 255, 0, 255)
     glyphFloor = Glyph(background, font, ".")
@@ -148,12 +161,14 @@ def main():
     pixelsUnit = 16
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
-    #map.newMapRoomsAndCorridors(rand)
+    # map.newMapRoomsAndCorridors(rand)
     map.newTestMap()
     xplayer, yplayer = map.rooms[0].center()
     logger = Logger(font, 10, 10, 300)
 
     scene = Scene()
+    scene.store("state", RunState.MainMenu)
+
     scene.store("background", background)
     scene.store("font", font)
     scene.store("rand", rand)

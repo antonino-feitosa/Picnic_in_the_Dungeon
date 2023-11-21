@@ -41,6 +41,7 @@ def createPlayer(scene:Scene, x:int, y:int) -> Entity:
     player.add(Renderable(Glyph(background, font, "@"), 0))
     player.add(Player())
     player.add(Viewshed(8))
+    player.add(BlocksTile())
     player.add(CombatStats(30, 2, 5))
     player.add(Name("Player"))
     player.add(GUIDescription())

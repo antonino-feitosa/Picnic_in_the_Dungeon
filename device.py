@@ -22,12 +22,15 @@ class Image:
 
     def draw(self, x: int, y: int) -> None:
         self.device.drawImage(self, x, y)
+    
+    def fill(self, color:Color) -> None:
+        self.image.fill(color)
 
     def clone(self) -> "Image":
         image = self.image.copy()
         return Image(self.device, image)
 
-    def replaceColor(self, source: Color, destination: Color):
+    def replaceColor(self, source: Color, destination: Color) -> None:
         imageDest = self.image.copy()
         pygame.transform.threshold(
             imageDest, self.image, source, set_color=destination, inverse_set=True
@@ -53,41 +56,30 @@ class Font:
         self.font = font
         self.device = device
         self.foreground: Color = (0, 0, 0, 255)
-        self.background: Color = (0, 0, 0, 0)
+        self.background: Color = (0, 0, 0, 255)
+    
+    def _createImage(self, text:str) -> pygame.Surface:
+        image, _ = self.font.render(text, self.foreground, self.background)
+        return image
+    
+    def createImage(self, text:str) -> Image:
+        image, _ = self.font.render(text, self.foreground, self.background)
+        return Image(self.device, image)
 
     def drawAtImage(self, text: str, image: Image, x: int = 0, y: int = 0):
-        surface = self._createSurface(text)
+        surface = self._createImage(text)
         image.image.blit(surface, (x, y))
 
     def drawAtImageCenter(self, text: str, image: Image, xoff: int = 0, yoff=0):
-        surface = self._createSurface(text)
+        surface = self._createImage(text)
         x = (image.width - surface.get_width()) // 2 + xoff
         y = (image.height - surface.get_height()) // 2 + yoff
         image.image.blit(surface, (x, y))
 
     def drawAtScreen(self, text: str, x: int, y: int):
-        textSurface = self._createSurface(text)
+        textSurface = self._createImage(text)
         image = Image(self.device, textSurface)
         self.device.drawImage(image, x, y)
-
-    def _createSurface(self, text: str):
-        messages = text.split("\n")
-        renders = []
-        width, height = 0, 0
-        for msg in messages:
-            image, rect = self.font.render(msg, self.foreground, self.background)
-            renders.append(image)
-            if rect.width > width:
-                width = rect.width
-            if rect.height > height:
-                height = rect.height
-        dim = (width, height * len(renders))
-        canvas = pygame.Surface(dim, pygame.SRCALPHA)
-        y = 0
-        for render in renders:
-            canvas.blit(render, dest=(0, y))
-            y += height
-        return canvas
 
 
 class Sound:

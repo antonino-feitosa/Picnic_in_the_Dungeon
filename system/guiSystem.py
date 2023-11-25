@@ -26,11 +26,12 @@ def guiSystem():
     entities = ECS.scene.filter(GUIDescription.id | Position.id)
     player: Entity = ECS.scene.retrieve("player")
     font: Font = ECS.scene.retrieve("font")
+    (ux, uy) = ECS.scene.retrieve("pixels unit")
 
     font.background = (0, 0, 0, 255)
     font.foreground = (200, 200, 200, 255)
 
-    message = ''
+    messages = []
     for entity in sorted(entities, key=lambda e: 0 if e.has(Player.id) else e.id):
         space = ''
         showing = True
@@ -46,13 +47,15 @@ def guiSystem():
                 if entity.has(CombatStats.id):
                     combatStats: CombatStats = entity[CombatStats.id]
                     stats += ' ' + str(combatStats)
-                message += name.name + stats + '\n'
+                messages.append(name.name + stats)
 
             desc: GUIDescription = entity[GUIDescription.id]
             for msg in desc.description:
-                message += space + msg + '\n'
-            message += '\n'
-    font.drawAtScreen(message, 10, 10)
+                messages.append(space + msg)
+    
+    for i in range(len(messages)):
+        message = messages[i]
+        font.drawAtScreen(message, 10, 10 + i * uy)
     drawTooltips()
 
 

@@ -3,6 +3,7 @@ from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
 from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, GUIDescription, Glyph, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from device import Font, Image
 from map import Rect
 
 
@@ -34,11 +35,14 @@ def spawnRoom(scene:Scene, room:Rect):
 
 
 def createPlayer(scene:Scene, x:int, y:int) -> Entity:
-    background = scene.retrieve("background")
-    font = scene.retrieve("font")
+    background:Image = scene.retrieve("background")
+    image = background.clone()
+    font:Font = scene.retrieve("font")
+    font.drawAtImageCenter('@', image)
+    scene.store("player image", image)
     player = scene.create()
     player.add(Position(x, y))
-    player.add(Renderable(Glyph(background, font, "@"), 0))
+    player.add(Renderable("@", 0, (255, 255, 0, 255)))
     player.add(Player())
     player.add(Viewshed(8))
     player.add(BlocksTile())
@@ -68,13 +72,9 @@ def createGoblin(scene:Scene, x:int, y:int) -> Entity:
 
 
 def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
-    background = scene.retrieve("background")
-    font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, glyph), 1)
-    render.glyph.foreground = (255, 0, 0, 255)
     monster = scene.create()
     monster.add(Position(x,y))
-    monster.add(render)
+    monster.add(Renderable(glyph, 1, (255, 0, 0, 255)))
     monster.add(Viewshed(8))
     monster.add(Monster())
     monster.add(Name(name))
@@ -100,13 +100,9 @@ def createRandomItem(scene:Scene, x:int, y:int) -> Entity:
 
 
 def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
-    background = scene.retrieve("background")
-    font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, 'i'), 2)
-    render.glyph.foreground = (255, 0, 0, 255)
     potion = scene.create()
     potion.add(Position(x,y))
-    potion.add(render)
+    potion.add(Renderable("i", 2, (255, 0, 255, 255)))
     potion.add(Name('Health Potion'))
     potion.add(Item())
     potion.add(Consumable())
@@ -116,13 +112,9 @@ def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
 
 
 def createMagicMissileScroll(scene:Scene, x:int, y:int) -> Entity:
-    background = scene.retrieve("background")
-    font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, ')'), 2)
-    render.glyph.foreground = (255, 0, 0, 255)
     scroll = scene.create()
     scroll.add(Position(x,y))
-    scroll.add(render)
+    scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
     scroll.add(Name('Magic Missile Scroll'))
     scroll.add(Item())
     scroll.add(Consumable())
@@ -133,13 +125,9 @@ def createMagicMissileScroll(scene:Scene, x:int, y:int) -> Entity:
 
 
 def createFireballScroll(scene:Scene, x:int, y:int) -> Entity:
-    background = scene.retrieve("background")
-    font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, ')'), 2)
-    render.glyph.foreground = (255, 0, 0, 255)
     scroll = scene.create()
     scroll.add(Position(x,y))
-    scroll.add(render)
+    scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
     scroll.add(Name('Fireball Scroll'))
     scroll.add(Item())
     scroll.add(Consumable())
@@ -150,13 +138,9 @@ def createFireballScroll(scene:Scene, x:int, y:int) -> Entity:
     return scroll
 
 def createConfusionScroll(scene:Scene, x:int, y:int) -> Entity:
-    background = scene.retrieve("background")
-    font = scene.retrieve("font")
-    render = Renderable(Glyph(background, font, ')'), 2)
-    render.glyph.foreground = (255, 0, 0, 255)
     scroll = scene.create()
     scroll.add(Position(x,y))
-    scroll.add(render)
+    scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
     scroll.add(Name('Confusion Scroll'))
     scroll.add(Item())
     scroll.add(Consumable())

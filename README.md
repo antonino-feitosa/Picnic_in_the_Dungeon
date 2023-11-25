@@ -102,6 +102,16 @@ https://www.dafont.com/pt/haunting-spirits.font
 [ ] Salvar estado do jogo com imagens. Imagens devem ser carregadas salvando somente uma referência para elas.
 
 <!--
+
+https://fontesk.com/consola-mono-typeface/
+https://fontesk.com/tomorrow-typeface/
+https://fontesk.com/project-space-font/
+https://fontesk.com/fleuron-typeface/
+https://fontesk.com/kalmunt-font/
+
+https://www.gnu.org/software/freefont/
+
+
 https://all-free-download.com/font/download/laizzier_comic_6911249.html
 https://all-free-download.com/font/download/domestic_manners_6899401.html
 https://all-free-download.com/font/download/casa_sans_6898880.html

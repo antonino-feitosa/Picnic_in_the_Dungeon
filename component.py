@@ -62,12 +62,14 @@ class Position(Component):
 
 class Renderable(Component):
     id = ECS.nextSignature()
-    __slots__ = ["glyph", "render_order"]
+    __slots__ = ["render_order", "glyph", "foreground", "background"]
 
-    def __init__(self, glyph: Glyph, render_order: int):
+    def __init__(self, glyph: str, render_order: int, foreground: Color = (255, 255, 255, 255)):
         super().__init__(Renderable.id)
-        self.glyph: Glyph = glyph
+        self.glyph: str = glyph
         self.render_order: int = render_order
+        self.foreground: Color = foreground
+        self.background: Color = (0, 0, 0, 255)
 
 
 class Player(Component):

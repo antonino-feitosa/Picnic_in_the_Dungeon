@@ -5,7 +5,7 @@ from enum import Enum
 from algorithms import Random, Point
 from component import Glyph, Player, Position, Ranged, Renderable, Name, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
-from device import Device
+from device import Device, Font, Image
 from map import drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
@@ -136,6 +136,8 @@ def update():
     ECS.scene.store("state", runState)
 
     drawMap()
+    font:Font = ECS.scene.retrieve("font")
+    background:Image = ECS.scene.retrieve("background")
     map: Map = ECS.scene.retrieve("map")
     width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
@@ -143,7 +145,11 @@ def update():
         position: Position = entity[Position.id]
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
-            render.glyph.draw(position.x * width, position.y * height)
+            image = background.clone()
+            font.foreground = render.foreground
+            image.fill(render.background)
+            font.drawAtImageCenter(render.glyph, image)
+            image.draw(position.x * width, position.y * height)
     guiSystem()
     logger.print()
 
@@ -153,7 +159,7 @@ def main():
     device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
-    font = device.loadFont("./_resources/_roguelike/unifont-15.1.04.otf", 16)
+    font = device.loadFont("./art/ConsolaMono-Bold.ttf", 16)
     glyphWall = Glyph(background, font, "#")
     glyphWall.foreground = (0, 255, 0, 255)
     glyphFloor = Glyph(background, font, ".")

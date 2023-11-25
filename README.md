@@ -93,7 +93,6 @@ https://www.dafont.com/pt/haunting-spirits.font
 
 ### Problemas
 
-[ ] Renderização do texto da interface gráfica não sobrescreve o desenho do mapa.
 [ ] Apresentação dos tooltips quando monstro e um item ocupam o mesmo espaço.
 [ ] Se o usuário possuir muitos itens, alguns deles não serão apresentados na tela, pois a renderização assume uma tela infinita.
 [ ] Mensagens dificultam a visualização do mapa nas laterais.

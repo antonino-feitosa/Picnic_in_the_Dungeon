@@ -3,7 +3,7 @@ import pickle
 
 from enum import Enum
 from algorithms import Random, Point
-from component import Glyph, Player, Position, Ranged, Renderable, Name, WantsToUseItem, WantsToDropItem
+from component import Position, Ranged, Renderable, Name, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from map import drawMap, Map
@@ -73,8 +73,7 @@ def runSystems():
     damageSystem()
     deleteTheDead()
 
-
-def update():
+def processGameStates():
     global ECS
     runState: RunState = ECS.scene.retrieve("state")
     logger: Logger = ECS.scene.retrieve("logger")
@@ -101,7 +100,14 @@ def update():
         runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
-    elif runState == RunState.ShowInventory:
+    ECS.scene.store("state", runState)
+
+
+def processInventoryStates():
+    global ECS
+    runState: RunState = ECS.scene.retrieve("state")
+
+    if runState == RunState.ShowInventory:
         result, entity = showInventory(ECS.context.keys)
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
@@ -135,6 +141,9 @@ def update():
             runState = RunState.PlayerTurn
     ECS.scene.store("state", runState)
 
+
+def update():
+    processGameStates()
     drawMap()
     font:Font = ECS.scene.retrieve("font")
     background:Image = ECS.scene.retrieve("background")
@@ -150,6 +159,9 @@ def update():
             image.fill(render.background)
             font.drawAtImageCenter(render.glyph, image)
             image.draw(position.x * width, position.y * height)
+
+    processInventoryStates()
+    logger: Logger = ECS.scene.retrieve("logger")
     guiSystem()
     logger.print()
 
@@ -160,10 +172,6 @@ def main():
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/ConsolaMono-Bold.ttf", 16)
-    glyphWall = Glyph(background, font, "#")
-    glyphWall.foreground = (0, 255, 0, 255)
-    glyphFloor = Glyph(background, font, ".")
-    glyphFloor.foreground = (127, 127, 127, 255)
     pixelsUnit = 16
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
@@ -180,8 +188,6 @@ def main():
     scene.store("rand", rand)
 
     scene.store("map", map)
-    scene.store("glyph wall", glyphWall)
-    scene.store("glyph floor", glyphFloor)
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
     scene.store("logger", logger)
     scene.store("turn", 1)

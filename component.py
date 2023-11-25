@@ -4,46 +4,6 @@ from core import ECS, Component, Entity
 from device import Color, Font, Image
 
 
-class Glyph:
-    def __init__(self, image, font, glyph):
-        self.image: Image = image
-        self.font: Font = font
-        self.glyph: str = glyph
-        self._foreground: Color = (255, 255, 255, 255)
-        self._background: Color = (0, 0, 0, 0)
-        self._glyphImage: Image
-        self.update()
-
-    @property
-    def foreground(self):
-        return self._foreground
-
-    @foreground.setter
-    def foreground(self, value):
-        if value != self._foreground:
-            self._foreground = value
-            self.update()
-
-    @property
-    def background(self):
-        return self._foreground
-
-    @background.setter
-    def background(self, value):
-        if value != self._background:
-            self._background = value
-            self.update()
-
-    def draw(self, x: int, y: int):
-        self._glyphImage.draw(x, y)
-
-    def update(self):
-        self._glyphImage = self.image.clone()
-        self.font.foreground = self._foreground
-        self.font.background = self._background
-        self.font.drawAtImageCenter(self.glyph, self._glyphImage)
-
-
 class Position(Component):
     id = ECS.nextSignature()
     __slots__ = "x", "y"

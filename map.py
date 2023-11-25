@@ -1,8 +1,8 @@
 from enum import Enum
 
 from algorithms import Random, Point
-from component import Glyph
 from core import ECS, Entity
+from device import Font, Image
 
 
 class TileType(Enum):
@@ -130,26 +130,35 @@ class Map:
 
 
 def drawMap():
-    glyphWall: Glyph = ECS.scene.retrieve("glyph wall")
-    glyphFloor: Glyph = ECS.scene.retrieve("glyph floor")
+    font:Font = ECS.scene.retrieve("font")
     map: Map = ECS.scene.retrieve("map")
+    background:Image = ECS.scene.retrieve("background")
     widthPixels, heightPixels = ECS.scene.retrieve("pixels unit")
-
-    glyphFloor.foreground = (127, 127, 127, 255)
-    glyphWall.foreground = (127, 127, 127, 255)
+    
+    font.foreground = (127, 127, 127, 255)
+    font.background = (0, 0, 0, 255)
+    floor = background.clone()
+    wall = background.clone()
+    font.drawAtImageCenter('.', floor)
+    font.drawAtImageCenter('#', wall)
+    
     for pos in map.revealedTiles:
         if pos not in map.visibleTiles:
             tile = map.tiles[Point(pos.x, pos.y)]
             if tile == TileType.Floor:
-                glyphFloor.draw(pos.x * widthPixels, pos.y * heightPixels)
+                floor.draw(pos.x * widthPixels, pos.y * heightPixels)
             if tile == TileType.Wall:
-                glyphWall.draw(pos.x * widthPixels, pos.y * heightPixels)
-    
-    glyphFloor.foreground = (0, 127, 127, 255)
-    glyphWall.foreground = (0, 255, 0, 255)
+                wall.draw(pos.x * widthPixels, pos.y * heightPixels)
+
+    wall.fill((0,0,0,255))
+    floor.fill((0,0,0,255))
+    font.foreground = (0, 127, 127, 255)
+    font.drawAtImageCenter('.', floor)
+    font.foreground = (0, 255, 0, 255)
+    font.drawAtImageCenter('#', wall)
     for pos in map.visibleTiles:
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:
-            glyphFloor.draw(pos.x * widthPixels, pos.y * heightPixels)
+            floor.draw(pos.x * widthPixels, pos.y * heightPixels)
         if tile == TileType.Wall:
-            glyphWall.draw(pos.x * widthPixels, pos.y * heightPixels)
+            wall.draw(pos.x * widthPixels, pos.y * heightPixels)

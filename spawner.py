@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, GUIDescription, Glyph, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, GUIDescription, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
 from device import Font, Image
 from map import Rect
 

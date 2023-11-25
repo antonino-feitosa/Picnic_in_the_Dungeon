@@ -3,7 +3,7 @@ import pickle
 
 from enum import Enum
 from algorithms import Random, Point
-from component import Position, Ranged, Renderable, Name, WantsToUseItem, WantsToDropItem
+from component import Player, Position, Ranged, Renderable, Name, Viewshed, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from map import drawMap, Map
@@ -74,29 +74,24 @@ def runSystems():
     deleteTheDead()
 
 def processGameStates():
-    global ECS
     runState: RunState = ECS.scene.retrieve("state")
-    logger: Logger = ECS.scene.retrieve("logger")
-
     if runState == RunState.MainMenu:
         response = showMenu(ECS.context.keys)
         if response == MainMenuResult.Quit:
             exit(0)
         elif response == MainMenuResult.NewGame:
-            ECS.scene.store("state", RunState.PlayerTurn)
+            runState = RunState.PlayerTurn
         elif response == MainMenuResult.Continue:
-            # with open("./save.data", "rb") as infile:  
-            #     ECS = pickle.load(infile)
-                ECS.scene.store("state", RunState.PlayerTurn)
-        return
+            loadState()
+            runState = RunState.WaitingInput
     elif runState == RunState.PlayerTurn:
         runSystems()
         runState = RunState.MonsterTurn
     elif runState == RunState.MonsterTurn:
         runSystems()
-        logger.turn += 1
-        # with open("./save.data", "wb") as outfile:
-            # pickle.dump(ECS, outfile)
+        turn:int = ECS.scene.retrieve("turn")
+        ECS.scene.store("turn", turn + 1)
+        saveState()
         runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
@@ -104,7 +99,6 @@ def processGameStates():
 
 
 def processInventoryStates():
-    global ECS
     runState: RunState = ECS.scene.retrieve("state")
 
     if runState == RunState.ShowInventory:
@@ -144,6 +138,10 @@ def processInventoryStates():
 
 def update():
     processGameStates()
+    runState: RunState = ECS.scene.retrieve("state")
+    if runState == RunState.MainMenu:
+        return
+
     drawMap()
     font:Font = ECS.scene.retrieve("font")
     background:Image = ECS.scene.retrieve("background")
@@ -164,6 +162,34 @@ def update():
     logger: Logger = ECS.scene.retrieve("logger")
     guiSystem()
     logger.print()
+
+
+def saveState():
+    data = dict()
+    logger: Logger = ECS.scene.retrieve("logger")
+    data["state"] = ECS.scene.retrieve("state")
+    data["turn"] = ECS.scene.retrieve("turn")
+    data["map"] = ECS.scene.retrieve("map")
+    data["logger messages"] = logger.messages
+    data["entitities"] = ECS.scene.entities
+    with open("./save.data", "wb") as outfile:
+        pickle.dump(data, outfile)
+
+
+def loadState():
+    logger: Logger = ECS.scene.retrieve("logger")
+    with open("./save.data", "rb") as infile:  
+        data = pickle.load(infile)
+        logger.messages = data["logger messages"]
+        ECS.scene.store("state", data["state"])
+        ECS.scene.store("turn", data["turn"])
+        ECS.scene.store("map", data["map"])
+        ECS.scene.entities = data["entitities"]
+        player = ECS.scene.filter(Player.id)
+        player = list(player)[0]
+        ECS.scene.store("player", player)
+        viewshed:Viewshed = player[Viewshed.id]
+        viewshed.dirty = True
 
 
 def main():

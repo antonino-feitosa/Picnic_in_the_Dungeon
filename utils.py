@@ -4,7 +4,6 @@ from device import Color, Font
 
 class Logger:
     def __init__(self, font:Font, length:int, x:int, y:int):
-        self.turn = 1
         self.messages:list[str] = []
         self.x = x
         self.y = y
@@ -14,7 +13,8 @@ class Logger:
         self.length = length
     
     def log(self, message:str) -> None:
-        self.messages.append(f"Turn:{self.turn}: {message}")
+        turn = ECS.scene.retrieve("turn")
+        self.messages.append(f"Turn:{turn}: {message}")
         size = len(self.messages)
         if size > self.length:
             self.messages = self.messages[-self.length:]

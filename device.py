@@ -143,6 +143,7 @@ class Music:
 
 
 class Device:
+    # TODO context
     def __init__(self, title: str = "", tick=60, width=800, height=600):
         pygame.init()
         pygame.display.set_caption(title)

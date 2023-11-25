@@ -98,7 +98,6 @@ https://www.dafont.com/pt/haunting-spirits.font
 [ ] Mensagens dificultam a visualização do mapa nas laterais.
 [ ] Falta feedback para uso de magias em posições vazias.
 [ ] Feedback de alvos afetados por possível dano em área.
-[ ] Salvar estado do jogo com imagens. Imagens devem ser carregadas salvando somente uma referência para elas.
 
 <!--
 

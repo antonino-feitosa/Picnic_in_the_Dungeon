@@ -27,6 +27,7 @@ class RunState(Enum):
     ShowInventory = 4
     DropItem = 5
     ShowTargeting = 6
+    NextLevel = 7
 
 
 def playerInput(keys: set[str]) -> RunState:
@@ -55,6 +56,10 @@ def playerInput(keys: set[str]) -> RunState:
         return RunState.ShowInventory
     elif "d" in keys:
         return RunState.DropItem
+    elif '.' in keys:
+        # TODO
+        # Try Next Level
+        pass
     else:
         return RunState.WaitingInput
     return RunState.PlayerTurn

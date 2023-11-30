@@ -6,8 +6,9 @@ from device import Font, Image
 
 
 class TileType(Enum):
-    Wall = 0,
+    Wall = 0
     Floor = 1
+    DownStairs = 2
 
 
 class Rect:
@@ -44,6 +45,7 @@ class Map:
         self.rooms: list[Rect] = list()
         self.blocked: set[Point] = set()
         self.tileContent: dict[Point, list[Entity]] = dict()
+        self.depth = 1
 
     def clearMap(self) -> None:
         self.tiles.clear()
@@ -93,6 +95,8 @@ class Map:
         self.applyRoomToMap(room3)
         self.applyHorizontalTunnel(15, 30, 10)
         self.applyHorizontalTunnel(30, 45, 10)
+        center = room3.center()
+        self.tiles[Point(center[0], center[1])] = TileType.DownStairs
 
 
     def newMapRoomsAndCorridors (self, rand: Random) -> None:
@@ -123,6 +127,9 @@ class Map:
                         self.applyVerticalTunnel(yprev, ynew, xprev)
                         self.applyHorizontalTunnel(xprev, xnew, ynew)
                 self.rooms.append(newRoom)
+        lastRoom = self.rooms[-1]
+        center = lastRoom.center()
+        self.tiles[Point(center[0], center[1])] = TileType.DownStairs
 
 
         
@@ -139,8 +146,10 @@ def drawMap():
     font.background = (0, 0, 0, 255)
     floor = background.clone()
     wall = background.clone()
+    downStairs = background.clone()
     font.drawAtImageCenter('.', floor)
     font.drawAtImageCenter('#', wall)
+    font.drawAtImageCenter('>', downStairs)
     
     for pos in map.revealedTiles:
         if pos not in map.visibleTiles:
@@ -149,16 +158,23 @@ def drawMap():
                 floor.draw(pos.x * widthPixels, pos.y * heightPixels)
             if tile == TileType.Wall:
                 wall.draw(pos.x * widthPixels, pos.y * heightPixels)
+            if tile == TileType.DownStairs:
+                downStairs.draw(pos.x * widthPixels, pos.y * heightPixels)
 
     wall.fill((0,0,0,255))
     floor.fill((0,0,0,255))
+    downStairs.fill((0,0,0,255))
     font.foreground = (0, 127, 127, 255)
     font.drawAtImageCenter('.', floor)
     font.foreground = (0, 255, 0, 255)
     font.drawAtImageCenter('#', wall)
+    font.foreground = (0, 255, 255, 255)
+    font.drawAtImageCenter('>', downStairs)
     for pos in map.visibleTiles:
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:
             floor.draw(pos.x * widthPixels, pos.y * heightPixels)
         if tile == TileType.Wall:
             wall.draw(pos.x * widthPixels, pos.y * heightPixels)
+        if tile == TileType.DownStairs:
+            downStairs.draw(pos.x * widthPixels, pos.y * heightPixels)

@@ -6,6 +6,7 @@ from algorithms.point import Point
 from component import CombatStats, GUIDescription, InBackpack, Item, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Entity
 from device import Font
+from map import Map
 
 
 class ItemMenuResult(Enum):
@@ -26,12 +27,13 @@ def guiSystem():
     entities = ECS.scene.filter(GUIDescription.id | Position.id)
     player: Entity = ECS.scene.retrieve("player")
     font: Font = ECS.scene.retrieve("font")
-    (ux, uy) = ECS.scene.retrieve("pixels unit")
+    map:Map = ECS.scene.retrieve("map")
+    (_, uy) = ECS.scene.retrieve("pixels unit")
 
     font.background = (0, 0, 0, 255)
     font.foreground = (200, 200, 200, 255)
 
-    messages = []
+    messages = [f"Depth: {map.depth}"]
     for entity in sorted(entities, key=lambda e: 0 if e.has(Player.id) else e.id):
         space = ''
         showing = True
@@ -79,7 +81,7 @@ def drawTooltips():
 
 
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
-    ux, uy = ECS.scene.retrieve("pixels unit")
+    _, uy = ECS.scene.retrieve("pixels unit")
     player: Entity = ECS.scene.retrieve('player')
     font: Font = ECS.scene.retrieve('font')
     items = ECS.scene.filter(InBackpack.id | Item.id)
@@ -110,7 +112,7 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
 
 
 def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
-    ux, uy = ECS.scene.retrieve("pixels unit")
+    _, uy = ECS.scene.retrieve("pixels unit")
     player: Entity = ECS.scene.retrieve('player')
     font: Font = ECS.scene.retrieve('font')
     items = ECS.scene.filter(InBackpack.id | Item.id)

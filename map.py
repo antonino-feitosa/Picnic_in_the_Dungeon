@@ -45,7 +45,7 @@ class Map:
         self.rooms: list[Rect] = list()
         self.blocked: set[Point] = set()
         self.tileContent: dict[Point, list[Entity]] = dict()
-        self.depth = 1
+        self.depth = 0
 
     def clearMap(self) -> None:
         self.tiles.clear()
@@ -54,6 +54,7 @@ class Map:
         self.rooms.clear()
         self.blocked.clear()
         self.tileContent.clear()
+        self.depth = 0
         for row in range(0, self.height):
             for col in range(0, self.width):
                 self.tiles[Point(col, row)] = TileType.Wall
@@ -82,8 +83,9 @@ class Map:
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[Point(x,y)] = TileType.Floor
 
-    def newTestMap (self) -> None:
+    def newTestMap (self, depth:int) -> None:
         self.clearMap()
+        self.depth = depth
         room1 = Rect(10, 5, 10, 10)
         room2 = Rect(25, 5, 10, 10)
         room3 = Rect(40, 5, 10, 10)
@@ -99,8 +101,9 @@ class Map:
         self.tiles[Point(center[0], center[1])] = TileType.DownStairs
 
 
-    def newMapRoomsAndCorridors (self, rand: Random) -> None:
+    def newMapRoomsAndCorridors (self, depth:int, rand: Random) -> None:
         self.clearMap()
+        self.depth = depth
 
         maxRooms = 30
         minSize = 6

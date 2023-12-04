@@ -3,10 +3,10 @@ import pickle
 
 from enum import Enum
 from algorithms import Random, Point
-from component import Player, Position, Ranged, Renderable, Name, Viewshed, WantsToUseItem, WantsToDropItem
+from component import CombatStats, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
-from map import drawMap, Map
+from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
@@ -30,6 +30,44 @@ class RunState(Enum):
     NextLevel = 7
 
 
+def tryNextLevel() -> bool:
+    map:Map = ECS.scene.retrieve("map")
+    player:Entity = ECS.scene.retrieve("player")
+    position:Position = player.get(Position.id)
+    point = Point(position.x, position.y)
+    if point in map.tiles and map.tiles[point] == TileType.DownStairs:
+        return True
+    return False
+
+
+def gotoNextLevel() -> None:
+    player:Entity = ECS.scene.retrieve("player")
+    entities = ECS.scene.filter(InBackpack.id)
+    entities.add(player)
+    ECS.scene.entities = entities
+
+    currentMap:Map = ECS.scene.retrieve("map")
+    map = Map(MAP_WIDTH, MAP_HEIGHT)
+    # map.newMapRoomsAndCorridors(rand)
+    map.newTestMap(currentMap.depth + 1)
+    for room in map.rooms[1:]:
+        spawnRoom(ECS.scene, room)
+    ECS.scene.store("map", map)
+
+    xplayer, yplayer = map.rooms[0].center()
+    position:Position = player.get(Position.id)
+    position.x = xplayer
+    position.y = yplayer
+    viewshed:Viewshed = player.get(Viewshed.id)
+    viewshed.dirty = True
+
+    logger: Logger = ECS.scene.retrieve("logger")
+    logger.log("You descend to the next level, and take a moment to heal.")
+    stats:CombatStats = player.get(CombatStats.id)
+    stats.HP = max((stats.maxHP + 1) // 2, stats.HP)
+    
+
+
 def playerInput(keys: set[str]) -> RunState:
     if "k" in keys or "[8]" in keys or "up" in keys:
         tryMovePlayer(0, -1)
@@ -51,15 +89,16 @@ def playerInput(keys: set[str]) -> RunState:
         if not getItem():
             logger: Logger = ECS.scene.retrieve("logger")
             logger.log("There is nothing here to pick up.")
-            return RunState.WaitingInput
     elif "i" in keys:
         return RunState.ShowInventory
     elif "d" in keys:
         return RunState.DropItem
     elif '.' in keys:
-        # TODO
-        # Try Next Level
-        pass
+        if tryNextLevel():
+            return RunState.NextLevel
+        else:
+            logger: Logger = ECS.scene.retrieve("logger")
+            logger.log("There is no way down from here.")
     else:
         return RunState.WaitingInput
     return RunState.PlayerTurn
@@ -77,6 +116,7 @@ def runSystems():
     meleeCombatSystem()
     damageSystem()
     deleteTheDead()
+
 
 def processGameStates():
     runState: RunState = ECS.scene.retrieve("state")
@@ -100,6 +140,10 @@ def processGameStates():
         runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
+    elif runState == RunState.NextLevel:
+        gotoNextLevel()
+        runSystems()
+        runState = RunState.WaitingInput
     ECS.scene.store("state", runState)
 
 
@@ -207,7 +251,7 @@ def main():
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
     # map.newMapRoomsAndCorridors(rand)
-    map.newTestMap()
+    map.newTestMap(1)
     xplayer, yplayer = map.rooms[0].center()
     logger = Logger(font, 10, 10, 300)
 

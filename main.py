@@ -40,6 +40,20 @@ def tryNextLevel() -> bool:
     return False
 
 
+def skipTurn() -> None:
+    player:Entity = ECS.scene.retrieve("player")
+    map:Map = ECS.scene.retrieve("map")
+    canHeal = True
+    for pos in map.visibleTiles:
+        if pos in map.tileContent:
+            for entity in map.tileContent[pos]:
+                if not entity.has(Player.id) and entity.has(CombatStats.id):
+                    canHeal = False
+    if canHeal:
+        stats:CombatStats = player.get(CombatStats.id)
+        stats.HP = max(stats.maxHP, stats.HP + 1)
+
+
 def gotoNextLevel() -> None:
     player:Entity = ECS.scene.retrieve("player")
     entities = ECS.scene.filter(InBackpack.id)
@@ -99,6 +113,11 @@ def playerInput(keys: set[str]) -> RunState:
         else:
             logger: Logger = ECS.scene.retrieve("logger")
             logger.log("There is no way down from here.")
+            return RunState.WaitingInput
+    elif 'space' in keys:
+        skipTurn()
+        logger: Logger = ECS.scene.retrieve("logger")
+        logger.log("Turn skipped.")
     else:
         return RunState.WaitingInput
     return RunState.PlayerTurn

@@ -28,12 +28,13 @@ class RunState(Enum):
     DropItem = 5
     ShowTargeting = 6
     NextLevel = 7
+    GameOver = 8
 
 
 def tryNextLevel() -> bool:
-    map:Map = ECS.scene.retrieve("map")
-    player:Entity = ECS.scene.retrieve("player")
-    position:Position = player.get(Position.id)
+    map: Map = ECS.scene.retrieve("map")
+    player: Entity = ECS.scene.retrieve("player")
+    position: Position = player.get(Position.id)
     point = Point(position.x, position.y)
     if point in map.tiles and map.tiles[point] == TileType.DownStairs:
         return True
@@ -41,8 +42,8 @@ def tryNextLevel() -> bool:
 
 
 def skipTurn() -> None:
-    player:Entity = ECS.scene.retrieve("player")
-    map:Map = ECS.scene.retrieve("map")
+    player: Entity = ECS.scene.retrieve("player")
+    map: Map = ECS.scene.retrieve("map")
     canHeal = True
     for pos in map.visibleTiles:
         if pos in map.tileContent:
@@ -50,36 +51,36 @@ def skipTurn() -> None:
                 if not entity.has(Player.id) and entity.has(CombatStats.id):
                     canHeal = False
     if canHeal:
-        stats:CombatStats = player.get(CombatStats.id)
-        stats.HP = max(stats.maxHP, stats.HP + 1)
+        stats: CombatStats = player.get(CombatStats.id)
+        stats.HP = min(stats.maxHP, stats.HP + 1)
 
 
 def gotoNextLevel() -> None:
-    player:Entity = ECS.scene.retrieve("player")
+    rand:Random = ECS.scene.retrieve("random")
+    player: Entity = ECS.scene.retrieve("player")
     entities = ECS.scene.filter(InBackpack.id)
     entities.add(player)
     ECS.scene.entities = entities
 
-    currentMap:Map = ECS.scene.retrieve("map")
+    currentMap: Map = ECS.scene.retrieve("map")
     map = Map(MAP_WIDTH, MAP_HEIGHT)
-    # map.newMapRoomsAndCorridors(rand)
-    map.newTestMap(currentMap.depth + 1)
+    map.newMapRoomsAndCorridors(currentMap.depth + 1, rand)
+    #map.newTestMap(currentMap.depth + 1)
     for room in map.rooms[1:]:
-        spawnRoom(ECS.scene, room)
+        spawnRoom(ECS.scene, room, map.depth)
     ECS.scene.store("map", map)
 
     xplayer, yplayer = map.rooms[0].center()
-    position:Position = player.get(Position.id)
+    position: Position = player.get(Position.id)
     position.x = xplayer
     position.y = yplayer
-    viewshed:Viewshed = player.get(Viewshed.id)
+    viewshed: Viewshed = player.get(Viewshed.id)
     viewshed.dirty = True
 
     logger: Logger = ECS.scene.retrieve("logger")
     logger.log("You descend to the next level, and take a moment to heal.")
-    stats:CombatStats = player.get(CombatStats.id)
+    stats: CombatStats = player.get(CombatStats.id)
     stats.HP = max((stats.maxHP + 1) // 2, stats.HP)
-    
 
 
 def playerInput(keys: set[str]) -> RunState:
@@ -147,16 +148,21 @@ def processGameStates():
             runState = RunState.PlayerTurn
         elif response == MainMenuResult.Continue:
             loadState()
-            runState = RunState.WaitingInput
+            runState = ECS.scene.retrieve("state")
     elif runState == RunState.PlayerTurn:
         runSystems()
         runState = RunState.MonsterTurn
     elif runState == RunState.MonsterTurn:
         runSystems()
-        turn:int = ECS.scene.retrieve("turn")
-        ECS.scene.store("turn", turn + 1)
+        player: Entity = ECS.scene.retrieve("player")
+        stats: CombatStats = player.get(CombatStats.id)
+        if stats.HP <= 0:
+            runState = RunState.GameOver
+        else:
+            turn: int = ECS.scene.retrieve("turn")
+            ECS.scene.store("turn", turn + 1)
+            runState = RunState.WaitingInput
         saveState()
-        runState = RunState.WaitingInput
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
     elif runState == RunState.NextLevel:
@@ -211,8 +217,8 @@ def update():
         return
 
     drawMap()
-    font:Font = ECS.scene.retrieve("font")
-    background:Image = ECS.scene.retrieve("background")
+    font: Font = ECS.scene.retrieve("font")
+    background: Image = ECS.scene.retrieve("background")
     map: Map = ECS.scene.retrieve("map")
     width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
@@ -246,7 +252,7 @@ def saveState():
 
 def loadState():
     logger: Logger = ECS.scene.retrieve("logger")
-    with open("./save.data", "rb") as infile:  
+    with open("./save.data", "rb") as infile:
         data = pickle.load(infile)
         logger.messages = data["logger messages"]
         ECS.scene.store("state", data["state"])
@@ -256,7 +262,7 @@ def loadState():
         player = ECS.scene.filter(Player.id)
         player = list(player)[0]
         ECS.scene.store("player", player)
-        viewshed:Viewshed = player[Viewshed.id]
+        viewshed: Viewshed = player[Viewshed.id]
         viewshed.dirty = True
 
 
@@ -269,8 +275,8 @@ def main():
     pixelsUnit = 16
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
-    # map.newMapRoomsAndCorridors(rand)
-    map.newTestMap(1)
+    map.newMapRoomsAndCorridors(1, rand)
+    #map.newTestMap(1)
     xplayer, yplayer = map.rooms[0].center()
     logger = Logger(font, 10, 10, 300)
 
@@ -279,7 +285,7 @@ def main():
 
     scene.store("background", background)
     scene.store("font", font)
-    scene.store("rand", rand)
+    scene.store("random", rand)
 
     scene.store("map", map)
     scene.store("pixels unit", (pixelsUnit, pixelsUnit))
@@ -293,7 +299,7 @@ def main():
     scene.store("player", player)
 
     for room in map.rooms[1:]:
-        spawnRoom(scene, room)
+        spawnRoom(scene, room, 1)
 
     device.onLoop.append(update)
     device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))

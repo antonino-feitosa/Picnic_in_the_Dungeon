@@ -107,6 +107,7 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     for item in items:
         if chr(index) in keys:
             return (ItemMenuResult.Selected, item)
+        index += 1
 
     return (ItemMenuResult.NoResponse, None)
 

@@ -5,39 +5,58 @@ from algorithms import Random
 from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, GUIDescription, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
 from device import Font, Image
 from map import Rect
+from randomTable import RandomTable
 
 
 MAP_WIDTH = 80
 MAP_HEIGHT = 40
-MAX_MONSTERS = 1
-MAX_ITENS = 5
+MAX_MONSTERS = 4
 
 
-def spawnRoom(scene:Scene, room:Rect):
-    rand:Random = ECS.scene.retrieve('rand')
-    numMonsters = rand.nextInt(MAX_MONSTERS + 1)
-    numItens = rand.nextInt(MAX_ITENS + 1)
-    positions:set[Point] = set()
+def roomTable(depth:int) -> RandomTable:
+    table = RandomTable()
+    table.add("Goblin", 10)
+    table.add("Orc", 1 + depth)
+    table.add("Health Potion", 7)
+    table.add("Fireball Scroll", 2 + depth)
+    table.add("Confusion Scroll", 2 + depth)
+    table.add("Magic Missile Scroll", 4)
+    return table
+
+
+def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
+    rand: Random = ECS.scene.retrieve('random')
+    numMonsters = rand.nextRange(1, MAX_MONSTERS + 3) + (depth - 1) - 3
+    positions: set[tuple[Point, str]] = set()
+    spawnTable = roomTable(depth)
     errors = 10
-    while(len(positions) < numMonsters + numItens and errors > 0):
+
+    while (len(positions) < numMonsters and errors > 0):
         x = (room.x1 + 1) + rand.nextInt((room.x2 - room.x1) - 1)
         y = (room.y1 + 1) + rand.nextInt((room.y2 - room.y1) - 1)
-        point = Point(x,y)
+        point = Point(x, y)
         if point not in positions:
-            positions.add(point)
-    count = 0
-    for point in positions:
-        if count < numMonsters:
-            createRandomMonster(scene, point.x, point.y)
+            spawn = spawnTable.roll(rand)
+            positions.add((point, spawn))
         else:
-            createRandomItem(scene, point.x, point.y)
-        count += 1
+            errors -= 1
+
+    for (point, name) in positions:
+        x = point.x
+        y = point.y
+        match name:
+            case "Goblin": createGoblin(scene, x, y)
+            case "Orc": createGoblin(scene, x, y)
+            case "Health Potion": createHealthPotion(scene, x, y)
+            case "Fireball Scroll": createMagicMissileScroll(scene, x, y)
+            case "Confusion Scroll": createFireballScroll(scene, x, y)
+            case "Magic Missile Scroll": createConfusionScroll(scene, x, y)
 
 
-def createPlayer(scene:Scene, x:int, y:int) -> Entity:
-    background:Image = scene.retrieve("background")
+def createPlayer(scene: Scene, x: int, y: int) -> Entity:
+    background: Image = scene.retrieve("background")
     image = background.clone()
-    font:Font = scene.retrieve("font")
+    font: Font = scene.retrieve("font")
     font.drawAtImageCenter('@', image)
     scene.store("player image", image)
     player = scene.create()
@@ -52,28 +71,17 @@ def createPlayer(scene:Scene, x:int, y:int) -> Entity:
     return player
 
 
-def createRandomMonster(scene:Scene, x:int, y:int) -> Entity:
-    rand:Random = scene.retrieve("rand")
-    index = rand.nextInt(2)
-    match index:
-        case 0:
-            return createOrc(scene, x, y)
-        case 1:
-            return createGoblin(scene, x, y)
-    raise Exception()
-
-
-def createOrc(scene:Scene, x:int, y:int) -> Entity:
+def createOrc(scene: Scene, x: int, y: int) -> Entity:
     return createMonster(scene, x, y, 'o', 'Orc')
 
 
-def createGoblin(scene:Scene, x:int, y:int) -> Entity:
+def createGoblin(scene: Scene, x: int, y: int) -> Entity:
     return createMonster(scene, x, y, 'g', 'Goblin')
 
 
-def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
+def createMonster(scene: Scene, x: int, y: int, glyph: str, name: str) -> Entity:
     monster = scene.create()
-    monster.add(Position(x,y))
+    monster.add(Position(x, y))
     monster.add(Renderable(glyph, 1, (255, 0, 0, 255)))
     monster.add(Viewshed(8))
     monster.add(Monster())
@@ -84,24 +92,9 @@ def createMonster(scene:Scene, x:int, y:int, glyph:str, name:str) -> Entity:
     return monster
 
 
-def createRandomItem(scene:Scene, x:int, y:int) -> Entity:
-    rand:Random = scene.retrieve("rand")
-    index = rand.nextInt(4)
-    match index:
-        case 0:
-            return createHealthPotion(scene, x, y)
-        case 1:
-            return createMagicMissileScroll(scene, x, y)
-        case 2:
-            return createFireballScroll(scene, x, y)
-        case 3:
-            return createConfusionScroll(scene, x, y)
-    raise Exception()
-
-
-def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
+def createHealthPotion(scene: Scene, x: int, y: int) -> Entity:
     potion = scene.create()
-    potion.add(Position(x,y))
+    potion.add(Position(x, y))
     potion.add(Renderable("i", 2, (255, 0, 255, 255)))
     potion.add(Name('Health Potion'))
     potion.add(Item())
@@ -111,9 +104,9 @@ def createHealthPotion(scene:Scene, x:int, y:int) -> Entity:
     return potion
 
 
-def createMagicMissileScroll(scene:Scene, x:int, y:int) -> Entity:
+def createMagicMissileScroll(scene: Scene, x: int, y: int) -> Entity:
     scroll = scene.create()
-    scroll.add(Position(x,y))
+    scroll.add(Position(x, y))
     scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
     scroll.add(Name('Magic Missile Scroll'))
     scroll.add(Item())
@@ -124,9 +117,9 @@ def createMagicMissileScroll(scene:Scene, x:int, y:int) -> Entity:
     return scroll
 
 
-def createFireballScroll(scene:Scene, x:int, y:int) -> Entity:
+def createFireballScroll(scene: Scene, x: int, y: int) -> Entity:
     scroll = scene.create()
-    scroll.add(Position(x,y))
+    scroll.add(Position(x, y))
     scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
     scroll.add(Name('Fireball Scroll'))
     scroll.add(Item())
@@ -137,9 +130,10 @@ def createFireballScroll(scene:Scene, x:int, y:int) -> Entity:
     scroll.add(GUIDescription())
     return scroll
 
-def createConfusionScroll(scene:Scene, x:int, y:int) -> Entity:
+
+def createConfusionScroll(scene: Scene, x: int, y: int) -> Entity:
     scroll = scene.create()
-    scroll.add(Position(x,y))
+    scroll.add(Position(x, y))
     scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
     scroll.add(Name('Confusion Scroll'))
     scroll.add(Item())
@@ -148,4 +142,3 @@ def createConfusionScroll(scene:Scene, x:int, y:int) -> Entity:
     scroll.add(Confusion(4))
     scroll.add(GUIDescription())
     return scroll
-

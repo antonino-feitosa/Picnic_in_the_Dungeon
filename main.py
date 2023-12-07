@@ -3,7 +3,7 @@ import pickle
 
 from enum import Enum
 from algorithms import Random, Point
-from component import CombatStats, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToUseItem, WantsToDropItem
+from component import CombatStats, Equipped, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from map import TileType, drawMap, Map
@@ -58,8 +58,10 @@ def skipTurn() -> None:
 def gotoNextLevel() -> None:
     rand:Random = ECS.scene.retrieve("random")
     player: Entity = ECS.scene.retrieve("player")
+    equips = ECS.scene.filter(Equipped.id)
     entities = ECS.scene.filter(InBackpack.id)
     entities.add(player)
+    entities.update(equips)
     ECS.scene.entities = entities
 
     currentMap: Map = ECS.scene.retrieve("map")

@@ -106,14 +106,6 @@ class SufferDamage(Component):
         self.amount = amount
 
 
-def doDamage(victim: Entity, amount: int):
-    if victim.has(SufferDamage.id):
-        sufferDamage: SufferDamage = victim[SufferDamage.id]
-        sufferDamage.amount += amount
-    else:
-        victim.add(SufferDamage(amount))
-
-
 class GUIDescription(Component):
     id = ECS.nextSignature()
     __slots__ = ["description"]
@@ -217,3 +209,32 @@ class Confusion(Component):
     def __init__(self, turns: int):
         super().__init__(Confusion.id)
         self.turns = turns
+
+
+class Equippable(Component):
+    id = ECS.nextSignature()
+    MELEE = 0
+    SHIELD = 1
+    __slots__ = ['slot']
+    
+    def __init__(self, slot: int):
+        super().__init__(Equippable.id)
+        self.slot = slot
+
+
+class Equipped(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['owner', 'slot']
+
+    def __init__(self, owner: Entity, slot:int):
+        self.owner = owner
+        self.slot:int = slot
+    
+
+def doDamage(victim: Entity, amount: int):
+    if victim.has(SufferDamage.id):
+        sufferDamage: SufferDamage = victim[SufferDamage.id]
+        sufferDamage.amount += amount
+    else:
+        victim.add(SufferDamage(amount))
+

@@ -63,6 +63,7 @@ def guiSystem():
 
 # TODO item and monster at same position
 def drawTooltips():
+    map:Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Name.id | Renderable.id)
     (ux, uy) = ECS.scene.retrieve("pixels unit")
     font: Font = ECS.scene.retrieve("font")
@@ -70,7 +71,7 @@ def drawTooltips():
     point = Point(position.x // ux, position.y // uy)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         entityPosition: Position = entity[Position.id]
-        if point.x == entityPosition.x and point.y == entityPosition.y:
+        if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
             component: Name = entity[Name.id]
             name = ' ' + component.name + ' '
             font.background = (255, 255, 255, 255)
@@ -91,12 +92,13 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     x = 400
     font.background = (255, 255, 255, 255)
     font.foreground = (127, 0, 127, 255)
-    font.drawAtScreen('  Inventory (ESC to cancel)', x, y)
+    font.drawAtScreen('Inventory (ESC to cancel)'.center(40), x, y)
+    
     y += uy
     y += uy
     for item in items:
         itemName: Name = item[Name.id]
-        font.drawAtScreen(f' ({chr(index)}): {itemName.name}', x, y)
+        font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40) , x, y)
         index += 1
         y += uy
 
@@ -123,12 +125,12 @@ def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     x = 400
     font.background = (255, 255, 255, 255)
     font.foreground = (127, 0, 127, 255)
-    font.drawAtScreen('  Drop Which Item? (ESC to cancel)', x, y)
+    font.drawAtScreen('  Drop Which Item? (ESC to cancel)'.center(40), x, y)
     y += uy
     y += uy
     for item in items:
         itemName: Name = item[Name.id]
-        font.drawAtScreen(f' ({chr(index)}): {itemName.name}', x, y)
+        font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
         index += 1
         y += uy
 

@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, GUIDescription, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, Equippable, GUIDescription, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
 from device import Font, Image
 from map import Rect
 from randomTable import RandomTable
@@ -21,6 +21,8 @@ def roomTable(depth:int) -> RandomTable:
     table.add("Fireball Scroll", 2 + depth)
     table.add("Confusion Scroll", 2 + depth)
     table.add("Magic Missile Scroll", 4)
+    table.add("Dagger", 3)
+    table.add("Shield", 3)
     return table
 
 
@@ -51,6 +53,8 @@ def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
             case "Fireball Scroll": createMagicMissileScroll(scene, x, y)
             case "Confusion Scroll": createFireballScroll(scene, x, y)
             case "Magic Missile Scroll": createConfusionScroll(scene, x, y)
+            case "Dagger": createDagger(scene, x, y)
+            case "Shield": createShield(scene, x, y)
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:
@@ -142,3 +146,26 @@ def createConfusionScroll(scene: Scene, x: int, y: int) -> Entity:
     scroll.add(Confusion(4))
     scroll.add(GUIDescription())
     return scroll
+
+
+def createDagger(scene:Scene, x:int, y:int) -> Entity:
+    dagger = scene.create()
+    dagger.add(Position(x, y))
+    dagger.add(Renderable("/", 2, (0, 255, 255, 255)))
+    dagger.add(Name('Dagger'))
+    dagger.add(Item())
+    dagger.add(GUIDescription())
+    dagger.add(Equippable(Equippable.MELEE))
+    return dagger
+
+
+def createShield(scene:Scene, x:int, y:int) -> Entity:
+    shield = scene.create()
+    shield.add(Position(x, y))
+    shield.add(Renderable("(", 2, (0, 255, 255, 255)))
+    shield.add(Name('Shield'))
+    shield.add(Item())
+    shield.add(GUIDescription())
+    shield.add(Equippable(Equippable.SHIELD))
+    return shield
+

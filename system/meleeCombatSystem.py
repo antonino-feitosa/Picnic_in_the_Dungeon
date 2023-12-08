@@ -30,8 +30,6 @@ def meleeCombatSystem():
                     defenseBonus:DefenseBonus = defenseBonusEntity[DefenseBonus.id]
                     defensiveBonus += defenseBonus.defense
 
-            print("Offensive", offensiveBonus, "Defensive", defensiveBonus)
-
             targetName:Name = target[Name.id]
             targetStats:CombatStats = target[CombatStats.id]
             damage = (combatStats.power + offensiveBonus) - (targetStats.defense + defensiveBonus)

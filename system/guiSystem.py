@@ -27,7 +27,7 @@ def guiSystem():
     entities = ECS.scene.filter(GUIDescription.id | Position.id)
     player: Entity = ECS.scene.retrieve("player")
     font: Font = ECS.scene.retrieve("font")
-    map:Map = ECS.scene.retrieve("map")
+    map: Map = ECS.scene.retrieve("map")
     (_, uy) = ECS.scene.retrieve("pixels unit")
 
     font.background = (0, 0, 0, 255)
@@ -44,7 +44,7 @@ def guiSystem():
         if showing:
             if entity.has(Name.id):
                 space = '  '
-                
+
                 name = entity[Name.id]
                 stats = ''
                 if entity.has(CombatStats.id):
@@ -54,8 +54,8 @@ def guiSystem():
 
                 equips = ECS.scene.filter(Name.id | Equipped.id)
                 for equippedEntity in equips:
-                    equipped:Equipped = equippedEntity[Equipped.id]
-                    equippedName:Name = equippedEntity[Name.id]
+                    equipped: Equipped = equippedEntity[Equipped.id]
+                    equippedName: Name = equippedEntity[Name.id]
                     if equipped.owner == entity:
                         msg = f"    {equipped.slot}: {equippedName.name}"
                         messages.append(msg)
@@ -63,7 +63,7 @@ def guiSystem():
                 if entity.has(GUIDescription.id):
                     desc: GUIDescription = entity[GUIDescription.id]
                     messages.append(space + desc.description)
-    
+
     for i in range(len(messages)):
         message = messages[i]
         font.drawAtScreen(message, 10, 10 + i * uy)
@@ -72,7 +72,7 @@ def guiSystem():
 
 # TODO item and monster at same position
 def drawTooltips():
-    map:Map = ECS.scene.retrieve("map")
+    map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Name.id | Renderable.id)
     (ux, uy) = ECS.scene.retrieve("pixels unit")
     font: Font = ECS.scene.retrieve("font")
@@ -88,8 +88,6 @@ def drawTooltips():
             font.drawAtScreen(name, (point.x + 2) * ux, point.y * uy)
 
 
-
-
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     _, uy = ECS.scene.retrieve("pixels unit")
     player: Entity = ECS.scene.retrieve('player')
@@ -102,12 +100,12 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     font.background = (255, 255, 255, 255)
     font.foreground = (127, 0, 127, 255)
     font.drawAtScreen('Inventory (ESC to cancel)'.center(40), x, y)
-    
+
     y += uy
     y += uy
     for item in items:
         itemName: Name = item[Name.id]
-        font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40) , x, y)
+        font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
         index += 1
         y += uy
 
@@ -178,9 +176,10 @@ def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
     return (ItemMenuResult.NoResponse, None)
 
 
-
 waiting = 0
 menuState = 0
+
+
 def showMenu(keys: set[str]) -> MainMenuResult:
     font: Font = ECS.scene.retrieve('font')
     if "escape" in keys:
@@ -192,7 +191,7 @@ def showMenu(keys: set[str]) -> MainMenuResult:
                 case 0: return MainMenuResult.NewGame
                 case 1: return MainMenuResult.Continue
                 case 3: return MainMenuResult.Quit
-        
+
         existsSave = os.path.exists('./save.data')
 
         global waiting
@@ -209,9 +208,8 @@ def showMenu(keys: set[str]) -> MainMenuResult:
         else:
             waiting -= 1
 
-
         text = ["New Game", "Continue", "About", "Quit"]
-        for i in range(0,4):
+        for i in range(0, 4):
             font.background = (0, 0, 0, 255)
             font.foreground = (255, 255, 255, 255)
             if menuState == i:
@@ -227,5 +225,5 @@ def showMenu(keys: set[str]) -> MainMenuResult:
             font.drawAtScreen("Font: GNU Unifont Glyphs (GNU GPLv2+)", 400, 260)
             font.drawAtScreen("https://unifoundry.com/unifont/index.html", 400, 280)
             font.drawAtScreen("Images: Antonino Feitosa", 400, 320)
-            
+
     return MainMenuResult.NoResponse

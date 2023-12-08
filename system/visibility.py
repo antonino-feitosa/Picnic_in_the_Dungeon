@@ -10,7 +10,7 @@ def visibilitySystem():
     entities = ECS.scene.filter(Position.id | Viewshed.id)
     map: Map = ECS.scene.retrieve("map")
 
-    isOpaque = lambda x, y : map.tiles[Point(x,y)] == TileType.Wall
+    isOpaque = lambda x, y : map.tiles[Point(x,y)] == TileType.Wall if Point(x,y) in map.tiles else False
     fieldOfView = FieldOfView(8, isOpaque)
 
     for entity in entities:

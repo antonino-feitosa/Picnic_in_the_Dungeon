@@ -3,6 +3,7 @@
         "editor.defaultFormatter": "ms-python.autopep8",
         "editor.formatOnSave": false,
     },
+    "autopep8.args": ["--max-line-length=120"],
     "python.analysis.typeCheckingMode": "basic",
     
     "cSpell.language": "en,pt,pt-BR",

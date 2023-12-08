@@ -6,7 +6,7 @@ from algorithms import Direction
 
 
 class PathFinding:
-    def __init__(self, isExit: Callable[[Point],bool], directions: Sequence[Direction]):
+    def __init__(self, isExit: Callable[[Point], bool], directions: Sequence[Direction]):
         self.isExit = isExit
         self.directions = directions
 
@@ -34,9 +34,7 @@ class PathFinding:
                         queue.append(neighbor)
         return []
 
-    def _postProcess(
-        self, dest: Point, previous: dict[Point, Point]
-    ) -> list[Point]:
+    def _postProcess(self, dest: Point, previous: dict[Point, Point]) -> list[Point]:
         path: list[Point] = []
         path.insert(0, dest)
         while dest in previous:

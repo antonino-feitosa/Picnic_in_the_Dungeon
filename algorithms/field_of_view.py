@@ -1,4 +1,6 @@
 
+import math
+
 from typing import Callable
 
 from algorithms import plotLine
@@ -48,9 +50,7 @@ def _getRaysOctant(center: Point, radius: int, octant: int) -> list[list[Point]]
     return rays
 
 
-def _getRaysSquare(
-    center: Point, radius: int, direction: Direction
-) -> list[list[Point]]:
+def _getRaysSquare(center: Point, radius: int, direction: Direction) -> list[list[Point]]:
     rays: list[list[Point]] = []
     for y in range(center.y - radius, center.y + radius + 1):
         rays.append(plotLine(center, Point(center.x - radius, y)))
@@ -61,9 +61,20 @@ def _getRaysSquare(
     return rays
 
 
-def _getRaysCone(
-    center: Point, radius: int, direction: Direction
-) -> list[list[Point]]:
+def _getRaysCircle(center: Point, radius: int, direction: Direction) -> list[list[Point]]:
+    rays: list[list[Point]] = []
+    radians = 0
+    dr = math.asin(1/radius)
+    while radians <= math.pi * 2:
+        x = int(radius * math.sin(radians))
+        y = int(radius * math.cos(radians))
+        print(x, y)
+        rays.append(plotLine(center, Point(x + center.x, y + center.y)))
+        radians += dr
+    return rays
+
+
+def _getRaysCone(center: Point, radius: int, direction: Direction) -> list[list[Point]]:
     octants = (0, 0)
     match direction:
         case Direction.Up:
@@ -127,7 +138,7 @@ class FieldOfView:
     FormatSquare = "square"
     FormatDiamond = "diamond"
 
-    def __init__(self, radius: int, isOpaque: Callable[[int,int], bool]):
+    def __init__(self, radius: int, isOpaque: Callable[[int, int], bool]):
         self.radius = radius
         self.isOpaque = isOpaque
         self.focalDistance: int = 0
@@ -172,6 +183,7 @@ class FieldOfView:
 
     def rayCasting(self, center: Point, direction: Direction = Direction.Up) -> set[Point]:
         visible: set[Point] = set()
+        blocked: set[Point] = set()
         for line in self._angleFunction(center, self.radius, direction):
             i = 0
             while i < len(line) and not self.isOpaque(line[i].x, line[i].y):
@@ -183,7 +195,11 @@ class FieldOfView:
                 dist = self._formatFunction(center, line[i])
                 if dist >= self.focalDistance and dist <= self.radius + 0.5:
                     visible.add(line[i])
-        return visible
+            while i < len(line):
+                if self.isOpaque(line[i].x, line[i].y):
+                    blocked.add(line[i])
+                i += 1
+        return self.removeArtifacts(visible, blocked)
 
     def _octalDistance(self, center: Point, other: Point) -> float:
         dx = abs(center.x - other.x)
@@ -195,3 +211,19 @@ class FieldOfView:
             else:
                 dist -= 1
         return dist
+
+    def removeArtifacts(self, visible: set[Point], blocked:set[Point]):
+        for point in blocked:
+            up = point + Direction.Up
+            down = point + Direction.Down
+            left = point + Direction.Left
+            right = point + Direction.Right
+            hasUp = self.isOpaque(up.x, up.y) and up in visible
+            hasDown = self.isOpaque(down.x, down.y) and down in visible
+            hasLeft = self.isOpaque(left.x, left.y) and left in visible
+            hasRight = self.isOpaque(right.x, right.y) and right in visible
+            if hasLeft and hasRight and (down in visible or up in visible):
+                visible.add(point)
+            if hasUp and hasDown and (left in visible or down in visible):
+                visible.add(point)
+        return visible

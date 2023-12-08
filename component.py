@@ -84,9 +84,6 @@ class CombatStats(Component):
         self.defense = defense
         self.power = power
 
-    def __repr__(self) -> str:
-        return f"HP: {self.HP}/{self.maxHP} P:{self.power} D:{self.defense}"
-
 
 class WantsToMelee(Component):
     id = ECS.nextSignature()
@@ -226,10 +223,10 @@ class Equipped(Component):
     id = ECS.nextSignature()
     __slots__ = ['owner', 'slot']
 
-    def __init__(self, owner: Entity, slot:int):
+    def __init__(self, owner: Entity, slot:str):
         super().__init__(Equipped.id)
         self.owner = owner
-        self.slot:int = slot
+        self.slot:str = slot
 
 
 class MeleePowerBonus(Component):
@@ -249,6 +246,14 @@ class DefenseBonus(Component):
         super().__init__(DefenseBonus.id)
         self.defense = defense
 
+
+class WantsToRemoveItem(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['item']
+
+    def __init__(self, item: Entity):
+        super().__init__(WantsToRemoveItem.id)
+        self.item = item
 
 
 def doDamage(victim: Entity, amount: int):

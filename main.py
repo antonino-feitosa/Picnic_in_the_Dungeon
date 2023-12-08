@@ -3,15 +3,15 @@ import pickle
 
 from enum import Enum
 from algorithms import Random, Point
-from component import CombatStats, Equipped, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToUseItem, WantsToDropItem
+from component import CombatStats, Equipped, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
-from system.guiSystem import ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, showInventory, showMenu
-from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemUseSystem
+from system.guiSystem import ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showInventory, showMenu
+from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRemoveSystem, itemUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
@@ -25,10 +25,11 @@ class RunState(Enum):
     PlayerTurn = 2
     MonsterTurn = 3
     ShowInventory = 4
-    DropItem = 5
+    ShowDropItem = 5
     ShowTargeting = 6
     NextLevel = 7
     GameOver = 8
+    ShowRemoveItem = 9
 
 
 def tryNextLevel() -> bool:
@@ -109,7 +110,9 @@ def playerInput(keys: set[str]) -> RunState:
     elif "i" in keys:
         return RunState.ShowInventory
     elif "d" in keys:
-        return RunState.DropItem
+        return RunState.ShowDropItem
+    elif "r" in keys:
+        return RunState.ShowRemoveItem
     elif '.' in keys:
         if tryNextLevel():
             return RunState.NextLevel
@@ -135,6 +138,7 @@ def runSystems():
     itemCollectionSystem()
     itemUseSystem()
     itemDropSystem()
+    itemRemoveSystem()
     meleeCombatSystem()
     damageSystem()
     deleteTheDead()
@@ -191,7 +195,7 @@ def processAfterDraw():
                 player: Entity = ECS.scene.retrieve('player')
                 player.add(WantsToUseItem(entity))
                 runState = RunState.PlayerTurn
-    elif runState == RunState.DropItem:
+    elif runState == RunState.ShowDropItem:
         result, entity = dropItemMenu(ECS.context.keys)
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
@@ -199,6 +203,15 @@ def processAfterDraw():
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToDropItem(entity))
             runState = RunState.PlayerTurn
+    elif runState == RunState.ShowRemoveItem:
+        result, entity = removeItemMenu(ECS.context.keys)
+        if result == ItemMenuResult.Cancel:
+            runState = RunState.WaitingInput
+        elif result == ItemMenuResult.Selected and entity is not None:
+            player: Entity = ECS.scene.retrieve('player')
+            player.add(WantsToRemoveItem(entity))
+            runState = RunState.PlayerTurn
+        pass
     elif runState == RunState.ShowTargeting:
         range: int = ECS.scene.retrieve("targeting range")
         result, point = rangedTarget(range)

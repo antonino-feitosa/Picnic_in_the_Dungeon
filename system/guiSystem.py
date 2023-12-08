@@ -7,6 +7,7 @@ from component import CombatStats, Equippable, Equipped, GUIDescription, InBackp
 from core import ECS, Entity
 from device import Font
 from map import Map
+from system.meleeCombatSystem import getDefensiveBonus, getOffensiveBonus
 
 
 class ItemMenuResult(Enum):
@@ -46,11 +47,14 @@ def guiSystem():
                 space = '  '
 
                 name = entity[Name.id]
-                stats = ''
+                statsMsg = ''
                 if entity.has(CombatStats.id):
-                    combatStats: CombatStats = entity[CombatStats.id]
-                    stats += ' ' + str(combatStats)
-                messages.append(name.name + stats)
+                    stats: CombatStats = entity[CombatStats.id]
+                    offensiveBonus = getOffensiveBonus(entity)
+                    defensiveBonus = getDefensiveBonus(entity)
+                    statsMsg = f" HP:{stats.HP}/{stats.maxHP}"
+                    statsMsg += f" P:{stats.power + offensiveBonus} D:{stats.defense + defensiveBonus}"
+                messages.append(name.name + statsMsg)
 
                 equips = ECS.scene.filter(Name.id | Equipped.id)
                 for equippedEntity in equips:
@@ -102,7 +106,6 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     font.drawAtScreen('Inventory (ESC to cancel)'.center(40), x, y)
 
     y += uy
-    y += uy
     for item in items:
         itemName: Name = item[Name.id]
         font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
@@ -134,6 +137,35 @@ def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     font.foreground = (127, 0, 127, 255)
     font.drawAtScreen('  Drop Which Item? (ESC to cancel)'.center(40), x, y)
     y += uy
+    for item in items:
+        itemName: Name = item[Name.id]
+        font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
+        index += 1
+        y += uy
+
+    if 'escape' in keys:
+        return (ItemMenuResult.Cancel, None)
+
+    index = ord('a')
+    for item in items:
+        if chr(index) in keys:
+            return (ItemMenuResult.Selected, item)
+
+    return (ItemMenuResult.NoResponse, None)
+
+
+def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
+    _, uy = ECS.scene.retrieve("pixels unit")
+    player: Entity = ECS.scene.retrieve('player')
+    font: Font = ECS.scene.retrieve('font')
+    items = ECS.scene.filter(Equipped.id | Item.id)
+    items = [item for item in items if item[Equipped.id].owner == player]
+    index = ord('a')
+    y = 200
+    x = 400
+    font.background = (255, 255, 255, 255)
+    font.foreground = (127, 0, 127, 255)
+    font.drawAtScreen('  Remove Which Item? (ESC to cancel)'.center(40), x, y)
     y += uy
     for item in items:
         itemName: Name = item[Name.id]

@@ -1,6 +1,6 @@
 
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
+from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToRemoveItem, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
 from core import ECS, Entity
 from map import Map
 from utils import Logger
@@ -18,6 +18,7 @@ def itemCollectionSystem():
         name: Name = entity[Name.id]
         itemName: Name = item[Name.id]
         logger.log(f"{name.name} pick up the {itemName.name}")
+    # TODO equip empty slot
 
 
 def itemUseSystem():
@@ -119,3 +120,18 @@ def itemDropSystem():
         entity.remove(WantsToDropItem.id)
         if entity == player:
             logger.log(f"You drop the {item[Name.id].name}.")
+
+
+def itemRemoveSystem():
+    entities = ECS.scene.filter(Name.id | WantsToRemoveItem.id)
+    logger: Logger = ECS.scene.retrieve("logger")
+    player: Entity = ECS.scene.retrieve('player')
+    for entity in entities:
+        wants: WantsToRemoveItem = entity[WantsToRemoveItem.id]
+        item: Entity = wants.item
+        item.remove(Equipped.id)
+        item.add(InBackpack(entity))
+        entity.remove(WantsToRemoveItem.id)
+        if entity == player:
+            logger.log(f"You unequipped the {item[Name.id].name}.")
+

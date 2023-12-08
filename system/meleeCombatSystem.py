@@ -1,7 +1,29 @@
 
 from component import CombatStats, DefenseBonus, Equipped, MeleePowerBonus, Name, WantsToMelee, doDamage
-from core import ECS
+from core import ECS, Entity
 from utils import Logger
+
+
+def getOffensiveBonus(entity:Entity) -> int:
+    offensiveBonus = 0
+    powerBonusEntities = ECS.scene.filter(MeleePowerBonus.id | Equipped.id)
+    for powerBonusEntity in powerBonusEntities:
+        equipped:Equipped = powerBonusEntity[Equipped.id]
+        if equipped.owner == entity:
+            powerBonus:MeleePowerBonus = powerBonusEntity[MeleePowerBonus.id]
+            offensiveBonus += powerBonus.power
+    return offensiveBonus
+
+
+def getDefensiveBonus(entity:Entity) -> int:
+    defensiveBonus = 0
+    defenseBonusEntities = ECS.scene.filter(DefenseBonus.id | Equipped.id)
+    for defenseBonusEntity in defenseBonusEntities:
+        equipped:Equipped = defenseBonusEntity[Equipped.id]
+        if equipped.owner == entity:
+            defenseBonus:DefenseBonus = defenseBonusEntity[DefenseBonus.id]
+            defensiveBonus += defenseBonus.defense
+    return defensiveBonus
 
 
 def meleeCombatSystem():
@@ -11,24 +33,11 @@ def meleeCombatSystem():
         combatStats = entity[CombatStats.id]
         if combatStats.HP > 0:
 
-            offensiveBonus = 0
-            powerBonusEntities = ECS.scene.filter(MeleePowerBonus.id | Equipped.id)
-            for powerBonusEntity in powerBonusEntities:
-                equipped:Equipped = powerBonusEntity[Equipped.id]
-                if equipped.owner == entity:
-                    powerBonus:MeleePowerBonus = powerBonusEntity[MeleePowerBonus.id]
-                    offensiveBonus += powerBonus.power
-
             wantsToMelee:WantsToMelee = entity[WantsToMelee.id]
             target = wantsToMelee.target
 
-            defensiveBonus = 0
-            defenseBonusEntities = ECS.scene.filter(DefenseBonus.id | Equipped.id)
-            for defenseBonusEntity in defenseBonusEntities:
-                equipped:Equipped = defenseBonusEntity[Equipped.id]
-                if equipped.owner == entity:
-                    defenseBonus:DefenseBonus = defenseBonusEntity[DefenseBonus.id]
-                    defensiveBonus += defenseBonus.defense
+            offensiveBonus = getOffensiveBonus(entity)
+            defensiveBonus = getDefensiveBonus(target)
 
             targetName:Name = target[Name.id]
             targetStats:CombatStats = target[CombatStats.id]

@@ -8,7 +8,7 @@ from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
-from spawner import MAP_HEIGHT, MAP_WIDTH, createPlayer, spawnRoom
+from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
 from system.guiSystem import ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemUseSystem
@@ -140,7 +140,7 @@ def runSystems():
     deleteTheDead()
 
 
-def processGameStates():
+def processBeforeDraw():
     runState: RunState = ECS.scene.retrieve("state")
     if runState == RunState.MainMenu:
         response = showMenu(ECS.context.keys)
@@ -174,7 +174,7 @@ def processGameStates():
     ECS.scene.store("state", runState)
 
 
-def processInventoryStates():
+def processAfterDraw():
     runState: RunState = ECS.scene.retrieve("state")
 
     if runState == RunState.ShowInventory:
@@ -213,7 +213,7 @@ def processInventoryStates():
 
 
 def update():
-    processGameStates()
+    processBeforeDraw()
     runState: RunState = ECS.scene.retrieve("state")
     if runState == RunState.MainMenu:
         return
@@ -234,7 +234,7 @@ def update():
             font.drawAtImageCenter(render.glyph, image)
             image.draw(position.x * width, position.y * height)
 
-    processInventoryStates()
+    processAfterDraw()
     logger: Logger = ECS.scene.retrieve("logger")
     guiSystem()
     logger.print()
@@ -278,11 +278,18 @@ def main():
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
     map.newMapRoomsAndCorridors(1, rand)
-    #map.newTestMap(1)
-    xplayer, yplayer = map.rooms[0].center()
+
     logger = Logger(font, 10, 10, 300)
 
     scene = Scene()
+
+
+    map.newTestMap(1)
+    cx, cy = map.rooms[1].center()
+    createDagger(scene, cx, cy)
+    map.rooms[1]
+
+
     scene.store("state", RunState.MainMenu)
 
     scene.store("background", background)
@@ -297,6 +304,7 @@ def main():
     ECS.scene = scene
     ECS.context = Context()
 
+    xplayer, yplayer = map.rooms[0].center()
     player = createPlayer(scene, xplayer, yplayer)
     scene.store("player", player)
 

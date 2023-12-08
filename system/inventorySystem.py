@@ -1,6 +1,6 @@
 
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
+from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
 from core import ECS, Entity
 from map import Map
 from utils import Logger
@@ -92,7 +92,11 @@ def itemUseSystem():
                     unequipEntity.add(InBackpack(entity))
                     if entity.has(Player.id):
                         unequipName: Name = unequipEntity[Name.id]
-                        logger.log(f"You unequip  {unequipName.name}.")
+                        logger.log(f"You unequip {unequipName.name}.")
+
+            toEquipName: Name = entityItem[Name.id]
+            logger.log(f"You equipped {toEquipName.name}.")
+            
             entityItem.remove(InBackpack.id)
             entityItem.add(Equipped(entity, toEquip.slot))
 

@@ -110,7 +110,7 @@ class GUIDescription(Component):
     id = ECS.nextSignature()
     __slots__ = ["description"]
 
-    def __init__(self, description: list[str] = []):
+    def __init__(self, description: str = ""):
         super().__init__(GUIDescription.id)
         self.description = description
 
@@ -213,11 +213,11 @@ class Confusion(Component):
 
 class Equippable(Component):
     id = ECS.nextSignature()
-    MELEE = 0
-    SHIELD = 1
+    MELEE = "weapon"
+    SHIELD = "shield"
     __slots__ = ['slot']
     
-    def __init__(self, slot: int):
+    def __init__(self, slot: str):
         super().__init__(Equippable.id)
         self.slot = slot
 
@@ -227,9 +227,29 @@ class Equipped(Component):
     __slots__ = ['owner', 'slot']
 
     def __init__(self, owner: Entity, slot:int):
+        super().__init__(Equipped.id)
         self.owner = owner
         self.slot:int = slot
-    
+
+
+class MeleePowerBonus(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['power']
+
+    def __init__(self, power: int):
+        super().__init__(MeleePowerBonus.id)
+        self.power = power
+
+
+class DefenseBonus(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['defense']
+
+    def __init__(self, defense: int):
+        super().__init__(DefenseBonus.id)
+        self.defense = defense
+
+
 
 def doDamage(victim: Entity, amount: int):
     if victim.has(SufferDamage.id):

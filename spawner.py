@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, Equippable, GUIDescription, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, InflictsDamage, Item, MeleePowerBonus, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
 from device import Font, Image
 from map import Rect
 from randomTable import RandomTable
@@ -154,6 +154,7 @@ def createDagger(scene:Scene, x:int, y:int) -> Entity:
     dagger.add(Renderable("/", 2, (0, 255, 255, 255)))
     dagger.add(Name('Dagger'))
     dagger.add(Item())
+    dagger.add(MeleePowerBonus(2))
     dagger.add(GUIDescription())
     dagger.add(Equippable(Equippable.MELEE))
     return dagger
@@ -165,6 +166,7 @@ def createShield(scene:Scene, x:int, y:int) -> Entity:
     shield.add(Renderable("(", 2, (0, 255, 255, 255)))
     shield.add(Name('Shield'))
     shield.add(Item())
+    shield.add(DefenseBonus(1))
     shield.add(GUIDescription())
     shield.add(Equippable(Equippable.SHIELD))
     return shield

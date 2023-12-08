@@ -3,7 +3,7 @@ import os.path
 
 from enum import Enum
 from algorithms.point import Point
-from component import CombatStats, GUIDescription, InBackpack, Item, Name, Player, Position, Renderable, Viewshed
+from component import CombatStats, Equippable, Equipped, GUIDescription, InBackpack, Item, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Entity
 from device import Font
 from map import Map
@@ -44,6 +44,7 @@ def guiSystem():
         if showing:
             if entity.has(Name.id):
                 space = '  '
+                
                 name = entity[Name.id]
                 stats = ''
                 if entity.has(CombatStats.id):
@@ -51,9 +52,17 @@ def guiSystem():
                     stats += ' ' + str(combatStats)
                 messages.append(name.name + stats)
 
-            desc: GUIDescription = entity[GUIDescription.id]
-            for msg in desc.description:
-                messages.append(space + msg)
+                equips = ECS.scene.filter(Name.id | Equipped.id)
+                for equippedEntity in equips:
+                    equipped:Equipped = equippedEntity[Equipped.id]
+                    equippedName:Name = equippedEntity[Name.id]
+                    if equipped.owner == entity:
+                        msg = f"    {equipped.slot}: {equippedName.name}"
+                        messages.append(msg)
+
+                if entity.has(GUIDescription.id):
+                    desc: GUIDescription = entity[GUIDescription.id]
+                    messages.append(space + desc.description)
     
     for i in range(len(messages)):
         message = messages[i]
@@ -164,6 +173,8 @@ def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
         font.drawAtScreen('@', mousePoint.x * ux, mousePoint.y * uy)
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Cancel, None)
+    if "escape" in ECS.context.keys:
+        return (ItemMenuResult.Cancel, None)
     return (ItemMenuResult.NoResponse, None)
 
 

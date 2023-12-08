@@ -2,9 +2,10 @@
 
 from algorithms import PathFinding, Point
 from algorithms.direction import Direction
+from algorithms.random import Random
 from component import Confusion, Monster, Position, Viewshed, Name, WantsToMelee
 from core import ECS, Entity
-from map import Map
+from map import Map, TileType
 from utils import Logger
 
 
@@ -15,6 +16,7 @@ def monsterAISystem():
     playerPoint = Point(playerPosition.x, playerPosition.y)
     map: Map = ECS.scene.retrieve("map")
     logger:Logger = ECS.scene.retrieve("logger")
+    rand:Random = ECS.scene.retrieve("random")
 
     for entity in entities:
         if entity.has(Confusion.id):
@@ -38,7 +40,8 @@ def monsterAISystem():
             isExit = lambda point: point not in map.blocked or point == playerPoint
             astar = PathFinding(isExit, Direction.All)
             path = astar.searchPath(Point(position.x, position.y), playerPoint)
-            if len(path) >= 2:
+            print(len(path), view.range)
+            if len(path) >= 2 and len(path) <= view.range + 1:
                 nextPoint = path[1]
                 if nextPoint == playerPoint:
                     wantsToMelee = WantsToMelee(player)
@@ -49,4 +52,12 @@ def monsterAISystem():
                     position.x = nextPoint.x
                     position.y = nextPoint.y
                     view.dirty = True
+            else:
+                nextPoint = Point(position.x, position.y) + rand.choice(Direction.All)
+                if nextPoint in map.tiles and map.tiles[nextPoint] != TileType.Wall and nextPoint not in map.blocked:
+                    map.blocked.add(nextPoint)
+                    position.x = nextPoint.x
+                    position.y = nextPoint.y
+                    view.dirty = True
+
                     

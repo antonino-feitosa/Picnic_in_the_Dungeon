@@ -240,7 +240,8 @@ class Device:
 
             if event.type == pygame.KEYUP and event.key:
                 keyName = pygame.key.name(event.key)
-                self._keys.remove(keyName)
+                if keyName in self._keys:
+                    self._keys.remove(keyName)
 
         if self._keys:
             for callback in self.onKeyPressed:

@@ -40,7 +40,6 @@ def monsterAISystem():
             isExit = lambda point: point not in map.blocked or point == playerPoint
             astar = PathFinding(isExit, Direction.All)
             path = astar.searchPath(Point(position.x, position.y), playerPoint)
-            print(len(path), view.range)
             if len(path) >= 2 and len(path) <= view.range + 1:
                 nextPoint = path[1]
                 if nextPoint == playerPoint:

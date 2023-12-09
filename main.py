@@ -1,4 +1,5 @@
 
+import os
 import pickle
 
 from enum import Enum
@@ -10,7 +11,7 @@ from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createPlayer, spawnRoom
 from system.damage import damageSystem, deleteTheDead
-from system.guiSystem import ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showInventory, showMenu
+from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRemoveSystem, itemUseSystem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
@@ -18,6 +19,7 @@ from system.monsterAI import monsterAISystem
 from system.visibility import visibilitySystem
 from utils import Logger
 
+SAVE_DATA_FILE_NAME = "./save.data"
 
 class RunState(Enum):
     MainMenu = 0
@@ -86,6 +88,22 @@ def gotoNextLevel() -> None:
     stats.HP = max((stats.maxHP + 1) // 2, stats.HP)
 
 
+def cleanupGameOver():
+    ECS.scene.store("turn", 1)
+    ECS.scene.entities.clear()
+    rand:Random = ECS.scene.retrieve("random")
+    map: Map = ECS.scene.retrieve("map")
+    map.newMapRoomsAndCorridors(1, rand)
+    logger: Logger = ECS.scene.retrieve("logger")
+    logger.clear()
+    os.remove(SAVE_DATA_FILE_NAME)
+    xplayer, yplayer = map.rooms[0].center()
+    player = createPlayer(ECS.scene, xplayer, yplayer)
+    ECS.scene.store("player", player)
+    for room in map.rooms[1:]:
+        spawnRoom(ECS.scene, room, 1)
+
+
 def playerInput(keys: set[str]) -> RunState:
     if "k" in keys or "[8]" in keys or "up" in keys:
         tryMovePlayer(0, -1)
@@ -104,16 +122,21 @@ def playerInput(keys: set[str]) -> RunState:
     elif "b" in keys or "[1]" in keys:
         tryMovePlayer(-1, +1)
     elif "g" in keys or "[5]" in keys:
+        ECS.context.clear()
         if not getItem():
             logger: Logger = ECS.scene.retrieve("logger")
             logger.log("There is nothing here to pick up.")
     elif "i" in keys:
+        ECS.context.clear()
         return RunState.ShowInventory
     elif "d" in keys:
+        ECS.context.clear()
         return RunState.ShowDropItem
     elif "r" in keys:
+        ECS.context.clear()
         return RunState.ShowRemoveItem
     elif '.' in keys:
+        ECS.context.clear()
         if tryNextLevel():
             return RunState.NextLevel
         else:
@@ -121,6 +144,7 @@ def playerInput(keys: set[str]) -> RunState:
             logger.log("There is no way down from here.")
             return RunState.WaitingInput
     elif 'space' in keys:
+        ECS.context.clear()
         skipTurn()
         logger: Logger = ECS.scene.retrieve("logger")
         logger.log("Turn skipped.")
@@ -163,6 +187,7 @@ def processBeforeDraw():
         player: Entity = ECS.scene.retrieve("player")
         stats: CombatStats = player.get(CombatStats.id)
         if stats.HP <= 0:
+            ECS.context.clear()
             runState = RunState.GameOver
         else:
             turn: int = ECS.scene.retrieve("turn")
@@ -222,6 +247,10 @@ def processAfterDraw():
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToUseItem(targeting, point))
             runState = RunState.PlayerTurn
+    elif runState == RunState.GameOver:
+        if showGameOver(ECS.context.keys) == GameOverResult.QuitToMenu:
+            cleanupGameOver()
+            runState = RunState.MainMenu
     ECS.scene.store("state", runState)
 
 
@@ -261,13 +290,13 @@ def saveState():
     data["map"] = ECS.scene.retrieve("map")
     data["logger messages"] = logger.messages
     data["entitities"] = ECS.scene.entities
-    with open("./save.data", "wb") as outfile:
+    with open(SAVE_DATA_FILE_NAME, "wb") as outfile:
         pickle.dump(data, outfile)
 
 
 def loadState():
     logger: Logger = ECS.scene.retrieve("logger")
-    with open("./save.data", "rb") as infile:
+    with open(SAVE_DATA_FILE_NAME, "rb") as infile:
         data = pickle.load(infile)
         logger.messages = data["logger messages"]
         ECS.scene.store("state", data["state"])
@@ -296,12 +325,10 @@ def main():
 
     scene = Scene()
 
-
-    map.newTestMap(1)
-    cx, cy = map.rooms[1].center()
-    createDagger(scene, cx, cy)
-    map.rooms[1]
-
+    # map.newTestMap(1)
+    # cx, cy = map.rooms[1].center()
+    # createDagger(scene, cx, cy)
+    # map.rooms[1]
 
     scene.store("state", RunState.MainMenu)
 

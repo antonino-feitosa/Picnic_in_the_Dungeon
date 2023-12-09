@@ -12,6 +12,9 @@ class Logger:
         self.background:Color = (0, 0, 0, 0)
         self.length = length
     
+    def clear(self):
+        self.messages.clear()
+    
     def log(self, message:str) -> None:
         turn = ECS.scene.retrieve("turn")
         self.messages.append(f"Turn:{turn}: {message}")

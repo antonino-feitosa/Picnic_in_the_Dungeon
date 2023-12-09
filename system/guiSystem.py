@@ -1,4 +1,5 @@
 
+
 import os.path
 
 from enum import Enum
@@ -8,6 +9,7 @@ from core import ECS, Entity
 from device import Font
 from map import Map
 from system.meleeCombatSystem import getDefensiveBonus, getOffensiveBonus
+from utils import Logger
 
 
 class ItemMenuResult(Enum):
@@ -22,6 +24,11 @@ class MainMenuResult(Enum):
     NewGame = 2
     Continue = 3
     About = 4
+
+
+class GameOverResult(Enum):
+    NoResponse = 0
+    QuitToMenu = 1
 
 
 def guiSystem():
@@ -259,3 +266,22 @@ def showMenu(keys: set[str]) -> MainMenuResult:
             font.drawAtScreen("Images: Antonino Feitosa", 400, 320)
 
     return MainMenuResult.NoResponse
+
+
+
+def showGameOver(keys: set[str]) -> GameOverResult:
+    if keys:
+        return GameOverResult.QuitToMenu
+    else:
+        font: Font = ECS.scene.retrieve('font')
+        font.foreground = (255, 255, 0, 255)
+        font.drawAtScreen(          "Your journey has ended!", 400, 200)
+        font.foreground = (255, 255, 255, 255)
+        font.drawAtScreen("One day, we'll tell you all about how you did.", 400, 240)
+        font.drawAtScreen("That day, sadly, is not in this day..", 400, 255)
+
+        font.foreground = (255, 0, 255, 255)
+        font.drawAtScreen("Press any key to return to the menu.", 400, 295)
+
+        return GameOverResult.NoResponse
+

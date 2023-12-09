@@ -23,6 +23,8 @@ def roomTable(depth:int) -> RandomTable:
     table.add("Magic Missile Scroll", 4)
     table.add("Dagger", 3)
     table.add("Shield", 3)
+    table.add("Long Sword", depth)
+    table.add("Tower Shield", depth)
     return table
 
 
@@ -55,6 +57,8 @@ def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
             case "Magic Missile Scroll": createConfusionScroll(scene, x, y)
             case "Dagger": createDagger(scene, x, y)
             case "Shield": createShield(scene, x, y)
+            case "Long Sword": createLongSword(scene, x, y)
+            case "Tower Shield": createTowerShield(scene, x, y)
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:
@@ -171,3 +175,25 @@ def createShield(scene:Scene, x:int, y:int) -> Entity:
     shield.add(Equippable(Equippable.SHIELD))
     return shield
 
+
+def createLongSword(scene:Scene, x:int, y:int) -> Entity:
+    sword = scene.create()
+    sword.add(Position(x, y))
+    sword.add(Renderable("/", 2, (0, 255, 255, 255)))
+    sword.add(Name('Long Sword'))
+    sword.add(Item())
+    sword.add(MeleePowerBonus(4))
+    sword.add(GUIDescription())
+    sword.add(Equippable(Equippable.MELEE))
+    return sword
+
+def createTowerShield(scene:Scene, x:int, y:int) -> Entity:
+    shield = scene.create()
+    shield.add(Position(x, y))
+    shield.add(Renderable("(", 2, (0, 255, 255, 255)))
+    shield.add(Name('Tower Shield'))
+    shield.add(Item())
+    shield.add(DefenseBonus(3))
+    shield.add(GUIDescription())
+    shield.add(Equippable(Equippable.SHIELD))
+    return shield

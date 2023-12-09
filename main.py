@@ -260,21 +260,17 @@ def update():
     if runState == RunState.MainMenu:
         return
 
-    drawMap()
+    dx = 50
+    drawMap(dx, 0)
     font: Font = ECS.scene.retrieve("font")
-    background: Image = ECS.scene.retrieve("background")
     map: Map = ECS.scene.retrieve("map")
-    width, height = ECS.scene.retrieve("pixels unit")
     entities = ECS.scene.filter(Position.id | Renderable.id)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         position: Position = entity[Position.id]
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
-            image = background.clone()
             font.foreground = render.foreground
-            image.fill(render.background)
-            font.drawAtImageCenter(render.glyph, image)
-            image.draw(position.x * width, position.y * height)
+            font.drawGlyphAtScreen(render.glyph, position.x + dx, position.y)
 
     processAfterDraw()
     logger: Logger = ECS.scene.retrieve("logger")
@@ -315,7 +311,7 @@ def main():
     device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
-    font = device.loadFont("./art/ConsolaMono-Bold.ttf", 16)
+    font = device.loadFont("./art/unifont-15.1.04.otf", 16)
     pixelsUnit = 16
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)

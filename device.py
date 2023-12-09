@@ -22,8 +22,8 @@ class Image:
 
     def draw(self, x: int, y: int) -> None:
         self.device.drawImage(self, x, y)
-    
-    def fill(self, color:Color) -> None:
+
+    def fill(self, color: Color) -> None:
         self.image.fill(color)
 
     def clone(self) -> "Image":
@@ -57,12 +57,12 @@ class Font:
         self.device = device
         self.foreground: Color = (0, 0, 0, 255)
         self.background: Color = (0, 0, 0, 255)
-    
-    def _createImage(self, text:str) -> pygame.Surface:
+
+    def _createImage(self, text: str) -> pygame.Surface:
         image, _ = self.font.render(text, self.foreground, self.background)
         return image
-    
-    def createImage(self, text:str) -> Image:
+
+    def createImage(self, text: str) -> Image:
         image, _ = self.font.render(text, self.foreground, self.background)
         return Image(self.device, image)
 
@@ -80,6 +80,24 @@ class Font:
         textSurface = self._createImage(text)
         image = Image(self.device, textSurface)
         self.device.drawImage(image, x, y)
+
+    def drawGlyphAtScreen(self, glyph: str, x: int, y: int, size: int = 16) -> None:
+        surface, rect = self.font.render(glyph, pygame.color.Color(self.foreground))
+        metrics = self.font.get_metrics(glyph)
+        rect.x = x * size//2 + metrics[0][0]
+        rect.y = y * size + size//4 - metrics[0][2]
+        self.font.fgcolor = pygame.color.Color(self.foreground)
+        self.device.screen.fill(self.background, pygame.rect.Rect(x * size//2, y * size, size//2, size))
+        self.device.screen.blit(surface, rect)
+
+    def drawGlyphAtScreenCenterSpace(self, glyph: str, x: int, y: int, size: int = 16) -> None:
+        surface, rect = self.font.render(glyph, pygame.color.Color(self.foreground))
+        metrics = self.font.get_metrics(glyph)
+        width = metrics[0][3] - metrics[0][2]
+        rect.x = x * size//2 + metrics[0][0]
+        rect.y = y * size + (size - width//2)//2
+        self.device.screen.fill(self.background, pygame.rect.Rect(x * size//2, y * size, size//2, size))
+        self.device.screen.blit(surface, rect)
 
 
 class Sound:
@@ -159,7 +177,7 @@ class Device:
         self.onMove: list[Callable[[int, int], None]] = []
         self.onKeyPressed: list[Callable[[set[str]], None]] = []
         self.onLoop: list[Callable[[], None]] = []
-        self._keys:set[str] = set()
+        self._keys: set[str] = set()
 
     def loadImage(self, path: str) -> Image:
         try:
@@ -233,7 +251,7 @@ class Device:
                 x, y = pygame.mouse.get_pos()
                 for callback in self.onClickRight:
                     callback(False, x, y)
-            
+
             if event.type == pygame.KEYDOWN and event.key:
                 keyName = pygame.key.name(event.key)
                 self._keys.add(keyName)

@@ -139,45 +139,31 @@ class Map:
 
 
 
-def drawMap():
+def drawMap(xoff:int, yoff:int):
     font:Font = ECS.scene.retrieve("font")
     map: Map = ECS.scene.retrieve("map")
-    background:Image = ECS.scene.retrieve("background")
-    widthPixels, heightPixels = ECS.scene.retrieve("pixels unit")
     
     font.foreground = (127, 127, 127, 255)
     font.background = (0, 0, 0, 255)
-    floor = background.clone()
-    wall = background.clone()
-    downStairs = background.clone()
-    font.drawAtImageCenter('.', floor)
-    font.drawAtImageCenter('#', wall)
-    font.drawAtImageCenter('>', downStairs)
     
     for pos in map.revealedTiles:
         if pos not in map.visibleTiles:
             tile = map.tiles[Point(pos.x, pos.y)]
             if tile == TileType.Floor:
-                floor.draw(pos.x * widthPixels, pos.y * heightPixels)
+                font.drawGlyphAtScreenCenterSpace('.', pos.x + xoff, pos.y + yoff)
             if tile == TileType.Wall:
-                wall.draw(pos.x * widthPixels, pos.y * heightPixels)
+                font.drawGlyphAtScreen('#', pos.x + xoff, pos.y + yoff)
             if tile == TileType.DownStairs:
-                downStairs.draw(pos.x * widthPixels, pos.y * heightPixels)
+                font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)
 
-    wall.fill((0,0,0,255))
-    floor.fill((0,0,0,255))
-    downStairs.fill((0,0,0,255))
-    font.foreground = (0, 127, 127, 255)
-    font.drawAtImageCenter('.', floor)
-    font.foreground = (0, 255, 0, 255)
-    font.drawAtImageCenter('#', wall)
-    font.foreground = (0, 255, 255, 255)
-    font.drawAtImageCenter('>', downStairs)
     for pos in map.visibleTiles:
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:
-            floor.draw(pos.x * widthPixels, pos.y * heightPixels)
+            font.foreground = (0, 127, 127, 255)
+            font.drawGlyphAtScreenCenterSpace('.', pos.x + xoff, pos.y + yoff)
         if tile == TileType.Wall:
-            wall.draw(pos.x * widthPixels, pos.y * heightPixels)
+            font.foreground = (0, 255, 0, 255)
+            font.drawGlyphAtScreen('#', pos.x + xoff, pos.y + yoff)
         if tile == TileType.DownStairs:
-            downStairs.draw(pos.x * widthPixels, pos.y * heightPixels)
+            font.foreground = (0, 255, 255, 255)
+            font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)

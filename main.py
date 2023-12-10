@@ -260,8 +260,9 @@ def update():
     if runState == RunState.MainMenu:
         return
 
-    dx = 50
-    drawMap(dx, 0)
+    
+    drawMap()
+    cx, cy = ECS.scene.retrieve("camera")
     font: Font = ECS.scene.retrieve("font")
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Renderable.id)
@@ -270,7 +271,7 @@ def update():
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
             font.foreground = render.foreground
-            font.drawGlyphAtScreen(render.glyph, position.x + dx, position.y)
+            font.drawGlyphAtScreen(render.glyph, position.x + cx, position.y + cy)
 
     processAfterDraw()
     logger: Logger = ECS.scene.retrieve("logger")
@@ -312,7 +313,6 @@ def main():
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/unifont-15.1.04.otf", 16)
-    pixelsUnit = 16
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
     map.newMapRoomsAndCorridors(1, rand)
@@ -333,7 +333,7 @@ def main():
     scene.store("random", rand)
 
     scene.store("map", map)
-    scene.store("pixels unit", (pixelsUnit, pixelsUnit))
+    scene.store("camera", (50, 0))
     scene.store("logger", logger)
     scene.store("turn", 1)
 

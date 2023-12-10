@@ -141,7 +141,8 @@ class Map:
 
 
 
-def drawMap(xoff:int, yoff:int):
+def drawMap():
+    cx, cy = ECS.scene.retrieve("camera")
     font:Font = ECS.scene.retrieve("font")
     map: Map = ECS.scene.retrieve("map")
     
@@ -151,30 +152,39 @@ def drawMap(xoff:int, yoff:int):
     for pos in map.revealedTiles:
         if pos not in map.visibleTiles:
             tile = map.tiles[Point(pos.x, pos.y)]
+            glyph = ''
             if tile == TileType.Floor:
-                font.drawGlyphAtScreenCenterSpace('.', pos.x + xoff, pos.y + yoff)
+                glyph = '.'
+            if tile == TileType.DownStairs:
+                glyph = '>'
+            if glyph != '':
+                font.drawGlyphAtScreenCenterSpace(glyph, pos.x + cx, pos.y + cy)
+            
             if tile == TileType.Wall:
                 glyph = getWallGlyph(pos.x, pos.y, map)
-                font.drawGlyphAtScreen(glyph, pos.x + xoff, pos.y + yoff)
-            if tile == TileType.DownStairs:
-                font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)
+                font.drawGlyphAtScreen(glyph, pos.x + cx, pos.y + cy)
 
     for pos in map.visibleTiles:
         if pos in map.bloodstains:
             font.background = (100, 0, 0, 100)
         else:
             font.background = (0, 0, 0, 255)
+        
+        glyph = ''
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:
             font.foreground = (0, 127, 127, 255)
-            font.drawGlyphAtScreenCenterSpace('.', pos.x + xoff, pos.y + yoff)
+            glyph = '.'
+        if tile == TileType.DownStairs:
+            font.foreground = (0, 255, 255, 255)
+            glyph = '>'
+        if glyph != '':
+            font.drawGlyphAtScreenCenterSpace(glyph, pos.x + cx, pos.y + cy)
+        
         if tile == TileType.Wall:
             font.foreground = (0, 255, 0, 255)
             glyph = getWallGlyph(pos.x, pos.y, map)
-            font.drawGlyphAtScreen(glyph, pos.x + xoff, pos.y + yoff)
-        if tile == TileType.DownStairs:
-            font.foreground = (0, 255, 255, 255)
-            font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)
+            font.drawGlyphAtScreen(glyph, pos.x + cx, pos.y + cy)
 
 
 def isRevealedAndWall(x:int, y:int, map:Map) -> bool:

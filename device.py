@@ -52,8 +52,9 @@ class SpriteSheet:
 
 
 class Font:
-    def __init__(self, device: "Device", font: pygame.freetype.Font):
+    def __init__(self, device: "Device", size:int, font: pygame.freetype.Font):
         self.font = font
+        self.size = size
         self.device = device
         self.foreground: Color = (0, 0, 0, 255)
         self.background: Color = (0, 0, 0, 255)
@@ -191,7 +192,7 @@ class Device:
     def loadFont(self, path: str, size: int) -> Font:
         try:
             font = pygame.freetype.Font(path, size)
-            return Font(self, font)
+            return Font(self, size, font)
         except pygame.error as err:
             raise DeviceError(err)
 

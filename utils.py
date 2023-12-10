@@ -26,7 +26,6 @@ class Logger:
         font:Font = ECS.scene.retrieve("font")
         font.background = self.background
         font.foreground = self.foreground
-        (ux, uy) = ECS.scene.retrieve("pixels unit")
         for i in range(len(self.messages)):
             message = self.messages[i]
-            font.drawAtScreen(message, self.x, self.y + i * uy)
+            font.drawAtScreen(message, self.x, self.y + i * font.size)

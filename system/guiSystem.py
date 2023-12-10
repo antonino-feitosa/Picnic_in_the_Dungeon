@@ -36,7 +36,6 @@ def guiSystem():
     player: Entity = ECS.scene.retrieve("player")
     font: Font = ECS.scene.retrieve("font")
     map: Map = ECS.scene.retrieve("map")
-    (_, uy) = ECS.scene.retrieve("pixels unit")
 
     font.background = (0, 0, 0, 255)
     font.foreground = (200, 200, 200, 255)
@@ -77,7 +76,7 @@ def guiSystem():
 
     for i in range(len(messages)):
         message = messages[i]
-        font.drawAtScreen(message, 10, 10 + i * uy)
+        font.drawAtScreen(message, 10, 10 + i * font.size)
     drawTooltips()
 
 
@@ -85,10 +84,9 @@ def guiSystem():
 def drawTooltips():
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Name.id | Renderable.id)
-    (ux, uy) = ECS.scene.retrieve("pixels unit")
     font: Font = ECS.scene.retrieve("font")
     position = ECS.context.mousePosition
-    point = Point(position.x // ux, position.y // uy)
+    point = Point(position.x // font.size, position.y // font.size)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         entityPosition: Position = entity[Position.id]
         if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
@@ -96,11 +94,10 @@ def drawTooltips():
             name = ' ' + component.name + ' '
             font.background = (255, 255, 255, 255)
             font.foreground = (0, 200,   0, 255)
-            font.drawAtScreen(name, (point.x + 2) * ux, point.y * uy)
+            font.drawAtScreen(name, (point.x + 2) * font.size, point.y * font.size)
 
 
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
-    _, uy = ECS.scene.retrieve("pixels unit")
     player: Entity = ECS.scene.retrieve('player')
     font: Font = ECS.scene.retrieve('font')
     items = ECS.scene.filter(InBackpack.id | Item.id)
@@ -112,12 +109,12 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     font.foreground = (127, 0, 127, 255)
     font.drawAtScreen('Inventory (ESC to cancel)'.center(40), x, y)
 
-    y += uy
+    y += font.size
     for item in items:
         itemName: Name = item[Name.id]
         font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
         index += 1
-        y += uy
+        y += font.size
 
     if 'escape' in keys:
         return (ItemMenuResult.Cancel, None)
@@ -132,7 +129,6 @@ def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
 
 
 def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
-    _, uy = ECS.scene.retrieve("pixels unit")
     player: Entity = ECS.scene.retrieve('player')
     font: Font = ECS.scene.retrieve('font')
     items = ECS.scene.filter(InBackpack.id | Item.id)
@@ -143,12 +139,12 @@ def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     font.background = (255, 255, 255, 255)
     font.foreground = (127, 0, 127, 255)
     font.drawAtScreen('  Drop Which Item? (ESC to cancel)'.center(40), x, y)
-    y += uy
+    y += font.size
     for item in items:
         itemName: Name = item[Name.id]
         font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
         index += 1
-        y += uy
+        y += font.size
 
     if 'escape' in keys:
         return (ItemMenuResult.Cancel, None)
@@ -162,7 +158,6 @@ def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
 
 
 def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
-    _, uy = ECS.scene.retrieve("pixels unit")
     player: Entity = ECS.scene.retrieve('player')
     font: Font = ECS.scene.retrieve('font')
     items = ECS.scene.filter(Equipped.id | Item.id)
@@ -173,12 +168,12 @@ def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     font.background = (255, 255, 255, 255)
     font.foreground = (127, 0, 127, 255)
     font.drawAtScreen('  Remove Which Item? (ESC to cancel)'.center(40), x, y)
-    y += uy
+    y += font.size
     for item in items:
         itemName: Name = item[Name.id]
         font.drawAtScreen(f' ({chr(index)}): {itemName.name}'.ljust(40), x, y)
         index += 1
-        y += uy
+        y += font.size
 
     if 'escape' in keys:
         return (ItemMenuResult.Cancel, None)
@@ -197,17 +192,16 @@ def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
     playerPosition: Position = player[Position.id]
     playerPoint = Point(playerPosition.x, playerPosition.y)
     viewshed: Viewshed = player[Viewshed.id]
-    (ux, uy) = ECS.scene.retrieve("pixels unit")
     mousePosition = ECS.context.mousePosition
-    mousePoint = Point(mousePosition.x // ux, mousePosition.y // uy)
+    mousePoint = Point(mousePosition.x // font.size, mousePosition.y // font.size)
     if mousePoint in viewshed.visibleTiles and mousePoint.distanceSquare(playerPoint) <= range:
         font.background = (0, 255, 0, 100)
-        font.drawAtScreen('@', mousePoint.x * ux, mousePoint.y * uy)
+        font.drawAtScreen('@', mousePoint.x * font.size, mousePoint.y * font.size)
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Selected, mousePoint)
     else:
         font.background = (255, 0, 0, 100)
-        font.drawAtScreen('@', mousePoint.x * ux, mousePoint.y * uy)
+        font.drawAtScreen('@', mousePoint.x * font.size, mousePoint.y * font.size)
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Cancel, None)
     if "escape" in ECS.context.keys:

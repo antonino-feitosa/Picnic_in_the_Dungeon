@@ -62,11 +62,6 @@ def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:
-    background: Image = scene.retrieve("background")
-    image = background.clone()
-    font: Font = scene.retrieve("font")
-    font.drawAtImageCenter('@', image)
-    scene.store("player image", image)
     player = scene.create()
     player.add(Position(x, y))
     player.add(Renderable("@", 0, (255, 255, 0, 255)))

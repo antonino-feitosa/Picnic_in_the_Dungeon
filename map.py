@@ -152,7 +152,8 @@ def drawMap(xoff:int, yoff:int):
             if tile == TileType.Floor:
                 font.drawGlyphAtScreenCenterSpace('.', pos.x + xoff, pos.y + yoff)
             if tile == TileType.Wall:
-                font.drawGlyphAtScreen('#', pos.x + xoff, pos.y + yoff)
+                glyph = getWallGlyph(pos.x, pos.y, map)
+                font.drawGlyphAtScreen(glyph, pos.x + xoff, pos.y + yoff)
             if tile == TileType.DownStairs:
                 font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)
 
@@ -163,7 +164,39 @@ def drawMap(xoff:int, yoff:int):
             font.drawGlyphAtScreenCenterSpace('.', pos.x + xoff, pos.y + yoff)
         if tile == TileType.Wall:
             font.foreground = (0, 255, 0, 255)
-            font.drawGlyphAtScreen('#', pos.x + xoff, pos.y + yoff)
+            glyph = getWallGlyph(pos.x, pos.y, map)
+            font.drawGlyphAtScreen(glyph, pos.x + xoff, pos.y + yoff)
         if tile == TileType.DownStairs:
             font.foreground = (0, 255, 255, 255)
             font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)
+
+
+def isRevealedAndWall(x:int, y:int, map:Map) -> bool:
+    point = Point(x,y)
+    return point in map.revealedTiles and map.tiles[point] == TileType.Wall
+
+def getWallGlyph(x:int, y:int, map:Map) -> str:
+    mask = 0
+    if isRevealedAndWall(x, y-1, map): mask += 1
+    if isRevealedAndWall(x, y+1, map): mask += 2
+    if isRevealedAndWall(x-1, y, map): mask += 4
+    if isRevealedAndWall(x+1, y, map): mask += 8
+
+    match mask:
+        case 0: return '○' # { 9 } // Pillar because we can't see neighbors
+        case 1: return '║' #  { 186 } // Wall only to the north
+        case 2: return '║' #  { 186 } // Wall only to the south
+        case 3: return '║' #  { 186 } // Wall to the north and south
+        case 4: return '═' #  { 205 } // Wall only to the west
+        case 5: return '╝' #  { 188 } // Wall to the north and west
+        case 6: return '╗' #  { 187 } // Wall to the south and west
+        case 7: return '╣' #  { 185 } // Wall to the north, south and west
+        case 8: return '═' #  { 205 } // Wall only to the east
+        case 9: return '╚' #  { 200 } // Wall to the north and east
+        case 10: return '╔' #  { 201 } // Wall to the south and east
+        case 11: return '╠' #  { 204 } // Wall to the north, south and east
+        case 12: return '═' #  { 205 } // Wall to the east and west
+        case 13: return '╩' #  { 202 } // Wall to the east, west, and south
+        case 14: return '╦' #  { 203 } // Wall to the east, west, and north
+        case 15: return '╬' #  { 206 }  // ╬ Wall on all sides
+    return '#'

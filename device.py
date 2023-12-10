@@ -83,19 +83,16 @@ class Font:
 
     def drawGlyphAtScreen(self, glyph: str, x: int, y: int, size: int = 16) -> None:
         surface, rect = self.font.render(glyph, pygame.color.Color(self.foreground))
-        metrics = self.font.get_metrics(glyph)
-        rect.x = x * size//2 + metrics[0][0]
-        rect.y = y * size + size//4 - metrics[0][2]
+        rect.x += x * size//2
+        rect.y = y * size + ((size - rect.y -2) if rect.h < size else 0)
         self.font.fgcolor = pygame.color.Color(self.foreground)
         self.device.screen.fill(self.background, pygame.rect.Rect(x * size//2, y * size, size//2, size))
         self.device.screen.blit(surface, rect)
 
     def drawGlyphAtScreenCenterSpace(self, glyph: str, x: int, y: int, size: int = 16) -> None:
         surface, rect = self.font.render(glyph, pygame.color.Color(self.foreground))
-        metrics = self.font.get_metrics(glyph)
-        width = metrics[0][3] - metrics[0][2]
-        rect.x = x * size//2 + metrics[0][0]
-        rect.y = y * size + (size - width//2)//2
+        rect.x += x * size//2
+        rect.y = y * size + (size - rect.h)//2
         self.device.screen.fill(self.background, pygame.rect.Rect(x * size//2, y * size, size//2, size))
         self.device.screen.blit(surface, rect)
 

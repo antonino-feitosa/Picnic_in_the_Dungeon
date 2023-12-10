@@ -1,6 +1,7 @@
 
-from component import CombatStats, DefenseBonus, Equipped, MeleePowerBonus, Name, WantsToMelee, doDamage
+from component import CombatStats, DefenseBonus, Equipped, MeleePowerBonus, Name, Position, WantsToMelee, doDamage
 from core import ECS, Entity
+from spawner import createParticle
 from utils import Logger
 
 
@@ -41,6 +42,7 @@ def meleeCombatSystem():
 
             targetName:Name = target[Name.id]
             targetStats:CombatStats = target[CombatStats.id]
+
             damage = (combatStats.power + offensiveBonus) - (targetStats.defense + defensiveBonus)
             name:Name = entity[Name.id]
             if damage <= 0:
@@ -49,3 +51,7 @@ def meleeCombatSystem():
                 logger.log(f"{name.name} hits {targetName.name}, for {damage} hp.")
                 doDamage(target, damage)
             entity.remove(WantsToMelee.id)
+            
+            if target.has(Position.id):
+                position:Position = target[Position.id]
+                createParticle(ECS.scene, position.x, position.y, '!', (255, 90, 5, 255))

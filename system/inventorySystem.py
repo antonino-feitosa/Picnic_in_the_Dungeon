@@ -6,7 +6,7 @@ from map import Map
 from utils import Logger
 
 
-def itemCollectionSystem():
+def itemCollectionSystem() -> None:
     entities = ECS.scene.filter(Position.id | Name.id | WantsToPickupItem.id)
     logger: Logger = ECS.scene.retrieve("logger")
     for entity in entities:
@@ -21,7 +21,7 @@ def itemCollectionSystem():
     # TODO equip empty slot
 
 
-def itemUseSystem():
+def itemUseSystem() -> None:
     entities = ECS.scene.filter(Name.id | WantsToUseItem.id | CombatStats.id)
     logger: Logger = ECS.scene.retrieve("logger")
     map: Map = ECS.scene.retrieve("map")
@@ -29,7 +29,6 @@ def itemUseSystem():
         wants: WantsToUseItem = entity[WantsToUseItem.id]
         entityItem = wants.item
         stats: CombatStats = entity[CombatStats.id]
-
 
         targets: set[Entity] = set()
         if entityItem.has(AreaOfEffect.id):
@@ -52,14 +51,12 @@ def itemUseSystem():
         else:
             targets.add(entity)
 
-
         if entityItem.has(ProvidesHealing.id):
             for target in targets:
                 potion: ProvidesHealing = wants.item[ProvidesHealing.id]
                 stats.HP = min(stats.maxHP, stats.HP + potion.heal_amount)
                 if entity.has(Player.id):
                     logger.log(f"You drink the {entityItem[Name.id].name}, healing {potion.heal_amount} hp.")
-
 
         if entityItem.has(InflictsDamage.id):
             for target in targets:
@@ -71,7 +68,6 @@ def itemUseSystem():
                         targetName: Name = target[Name.id]
                         logger.log(f"You use {itemName.name} on {targetName.name}, inflicting {inflicts.damage} hp.")
 
-
         if entityItem.has(Confusion.id):
             for target in targets:
                 if target.has(CombatStats.id):
@@ -81,7 +77,6 @@ def itemUseSystem():
                         itemName: Name = entityItem[Name.id]
                         targetName: Name = target[Name.id]
                         logger.log(f"You use {itemName.name} on {targetName.name}, confusing them.")
-
 
         if entityItem.has(Equippable.id):
             toEquip: Equippable = entityItem[Equippable.id]
@@ -97,17 +92,16 @@ def itemUseSystem():
 
             toEquipName: Name = entityItem[Name.id]
             logger.log(f"You equipped {toEquipName.name}.")
-            
+
             entityItem.remove(InBackpack.id)
             entityItem.add(Equipped(entity, toEquip.slot))
-
 
         if entityItem.has(Consumable.id):
             ECS.scene.destroy(entityItem)
         entity.remove(WantsToUseItem.id)
 
 
-def itemDropSystem():
+def itemDropSystem() -> None:
     entities = ECS.scene.filter(Name.id | WantsToDropItem.id)
     logger: Logger = ECS.scene.retrieve("logger")
     player: Entity = ECS.scene.retrieve('player')
@@ -122,7 +116,7 @@ def itemDropSystem():
             logger.log(f"You drop the {item[Name.id].name}.")
 
 
-def itemRemoveSystem():
+def itemRemoveSystem() -> None:
     entities = ECS.scene.filter(Name.id | WantsToRemoveItem.id)
     logger: Logger = ECS.scene.retrieve("logger")
     player: Entity = ECS.scene.retrieve('player')
@@ -134,4 +128,3 @@ def itemRemoveSystem():
         entity.remove(WantsToRemoveItem.id)
         if entity == player:
             logger.log(f"You unequipped the {item[Name.id].name}.")
-

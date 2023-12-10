@@ -2,8 +2,8 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, InflictsDamage, Item, MeleePowerBonus, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
-from device import Font, Image
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, InflictsDamage, Item, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from device import Color, Font, Image
 from map import Rect
 from randomTable import RandomTable
 
@@ -75,11 +75,11 @@ def createPlayer(scene: Scene, x: int, y: int) -> Entity:
 
 
 def createOrc(scene: Scene, x: int, y: int) -> Entity:
-    return createMonster(scene, x, y, 'o', 'Orc')
+    return createMonster(scene, x, y, 'O', 'Orc')
 
 
 def createGoblin(scene: Scene, x: int, y: int) -> Entity:
-    return createMonster(scene, x, y, 'g', 'Goblin')
+    return createMonster(scene, x, y, 'G', 'Goblin')
 
 
 def createMonster(scene: Scene, x: int, y: int, glyph: str, name: str) -> Entity:
@@ -192,3 +192,11 @@ def createTowerShield(scene:Scene, x:int, y:int) -> Entity:
     shield.add(GUIDescription())
     shield.add(Equippable(Equippable.SHIELD))
     return shield
+
+
+def createParticle(scene:Scene, x:int, y:int, glyph:str, foreground:Color = (255,255,255,255), lifetime:int = 2):
+    particle = scene.create()
+    particle.add(Position(x,y))
+    particle.add(Renderable(glyph, 100, foreground))
+    particle.add(ParticleLifetime(lifetime))
+    return particle

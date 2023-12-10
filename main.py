@@ -16,6 +16,7 @@ from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRem
 from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
+from system.particleSystem import cullDeadParticles, drawParticles
 from system.visibility import visibilitySystem
 from utils import Logger
 
@@ -272,6 +273,8 @@ def update():
             render: Renderable = entity[Renderable.id]
             font.foreground = render.foreground
             font.drawGlyphAtScreen(render.glyph, position.x + cx, position.y + cy)
+    drawParticles()
+    cullDeadParticles()
 
     processAfterDraw()
     logger: Logger = ECS.scene.retrieve("logger")
@@ -312,7 +315,7 @@ def main():
     device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
-    font = device.loadFont("./art/unifont-15.1.04.otf", 16)
+    font = device.loadFont("./art/DejaVuSansMono-Bold.ttf", 16)
 
     map = Map(MAP_WIDTH, MAP_HEIGHT)
     map.newMapRoomsAndCorridors(1, rand)
@@ -333,7 +336,7 @@ def main():
     scene.store("random", rand)
 
     scene.store("map", map)
-    scene.store("camera", (50, 0))
+    scene.store("camera", (40, 0))
     scene.store("logger", logger)
     scene.store("turn", 1)
 

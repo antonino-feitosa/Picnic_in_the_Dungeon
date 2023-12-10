@@ -256,6 +256,15 @@ class WantsToRemoveItem(Component):
         self.item = item
 
 
+class ParticleLifetime(Component):
+    id = ECS.nextSignature()
+    __slots__ = ['frames']
+
+    def __init__(self, frames: int):
+        super().__init__(ParticleLifetime.id)
+        self.frames = frames
+
+
 def doDamage(victim: Entity, amount: int):
     if victim.has(SufferDamage.id):
         sufferDamage: SufferDamage = victim[SufferDamage.id]

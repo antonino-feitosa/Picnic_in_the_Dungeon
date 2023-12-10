@@ -211,6 +211,7 @@ def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
 
 waiting = 0
 menuState = 0
+countFrames = 0
 
 
 def showMenu(keys: set[str]) -> MainMenuResult:
@@ -221,7 +222,10 @@ def showMenu(keys: set[str]) -> MainMenuResult:
         global menuState
         if "return" in keys:
             match menuState:
-                case 0: return MainMenuResult.NewGame
+                case 0:
+                    global countFrames
+                    countFrames = 100
+                    return MainMenuResult.NewGame
                 case 1: return MainMenuResult.Continue
                 case 3: return MainMenuResult.Quit
 
@@ -255,16 +259,16 @@ def showMenu(keys: set[str]) -> MainMenuResult:
         if menuState == 2:
             font.drawAtScreen("Development: Antonino Feitosa", 400, 200)
             font.drawAtScreen("antonino_feitosa@yahoo.com.br", 400, 220)
-            font.drawAtScreen("Font: GNU Unifont Glyphs (GNU GPLv2+)", 400, 260)
-            font.drawAtScreen("https://unifoundry.com/unifont/index.html", 400, 280)
+            font.drawAtScreen("Font: DejaVu (Free License)", 400, 260)
+            font.drawAtScreen("https://dejavu-fonts.github.io/License.html", 400, 280)
             font.drawAtScreen("Images: Antonino Feitosa", 400, 320)
 
     return MainMenuResult.NoResponse
 
 
-
 def showGameOver(keys: set[str]) -> GameOverResult:
-    if keys:
+    global countFrames
+    if keys and countFrames <= 0:
         return GameOverResult.QuitToMenu
     else:
         font: Font = ECS.scene.retrieve('font')
@@ -274,8 +278,11 @@ def showGameOver(keys: set[str]) -> GameOverResult:
         font.drawAtScreen("One day, we'll tell you all about how you did.", 400, 240)
         font.drawAtScreen("That day, sadly, is not in this day..", 400, 255)
 
-        font.foreground = (255, 0, 255, 255)
-        font.drawAtScreen("Press any key to return to the menu.", 400, 295)
+        if countFrames <= 0:
+            font.foreground = (255, 0, 255, 255)
+            font.drawAtScreen("Press any key to return to the menu.", 400, 295)
+        else:
+            countFrames -= 1
 
         return GameOverResult.NoResponse
 

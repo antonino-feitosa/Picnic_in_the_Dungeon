@@ -45,6 +45,7 @@ class Map:
         self.rooms: list[Rect] = list()
         self.blocked: set[Point] = set()
         self.tileContent: dict[Point, list[Entity]] = dict()
+        self.bloodstains: set[Point] = set()
         self.depth = 0
 
     def clearMap(self) -> None:
@@ -54,6 +55,7 @@ class Map:
         self.rooms.clear()
         self.blocked.clear()
         self.tileContent.clear()
+        self.bloodstains.clear()
         self.depth = 0
         for row in range(0, self.height):
             for col in range(0, self.width):
@@ -158,6 +160,10 @@ def drawMap(xoff:int, yoff:int):
                 font.drawGlyphAtScreenCenterSpace('>', pos.x + xoff, pos.y + yoff)
 
     for pos in map.visibleTiles:
+        if pos in map.bloodstains:
+            font.background = (100, 0, 0, 100)
+        else:
+            font.background = (0, 0, 0, 255)
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:
             font.foreground = (0, 127, 127, 255)

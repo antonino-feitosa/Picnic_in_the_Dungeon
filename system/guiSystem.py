@@ -275,7 +275,7 @@ def showGameOver(keys: set[str]) -> GameOverResult:
     else:
         font: Font = ECS.scene.retrieve('font')
         font.foreground = (255, 255, 0, 255)
-        font.drawAtScreen(          "Your journey has ended!", 400, 200)
+        font.drawAtScreen("          Your journey has ended!", 400, 200)
         font.foreground = (255, 255, 255, 255)
         font.drawAtScreen("One day, we'll tell you all about how you did.", 400, 240)
         font.drawAtScreen("That day, sadly, is not in this day..", 400, 255)

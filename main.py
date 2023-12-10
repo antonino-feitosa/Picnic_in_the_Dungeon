@@ -10,7 +10,7 @@ from device import Device, Font, Image
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createPlayer, spawnRoom
-from system.damage import damageSystem, deleteTheDead
+from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRemoveSystem, itemUseSystem
 from system.mapIndexSystem import mapIndexSystem

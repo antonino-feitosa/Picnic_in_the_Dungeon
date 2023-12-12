@@ -82,24 +82,6 @@ class Font:
         image = Image(self.device, textSurface)
         self.device.drawImage(image, x, y)
 
-    def drawGlyph(self, glyph: str, x: int, y: int, size: int = 16) -> None:
-        surface, rect = self.font.render(glyph, pygame.color.Color(self.foreground), pygame.color.Color(self.background))
-        dx = (size+4)//2
-        rect.x += x * dx
-        rect.y = y * size + ((size - rect.y) if rect.h < size else 0)
-        self.font.fgcolor = pygame.color.Color(self.foreground)
-        self.device.screen.blit(surface, rect)
-
-    def drawGlyphCenter(self, glyph: str, x: int, y: int, size: int = 16) -> None:
-        surface, rect = self.font.render(glyph, pygame.color.Color(self.foreground), pygame.color.Color(self.background))
-        dx = (size+4)//2
-        rect.x += x * dx
-        rect.y = y * size + (size - rect.h + 6)//2
-        self.device.screen.blit(surface, rect)
-
-    def screenGlyphPositionToIndex(self, x: int, y: int) -> tuple[int, int]:
-        return (x // ((self.size+4)//2),  y // self.size)
-
 
 class Sound:
     def __init__(self, sound: pygame.mixer.Sound):

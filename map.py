@@ -3,6 +3,7 @@ from enum import Enum
 from algorithms import Random, Point
 from core import ECS, Entity
 from device import Font, Image
+from glyphScreen import GlyphScreen
 
 
 class TileType(Enum):
@@ -141,13 +142,8 @@ class Map:
 
 
 
-def drawMap():
-    cx, cy = ECS.scene.retrieve("camera")
-    font:Font = ECS.scene.retrieve("font")
+def drawMap(screen: GlyphScreen):
     map: Map = ECS.scene.retrieve("map")
-    
-    font.foreground = (127, 127, 127, 255)
-    font.background = (0, 0, 0, 255)
     
     for pos in map.revealedTiles:
         if pos not in map.visibleTiles:
@@ -157,34 +153,25 @@ def drawMap():
                 glyph = '.'
             if tile == TileType.DownStairs:
                 glyph = '>'
-            if glyph != '':
-                font.drawGlyphCenter(glyph, pos.x + cx, pos.y + cy)
-            
             if tile == TileType.Wall:
                 glyph = getWallGlyph(pos.x, pos.y, map)
-                font.drawGlyph(glyph, pos.x + cx, pos.y + cy)
+            if glyph != '':
+                screen.setGlyph(pos.x, pos.y, glyph, (127, 127, 127, 255))
 
     for pos in map.visibleTiles:
         if pos in map.bloodstains:
-            font.background = (100, 0, 0, 100)
-        else:
-            font.background = (0, 0, 0, 255)
+            screen.setBackground(pos.x, pos.y, (100, 0, 0, 100))
         
-        glyph = ''
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:
-            font.foreground = (0, 127, 127, 255)
-            glyph = '.'
+            screen.setGlyph(pos.x, pos.y, '.', (0, 127, 127, 255))
         if tile == TileType.DownStairs:
-            font.foreground = (0, 255, 255, 255)
-            glyph = '>'
-        if glyph != '':
-            font.drawGlyphCenter(glyph, pos.x + cx, pos.y + cy)
-        
+            screen.setGlyph(pos.x, pos.y, '>', (0, 255, 255, 255))
         if tile == TileType.Wall:
-            font.foreground = (0, 255, 0, 255)
             glyph = getWallGlyph(pos.x, pos.y, map)
-            font.drawGlyph(glyph, pos.x + cx, pos.y + cy)
+            screen.setGlyph(pos.x, pos.y, glyph, (0, 255, 0, 255))
+        
+        
 
 
 def isRevealedAndWall(x:int, y:int, map:Map) -> bool:

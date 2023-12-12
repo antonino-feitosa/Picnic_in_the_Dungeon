@@ -7,6 +7,7 @@ from algorithms import Random, Point
 from component import CombatStats, Equipped, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
+from glyphScreen import GlyphScreen
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createPlayer, spawnRoom
@@ -204,7 +205,7 @@ def processBeforeDraw():
     ECS.scene.store("state", runState)
 
 
-def processAfterDraw():
+def processAfterDraw(screen: GlyphScreen):
     runState: RunState = ECS.scene.retrieve("state")
 
     if runState == RunState.ShowInventory:
@@ -240,7 +241,7 @@ def processAfterDraw():
         pass
     elif runState == RunState.ShowTargeting:
         range: int = ECS.scene.retrieve("targeting range")
-        result, point = rangedTarget(range)
+        result, point = rangedTarget(range, screen)
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and point is not None:
@@ -260,25 +261,31 @@ def update():
     runState: RunState = ECS.scene.retrieve("state")
     if runState == RunState.MainMenu:
         return
-
     
-    drawMap()
+    
+    font: Font = ECS.scene.retrieve('font')
     cx, cy = ECS.scene.retrieve("camera")
-    font: Font = ECS.scene.retrieve("font")
+    screen = GlyphScreen(80,40, font)
+    screen.xoff = cx
+    screen.yoff = cy
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Renderable.id)
+
+    drawMap(screen)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         position: Position = entity[Position.id]
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
-            font.foreground = render.foreground
-            font.drawGlyph(render.glyph, position.x + cx, position.y + cy)
+            screen.setGlyph(position.x, position.y, render.glyph, render.foreground, render.background)
     drawParticles()
     cullDeadParticles()
 
-    processAfterDraw()
+    screen.draw()
+    screen.clear()
+    processAfterDraw(screen)
     logger: Logger = ECS.scene.retrieve("logger")
-    guiSystem()
+    guiSystem(screen)
+    screen.draw()
     logger.print()
 
 

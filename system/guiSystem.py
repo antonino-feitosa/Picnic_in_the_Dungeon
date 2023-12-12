@@ -6,7 +6,8 @@ from enum import Enum
 from algorithms.point import Point
 from component import CombatStats, Equippable, Equipped, GUIDescription, InBackpack, Item, Name, Player, Position, Renderable, Viewshed
 from core import ECS, Entity
-from device import Font
+from device import Color, Font
+from glyphScreen import GlyphScreen
 from map import Map
 from system.meleeCombatSystem import getDefensiveBonus, getOffensiveBonus
 from utils import Logger
@@ -31,7 +32,7 @@ class GameOverResult(Enum):
     QuitToMenu = 1
 
 
-def guiSystem():
+def guiSystem(screen: GlyphScreen):
     entities = ECS.scene.filter(GUIDescription.id | Position.id)
     player: Entity = ECS.scene.retrieve("player")
     font: Font = ECS.scene.retrieve("font")
@@ -77,26 +78,23 @@ def guiSystem():
     for i in range(len(messages)):
         message = messages[i]
         font.drawAtScreen(message, 10, 10 + i * font.size)
-    drawTooltips()
+    drawTooltips(screen)
 
 
 # TODO item and monster at same position
-def drawTooltips():
+def drawTooltips(screen: GlyphScreen):
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Name.id | Renderable.id)
-    font: Font = ECS.scene.retrieve("font")
     position = ECS.context.mousePosition
-    x, y = font.screenGlyphPositionToIndex(position.x, position.y)
-    cx, cy = ECS.scene.retrieve("camera")
-    point = Point(x - cx, y - cy)
+    x, y = screen.screenPositionToGrid(position.x, position.y)
+    point = Point(x, y)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         entityPosition: Position = entity[Position.id]
         if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
             component: Name = entity[Name.id]
             name = ' ' + component.name + ' '
-            font.background = (255, 255, 255, 255)
-            font.foreground = (0, 200,   0, 255)
-            font.drawGlyph(name, point.x + cx, point.y + cy)
+            print(point)
+            screen.setGlyph(point.x + 1, point.y, name, bgColor= (100, 100, 100, 155))
 
 
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
@@ -188,24 +186,26 @@ def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     return (ItemMenuResult.NoResponse, None)
 
 
-def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
+def rangedTarget(itemRange: int, screen: GlyphScreen) -> tuple[ItemMenuResult, Point | None]:
     player = ECS.scene.retrieve("player")
-    font: Font = ECS.scene.retrieve('font')
     playerPosition: Position = player[Position.id]
     playerPoint = Point(playerPosition.x, playerPosition.y)
     viewshed: Viewshed = player[Viewshed.id]
     mousePosition = ECS.context.mousePosition
-    cx, cy = ECS.scene.retrieve("camera")
-    x, y = font.screenGlyphPositionToIndex(mousePosition.x, mousePosition.y)
-    mousePoint = Point(x - cx, y - cy)
-    if mousePoint in viewshed.visibleTiles and mousePoint.distanceSquare(playerPoint) <= range:
-        font.background = (176, 255, 55, 255)
-        font.drawGlyphCenter('*', mousePoint.x + cx, mousePoint.y + cy)
+    x, y = screen.screenPositionToGrid(mousePosition.x, mousePosition.y)
+    mousePoint = Point(x, y)
+    if mousePoint in viewshed.visibleTiles and mousePoint.distanceSquare(playerPoint) <= itemRange:
+        for x in range(playerPoint.x - itemRange, playerPoint.x + itemRange + 1):
+            for y in range(playerPoint.y - itemRange, playerPoint.y + itemRange + 1):
+                if Point(x,y) in viewshed.visibleTiles:
+                    screen.setBackground(x, y, (20, 50, 20, 10))
+
+        screen.setGlyph(mousePoint.x, mousePoint.y, '⊙', (176, 255, 55, 200), (20, 50, 20, 10))
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Selected, mousePoint)
     else:
-        font.background = (255, 0, 0, 255)
-        font.drawGlyphCenter('*', mousePoint.x + cx, mousePoint.y + cy)
+        screen.setGlyph(mousePoint.x, mousePoint.y, '⊗', (255, 0, 0, 255))
+
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Cancel, None)
     if "escape" in ECS.context.keys:
@@ -289,4 +289,3 @@ def showGameOver(keys: set[str]) -> GameOverResult:
             countFrames -= 1
 
         return GameOverResult.NoResponse
-

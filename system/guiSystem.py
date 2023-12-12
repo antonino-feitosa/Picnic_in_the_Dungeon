@@ -86,7 +86,9 @@ def drawTooltips():
     entities = ECS.scene.filter(Position.id | Name.id | Renderable.id)
     font: Font = ECS.scene.retrieve("font")
     position = ECS.context.mousePosition
-    point = Point(position.x // font.size, position.y // font.size)
+    x, y = font.screenGlyphPositionToIndex(position.x, position.y)
+    cx, cy = ECS.scene.retrieve("camera")
+    point = Point(x - cx, y - cy)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         entityPosition: Position = entity[Position.id]
         if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
@@ -94,7 +96,7 @@ def drawTooltips():
             name = ' ' + component.name + ' '
             font.background = (255, 255, 255, 255)
             font.foreground = (0, 200,   0, 255)
-            font.drawAtScreen(name, (point.x + 2) * font.size, point.y * font.size)
+            font.drawGlyph(name, point.x + cx, point.y + cy)
 
 
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
@@ -193,15 +195,17 @@ def rangedTarget(range: int) -> tuple[ItemMenuResult, Point | None]:
     playerPoint = Point(playerPosition.x, playerPosition.y)
     viewshed: Viewshed = player[Viewshed.id]
     mousePosition = ECS.context.mousePosition
-    mousePoint = Point(mousePosition.x // font.size, mousePosition.y // font.size)
+    cx, cy = ECS.scene.retrieve("camera")
+    x, y = font.screenGlyphPositionToIndex(mousePosition.x, mousePosition.y)
+    mousePoint = Point(x - cx, y - cy)
     if mousePoint in viewshed.visibleTiles and mousePoint.distanceSquare(playerPoint) <= range:
-        font.background = (0, 255, 0, 100)
-        font.drawAtScreen('@', mousePoint.x * font.size, mousePoint.y * font.size)
+        font.background = (176, 255, 55, 255)
+        font.drawGlyphCenter('*', mousePoint.x + cx, mousePoint.y + cy)
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Selected, mousePoint)
     else:
-        font.background = (255, 0, 0, 100)
-        font.drawAtScreen('@', mousePoint.x * font.size, mousePoint.y * font.size)
+        font.background = (255, 0, 0, 255)
+        font.drawGlyphCenter('*', mousePoint.x + cx, mousePoint.y + cy)
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Cancel, None)
     if "escape" in ECS.context.keys:

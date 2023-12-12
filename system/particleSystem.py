@@ -26,4 +26,4 @@ def drawParticles() -> None:
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
             font.foreground = render.foreground
-            font.drawGlyphAtScreen(render.glyph, position.x + cx, position.y + cy)
+            font.drawGlyph(render.glyph, position.x + cx, position.y + cy)

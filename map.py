@@ -158,11 +158,11 @@ def drawMap():
             if tile == TileType.DownStairs:
                 glyph = '>'
             if glyph != '':
-                font.drawGlyphAtScreenCenterSpace(glyph, pos.x + cx, pos.y + cy)
+                font.drawGlyphCenter(glyph, pos.x + cx, pos.y + cy)
             
             if tile == TileType.Wall:
                 glyph = getWallGlyph(pos.x, pos.y, map)
-                font.drawGlyphAtScreen(glyph, pos.x + cx, pos.y + cy)
+                font.drawGlyph(glyph, pos.x + cx, pos.y + cy)
 
     for pos in map.visibleTiles:
         if pos in map.bloodstains:
@@ -179,12 +179,12 @@ def drawMap():
             font.foreground = (0, 255, 255, 255)
             glyph = '>'
         if glyph != '':
-            font.drawGlyphAtScreenCenterSpace(glyph, pos.x + cx, pos.y + cy)
+            font.drawGlyphCenter(glyph, pos.x + cx, pos.y + cy)
         
         if tile == TileType.Wall:
             font.foreground = (0, 255, 0, 255)
             glyph = getWallGlyph(pos.x, pos.y, map)
-            font.drawGlyphAtScreen(glyph, pos.x + cx, pos.y + cy)
+            font.drawGlyph(glyph, pos.x + cx, pos.y + cy)
 
 
 def isRevealedAndWall(x:int, y:int, map:Map) -> bool:

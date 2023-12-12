@@ -9,7 +9,7 @@ from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
-from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createPlayer, spawnRoom
+from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createPlayer, spawnRoom
 from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRemoveSystem, itemUseSystem
@@ -272,7 +272,7 @@ def update():
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
             font.foreground = render.foreground
-            font.drawGlyphAtScreen(render.glyph, position.x + cx, position.y + cy)
+            font.drawGlyph(render.glyph, position.x + cx, position.y + cy)
     drawParticles()
     cullDeadParticles()
 
@@ -324,10 +324,9 @@ def main():
 
     scene = Scene()
 
-    # map.newTestMap(1)
-    # cx, cy = map.rooms[1].center()
-    # createDagger(scene, cx, cy)
-    # map.rooms[1]
+    map.newTestMap(1)
+    cx, cy = map.rooms[1].center()
+    createFireballScroll(scene, cx, cy)
 
     scene.store("state", RunState.MainMenu)
 

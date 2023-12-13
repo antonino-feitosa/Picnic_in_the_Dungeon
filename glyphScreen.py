@@ -25,9 +25,16 @@ class GlyphScreen:
     def clear(self):
         self.screen.clear()
 
-    def setGlyph(self, x: int, y: int, glyph: str, fgColor: Color = (255, 255, 255, 255), bgColor: Color = (0, 0, 0, 255)) -> None:
+    def setGlyph(self, x: int, y: int, glyph: str, fgColor: Color | None = None, bgColor: Color | None = None) -> None:
         point = Point(x, y)
-        self.screen[point] = GlyphScreen.Render(glyph, fgColor, bgColor)
+        if point not in self.screen:
+            bgColor = bgColor or (0, 0, 0, 255)
+            fgColor = fgColor or (255, 255, 255, 255)
+            self.screen[point] = GlyphScreen.Render(glyph, fgColor, bgColor)
+        else:
+            bgColor = bgColor or self.screen[point].bgColor
+            fgColor = fgColor or self.screen[point].fgColor
+            self.screen[point] = GlyphScreen.Render(glyph, fgColor, bgColor)
 
     def setForeground(self, x: int, y: int, fgColor: Color):
         point = Point(x, y)

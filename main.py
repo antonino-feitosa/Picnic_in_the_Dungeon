@@ -10,7 +10,7 @@ from device import Device, Font, Image
 from glyphScreen import GlyphScreen
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
-from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createPlayer, spawnRoom
+from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createHealthPotion, createOrc, createPlayer, spawnRoom
 from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRemoveSystem, itemUseSystem
@@ -72,7 +72,6 @@ def gotoNextLevel() -> None:
     currentMap: Map = ECS.scene.retrieve("map")
     map = Map(MAP_WIDTH, MAP_HEIGHT)
     map.newMapRoomsAndCorridors(currentMap.depth + 1, rand)
-    #map.newTestMap(currentMap.depth + 1)
     for room in map.rooms[1:]:
         spawnRoom(ECS.scene, room, map.depth)
     ECS.scene.store("map", map)
@@ -195,6 +194,7 @@ def processBeforeDraw():
             turn: int = ECS.scene.retrieve("turn")
             ECS.scene.store("turn", turn + 1)
             runState = RunState.WaitingInput
+        ECS.scene.store("state", runState)
         saveState()
     elif runState == RunState.WaitingInput:
         runState = playerInput(ECS.context.keys)
@@ -214,8 +214,6 @@ def processAfterDraw(screen: GlyphScreen):
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and entity is not None:
             if entity.has(Ranged.id):
-                ranged: Ranged = entity[Ranged.id]
-                ECS.scene.store("targeting range", ranged.range)
                 ECS.scene.store("targeting element", entity)
                 runState = RunState.ShowTargeting
             else:
@@ -240,12 +238,11 @@ def processAfterDraw(screen: GlyphScreen):
             runState = RunState.PlayerTurn
         pass
     elif runState == RunState.ShowTargeting:
-        range: int = ECS.scene.retrieve("targeting range")
-        result, point = rangedTarget(range, screen)
+        targeting: Entity = ECS.scene.retrieve("targeting element")
+        result, point = rangedTarget(targeting, screen)
         if result == ItemMenuResult.Cancel:
             runState = RunState.WaitingInput
         elif result == ItemMenuResult.Selected and point is not None:
-            targeting: Entity = ECS.scene.retrieve("targeting element")
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToUseItem(targeting, point))
             runState = RunState.PlayerTurn
@@ -277,15 +274,16 @@ def update():
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
             screen.setGlyph(position.x, position.y, render.glyph, render.foreground, render.background)
-    drawParticles()
-    cullDeadParticles()
-
+    drawParticles(screen)
     screen.draw()
     screen.clear()
     processAfterDraw(screen)
-    logger: Logger = ECS.scene.retrieve("logger")
     guiSystem(screen)
+    drawParticles(screen)
+    cullDeadParticles()
     screen.draw()
+
+    logger: Logger = ECS.scene.retrieve("logger")
     logger.print()
 
 
@@ -333,7 +331,8 @@ def main():
 
     map.newTestMap(1)
     cx, cy = map.rooms[1].center()
-    createFireballScroll(scene, cx, cy)
+
+    createOrc(scene, cx, cy)
 
     scene.store("state", RunState.MainMenu)
 

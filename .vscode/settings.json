@@ -9,5 +9,6 @@
     "cSpell.language": "en,pt,pt-BR",
     "cSpell.enableFiletypes": [
         "!python"
-    ]
+    ],
+    "python.analysis.autoImportCompletions": true
 }

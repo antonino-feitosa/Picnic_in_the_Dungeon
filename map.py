@@ -158,9 +158,11 @@ def drawMap(screen: GlyphScreen):
             if glyph != '':
                 screen.setGlyph(pos.x, pos.y, glyph, (127, 127, 127, 255))
 
+    print('')
     for pos in map.visibleTiles:
         if pos in map.bloodstains:
-            screen.setBackground(pos.x, pos.y, (100, 0, 0, 100))
+            print("Blood", pos)
+            screen.setBackground(pos.x, pos.y, (100, 0, 0, 255))
         
         tile = map.tiles[Point(pos.x, pos.y)]
         if tile == TileType.Floor:

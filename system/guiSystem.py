@@ -4,7 +4,7 @@ import os.path
 
 from enum import Enum
 from algorithms.point import Point
-from component import CombatStats, Equippable, Equipped, GUIDescription, InBackpack, Item, Name, Player, Position, Renderable, Viewshed
+from component import AreaOfEffect, CombatStats, Equippable, Equipped, GUIDescription, InBackpack, Item, Name, Player, Position, Ranged, Renderable, Viewshed
 from core import ECS, Entity
 from device import Color, Font
 from glyphScreen import GlyphScreen
@@ -93,7 +93,6 @@ def drawTooltips(screen: GlyphScreen):
         if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
             component: Name = entity[Name.id]
             name = ' ' + component.name + ' '
-            print(point)
             screen.setGlyph(point.x + 1, point.y, name, bgColor= (100, 100, 100, 155))
 
 
@@ -186,7 +185,9 @@ def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     return (ItemMenuResult.NoResponse, None)
 
 
-def rangedTarget(itemRange: int, screen: GlyphScreen) -> tuple[ItemMenuResult, Point | None]:
+def rangedTarget(targetingEntity: Entity, screen: GlyphScreen) -> tuple[ItemMenuResult, Point | None]:
+    ranged:Ranged = targetingEntity[Ranged.id]
+    itemRange: int = ranged.range
     player = ECS.scene.retrieve("player")
     playerPosition: Position = player[Position.id]
     playerPoint = Point(playerPosition.x, playerPosition.y)
@@ -199,6 +200,14 @@ def rangedTarget(itemRange: int, screen: GlyphScreen) -> tuple[ItemMenuResult, P
             for y in range(playerPoint.y - itemRange, playerPoint.y + itemRange + 1):
                 if Point(x,y) in viewshed.visibleTiles:
                     screen.setBackground(x, y, (20, 50, 20, 10))
+        
+        if targetingEntity.has(AreaOfEffect.id):
+            areaOfEffect:AreaOfEffect = targetingEntity[AreaOfEffect.id]
+            area = areaOfEffect.radius
+            for x in range(mousePoint.x - area, mousePoint.x + area + 1):
+                for y in range(mousePoint.y - area, mousePoint.y + area + 1):
+                    if Point(x,y) in viewshed.visibleTiles:
+                        screen.setBackground(x, y, (30, 0, 0, 10))
 
         screen.setGlyph(mousePoint.x, mousePoint.y, '⊙', (176, 255, 55, 200), (20, 50, 20, 10))
         if ECS.context.mouseLeftPressed:

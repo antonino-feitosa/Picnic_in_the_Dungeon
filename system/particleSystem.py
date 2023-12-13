@@ -1,9 +1,9 @@
 
 
-from algorithms.point import Point
+from algorithms import Point
 from component import ParticleLifetime, Position, Renderable
 from core import ECS
-from device import Font
+from glyphScreen import GlyphScreen
 from map import Map
 
 
@@ -16,14 +16,11 @@ def cullDeadParticles() -> None:
             ECS.scene.destroy(entity)
 
 
-def drawParticles() -> None:
+def drawParticles(screen: GlyphScreen) -> None:
     map: Map = ECS.scene.retrieve("map")
-    cx, cy = ECS.scene.retrieve("camera")
-    font: Font = ECS.scene.retrieve("font")
     entities = ECS.scene.filter(Position.id | Renderable.id | ParticleLifetime.id)
     for entity in entities:
         position: Position = entity[Position.id]
         if Point(position.x, position.y) in map.visibleTiles:
             render: Renderable = entity[Renderable.id]
-            font.foreground = render.foreground
-            font.drawGlyph(render.glyph, position.x + cx, position.y + cy)
+            screen.setGlyph(position.x, position.y, render.glyph, render.foreground, render.background)

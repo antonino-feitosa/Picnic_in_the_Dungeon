@@ -6,6 +6,7 @@ from algorithms.random import Random
 from component import Confusion, Monster, Position, Viewshed, Name, WantsToMelee
 from core import ECS, Entity
 from map import Map, TileType
+from spawner import createParticle
 from utils import Logger
 
 
@@ -30,6 +31,7 @@ def monsterAISystem():
                 position: Position = entity[Position.id]
                 if playerPoint in view.visibleTiles:
                     logger.log(f"{name.name} is confused!")
+                    createParticle(ECS.scene, position.x, position.y, '?', (255, 0, 255, 255))
                 break
         
         view:Viewshed = entity[Viewshed.id]

@@ -3,7 +3,7 @@
 from algorithms import PathFinding, Point
 from algorithms.direction import Direction
 from algorithms.random import Random
-from component import Confusion, Monster, Position, Viewshed, Name, WantsToMelee
+from component import Confusion, EntityMoved, Monster, Position, Viewshed, Name, WantsToMelee
 from core import ECS, Entity
 from map import Map, TileType
 from spawner import createParticle
@@ -53,6 +53,7 @@ def monsterAISystem():
                     position.x = nextPoint.x
                     position.y = nextPoint.y
                     view.dirty = True
+                    entity.add(EntityMoved())
             else:
                 nextPoint = Point(position.x, position.y) + rand.choice(Direction.All)
                 if nextPoint in map.tiles and map.tiles[nextPoint] != TileType.Wall and nextPoint not in map.blocked:
@@ -60,5 +61,6 @@ def monsterAISystem():
                     position.x = nextPoint.x
                     position.y = nextPoint.y
                     view.dirty = True
+                    entity.add(EntityMoved())
 
                     

@@ -4,7 +4,7 @@ import os.path
 
 from enum import Enum
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Equippable, Equipped, GUIDescription, HungerClock, InBackpack, Item, Name, Player, Position, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, CombatStats, Equippable, Equipped, GUIDescription, Hidden, HungerClock, InBackpack, Item, Name, Player, Position, Ranged, Renderable, Viewshed
 from core import ECS, Entity
 from device import Color, Font
 from glyphScreen import GlyphScreen
@@ -43,6 +43,9 @@ def guiSystem(screen: GlyphScreen):
 
     messages = [f"Depth: {map.depth}"]
     for entity in sorted(entities, key=lambda e: 0 if e.has(Player.id) else e.id):
+        if entity.has(Hidden.id):
+            continue
+
         space = ''
         showing = True
         if entity.has(Position.id):
@@ -95,6 +98,9 @@ def drawTooltips(screen: GlyphScreen):
     x, y = screen.screenPositionToGrid(position.x, position.y)
     point = Point(x, y)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
+        if entity.has(Hidden.id):
+            continue
+        
         entityPosition: Position = entity[Position.id]
         if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
             component: Name = entity[Name.id]

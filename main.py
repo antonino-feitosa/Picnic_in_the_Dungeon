@@ -3,14 +3,14 @@ import os
 import pickle
 
 from algorithms import Random, Point
-from component import CombatStats, Equipped, HungerClock, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
+from component import CombatStats, Equipped, Hidden, HungerClock, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from glyphScreen import GlyphScreen
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from runState import RunState
-from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createMagicMapperScroll, createPlayer, spawnRoom
+from spawner import MAP_HEIGHT, MAP_WIDTH, createBearTrap, createDagger, createFireballScroll, createMagicMapperScroll, createPlayer, spawnRoom
 from system.hungerSystem import hungerSystem
 from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
@@ -19,6 +19,7 @@ from system.mapIndexSystem import mapIndexSystem
 from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
 from system.particleSystem import cullDeadParticles, drawParticles
+from system.triggerSystem import triggerSystem
 from system.visibility import visibilitySystem
 from utils import Logger
 
@@ -154,6 +155,7 @@ def runSystems():
     if runState == RunState.MonsterTurn:
         monsterAISystem()
     mapIndexSystem()
+    triggerSystem()
     itemCollectionSystem()
     itemUseSystem()
     itemDropSystem()
@@ -265,10 +267,11 @@ def update():
 
     drawMap(screen)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
-        position: Position = entity[Position.id]
-        if Point(position.x, position.y) in map.visibleTiles:
-            render: Renderable = entity[Renderable.id]
-            screen.setGlyph(position.x, position.y, render.glyph, render.foreground, render.background)
+        if not entity.has(Hidden.id):
+            position: Position = entity[Position.id]
+            if Point(position.x, position.y) in map.visibleTiles:
+                render: Renderable = entity[Renderable.id]
+                screen.setGlyph(position.x, position.y, render.glyph, render.foreground, render.background)
     drawParticles(screen)
     screen.draw()
     screen.clear()
@@ -317,25 +320,15 @@ def main():
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/DejaVuSansMono-Bold.ttf", 16)
 
-    map = Map(MAP_WIDTH, MAP_HEIGHT)
-    map.newMapRoomsAndCorridors(1, rand)
-
     logger = Logger(font, 10, 10, 300)
 
+    map = Map(MAP_WIDTH, MAP_HEIGHT)
+
     scene = Scene()
-
-    map.newTestMap(1)
-    cx, cy = map.rooms[1].center()
-
-    #createOrc(scene, cx, cy)
-    createMagicMapperScroll(scene, cx, cy)
-
     scene.store("state", RunState.MainMenu)
-
     scene.store("background", background)
     scene.store("font", font)
     scene.store("random", rand)
-
     scene.store("map", map)
     scene.store("camera", (40, 0))
     scene.store("logger", logger)
@@ -344,12 +337,20 @@ def main():
     ECS.scene = scene
     ECS.context = Context()
 
+    map.newMapRoomsAndCorridors(1, rand)    
+    map.newTestMap(1)
+    cx, cy = map.rooms[1].center()
+
     xplayer, yplayer = map.rooms[0].center()
     player = createPlayer(scene, xplayer, yplayer)
     scene.store("player", player)
 
-    for room in map.rooms[1:]:
-        spawnRoom(scene, room, 1)
+    #createOrc(scene, cx, cy)
+    createBearTrap(scene, cx, cy)
+
+    #for room in map.rooms[1:]:
+    #    spawnRoom(scene, room, 1)
+
 
     device.onLoop.append(update)
     device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))

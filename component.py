@@ -293,6 +293,34 @@ class MagicMapper(Component):
         super().__init__(MagicMapper.id)
 
 
+class Hidden(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(Hidden.id)
+
+
+class EntryTrigger(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(EntryTrigger.id)
+
+
+class EntityMoved(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(EntityMoved.id)
+
+
+class SingleActivation(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(SingleActivation.id)
+
+
 def sufferDamage(victim: Entity, amount: int):
     if victim.has(SufferDamage.id):
         sufferDamage: SufferDamage = victim[SufferDamage.id]

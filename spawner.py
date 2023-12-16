@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, HungerClock, InflictsDamage, Item, MagicMapper, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesFood, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, EntryTrigger, Equippable, GUIDescription, Hidden, HungerClock, InflictsDamage, Item, MagicMapper, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesFood, ProvidesHealing, Ranged, Renderable, SingleActivation, Viewshed
 from device import Color, Font, Image
 from map import Rect
 from randomTable import RandomTable
@@ -27,6 +27,7 @@ def roomTable(depth:int) -> RandomTable:
     table.add("Tower Shield", depth)
     table.add("Rations", 7)
     table.add("Magic Mapper Scroll", 2)
+    table.add("Bear Trap", 2)
     return table
 
 
@@ -63,6 +64,7 @@ def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
             case "Tower Shield": createTowerShield(scene, x, y)
             case "Rations": createRations(scene, x, y)
             case "Magic Mapper Scroll": createMagicMapperScroll(scene, x, y)
+            case "Bear Trap": createBearTrap(scene, x, y)
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:
@@ -229,3 +231,16 @@ def createMagicMapperScroll(scene: Scene, x: int, y: int) -> Entity:
     scroll.add(MagicMapper())
     scroll.add(GUIDescription())
     return scroll
+
+
+def createBearTrap(scene:Scene, x:int, y:int) -> Entity:
+    trap = scene.create()
+    trap.add(Position(x, y))
+    trap.add(Renderable("^", 2, (255, 0, 0, 255)))
+    trap.add(Name('Bear Trap'))
+    trap.add(Hidden())
+    trap.add(EntryTrigger())
+    trap.add(InflictsDamage(6))
+    trap.add(SingleActivation())
+    return trap
+

@@ -1,5 +1,5 @@
 from algorithms import Point
-from component import CombatStats, Item, Player, Position, Viewshed, WantsToMelee, WantsToPickupItem
+from component import CombatStats, EntityMoved, Item, Player, Position, Viewshed, WantsToMelee, WantsToPickupItem
 from core import ECS
 from map import Map, TileType
 
@@ -22,6 +22,7 @@ def tryMovePlayer(dx: int, dy: int):
             position.y = nextPoint.y
             view: Viewshed = entity[Viewshed.id]
             view.dirty = True
+            entity.add(EntityMoved())
             ECS.scene.store("player position", (nextPoint.x, nextPoint.y))
 
 

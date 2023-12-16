@@ -3,7 +3,7 @@ import os
 import pickle
 
 from algorithms import Random, Point
-from component import CombatStats, Equipped, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
+from component import CombatStats, Equipped, HungerClock, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font, Image
 from glyphScreen import GlyphScreen
@@ -44,6 +44,11 @@ def skipTurn() -> None:
             for entity in map.tileContent[pos]:
                 if not entity.has(Player.id) and entity.has(CombatStats.id):
                     canHeal = False
+    
+    hunger:HungerClock = player[HungerClock.id]
+    if hunger.hungerState == HungerClock.STARVING or hunger.hungerState == HungerClock.HUNGRY:
+        canHeal = False
+
     if canHeal:
         stats: CombatStats = player.get(CombatStats.id)
         stats.HP = min(stats.maxHP, stats.HP + 1)
@@ -322,7 +327,7 @@ def main():
     map.newTestMap(1)
     cx, cy = map.rooms[1].center()
 
-    createOrc(scene, cx, cy)
+    #createOrc(scene, cx, cy)
 
     scene.store("state", RunState.MainMenu)
 

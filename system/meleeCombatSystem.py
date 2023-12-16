@@ -1,5 +1,5 @@
 
-from component import CombatStats, DefenseBonus, Equipped, MeleePowerBonus, Name, Position, WantsToMelee, sufferDamage
+from component import CombatStats, DefenseBonus, Equipped, HungerClock, MeleePowerBonus, Name, Position, WantsToMelee, sufferDamage
 from core import ECS, Entity
 from spawner import createParticle
 from utils import Logger
@@ -13,6 +13,12 @@ def getOffensiveBonus(entity:Entity) -> int:
         if equipped.owner == entity:
             powerBonus:MeleePowerBonus = powerBonusEntity[MeleePowerBonus.id]
             offensiveBonus += powerBonus.power
+    
+    if entity.has(HungerClock.id):
+        hunger: HungerClock = entity[HungerClock.id]
+        if hunger.hungerState == HungerClock.WELL_FED:
+            offensiveBonus += 1
+
     return offensiveBonus
 
 

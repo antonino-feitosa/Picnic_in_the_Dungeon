@@ -4,7 +4,7 @@ import os.path
 
 from enum import Enum
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Equippable, Equipped, GUIDescription, InBackpack, Item, Name, Player, Position, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, CombatStats, Equippable, Equipped, GUIDescription, HungerClock, InBackpack, Item, Name, Player, Position, Ranged, Renderable, Viewshed
 from core import ECS, Entity
 from device import Color, Font
 from glyphScreen import GlyphScreen

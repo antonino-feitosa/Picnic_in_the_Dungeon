@@ -97,7 +97,6 @@ def itemUseSystem() -> None:
                     position:Position = target[Position.id]
                     createParticle(ECS.scene, position.x, position.y, '?', (255, 0, 255, 255))
 
-        
 
         if entityItem.has(ProvidesFood.id):
             for target in targets:

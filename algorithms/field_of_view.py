@@ -138,6 +138,7 @@ class FieldOfView:
     FormatSquare = "square"
     FormatDiamond = "diamond"
 
+
     def __init__(self, radius: int, isOpaque: Callable[[int, int], bool]):
         self.radius = radius
         self.isOpaque = isOpaque
@@ -147,9 +148,11 @@ class FieldOfView:
         self.angleOfView = FieldOfView.AngleRadial
         self.formatOfView = FieldOfView.FormatSquare
 
+
     @property
     def angleOfView(self):
         return self._angleFunction
+
 
     @angleOfView.setter  # radial, peripheral, con
     def angleOfView(self, value: str) -> None:
@@ -163,9 +166,11 @@ class FieldOfView:
             case _:
                 raise ValueError("Expected: cone, radial or peripheral")
 
+
     @property
     def formatOfView(self):
         return self._formatFunction
+
 
     @formatOfView.setter  # octal, square, circle, diamond
     def formatOfView(self, value: str) -> None:
@@ -180,6 +185,7 @@ class FieldOfView:
                 self._formatFunction = lambda p1, p2: p1.distanceSquare(p2)
             case _:
                 raise ValueError("Expected: octal, square, circle or diamond")
+
 
     def rayCasting(self, center: Point, direction: Direction = Direction.Up) -> set[Point]:
         visible: set[Point] = set()
@@ -201,6 +207,7 @@ class FieldOfView:
                 i += 1
         return self.removeArtifacts(visible, blocked)
 
+
     def _octalDistance(self, center: Point, other: Point) -> float:
         dx = abs(center.x - other.x)
         dy = abs(center.y - other.y)
@@ -211,6 +218,7 @@ class FieldOfView:
             else:
                 dist -= 1
         return dist
+
 
     def removeArtifacts(self, visible: set[Point], blocked:set[Point]):
         for point in blocked:

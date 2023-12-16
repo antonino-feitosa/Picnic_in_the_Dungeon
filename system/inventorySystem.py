@@ -1,6 +1,6 @@
 
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, HungerClock, InBackpack, InflictsDamage, Name, Player, Position, ProvidesFood, ProvidesHealing, WantsToRemoveItem, WantsToUseItem, WantsToDropItem, WantsToPickupItem, sufferDamage
+from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, HungerClock, InBackpack, InflictsDamage, MagicMapper, Name, Player, Position, ProvidesFood, ProvidesHealing, WantsToRemoveItem, WantsToUseItem, WantsToDropItem, WantsToPickupItem, sufferDamage
 from core import ECS, Entity
 from map import Map
 from spawner import createParticle
@@ -106,6 +106,12 @@ def itemUseSystem() -> None:
                     hunger.duration = 20
                     if entity.has(Player.id):
                         logger.log(f"You eat the {entityItem[Name.id].name}.")
+        
+
+        if entityItem.has(MagicMapper.id):
+            for pos in map.tiles:
+                map.revealedTiles.add(pos)
+            logger.log("The map is revealed to you!")
 
 
         if entityItem.has(Equippable.id):

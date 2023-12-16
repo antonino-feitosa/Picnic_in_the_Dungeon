@@ -2,14 +2,14 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, HungerClock, InflictsDamage, Item, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesFood, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, HungerClock, InflictsDamage, Item, MagicMapper, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesFood, ProvidesHealing, Ranged, Renderable, Viewshed
 from device import Color, Font, Image
 from map import Rect
 from randomTable import RandomTable
 
 
 MAP_WIDTH = 80
-MAP_HEIGHT = 40
+MAP_HEIGHT = 30
 MAX_MONSTERS = 4
 
 
@@ -26,6 +26,7 @@ def roomTable(depth:int) -> RandomTable:
     table.add("Long Sword", depth)
     table.add("Tower Shield", depth)
     table.add("Rations", 7)
+    table.add("Magic Mapper Scroll", 2)
     return table
 
 
@@ -61,6 +62,7 @@ def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
             case "Long Sword": createLongSword(scene, x, y)
             case "Tower Shield": createTowerShield(scene, x, y)
             case "Rations": createRations(scene, x, y)
+            case "Magic Mapper Scroll": createMagicMapperScroll(scene, x, y)
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:
@@ -215,3 +217,15 @@ def createRations(scene:Scene, x:int, y:int) -> Entity:
     rations.add(GUIDescription())
     rations.add(Consumable())
     return rations
+
+
+def createMagicMapperScroll(scene: Scene, x: int, y: int) -> Entity:
+    scroll = scene.create()
+    scroll.add(Position(x, y))
+    scroll.add(Renderable(")", 2, (255, 0, 255, 255)))
+    scroll.add(Name('Scroll of Magic Mapping'))
+    scroll.add(Item())
+    scroll.add(Consumable())
+    scroll.add(MagicMapper())
+    scroll.add(GUIDescription())
+    return scroll

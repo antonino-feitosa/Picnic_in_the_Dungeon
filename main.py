@@ -10,7 +10,7 @@ from glyphScreen import GlyphScreen
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
 from runState import RunState
-from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createPlayer, spawnRoom
+from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createMagicMapperScroll, createPlayer, spawnRoom
 from system.hungerSystem import hungerSystem
 from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
@@ -312,7 +312,7 @@ def loadState():
 
 def main():
     rand = Random(0)
-    device = Device("Picnic in the Dungeon", tick=24, width=1280, height=640)
+    device = Device("Picnic in the Dungeon", tick=32, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/DejaVuSansMono-Bold.ttf", 16)
@@ -328,6 +328,7 @@ def main():
     cx, cy = map.rooms[1].center()
 
     #createOrc(scene, cx, cy)
+    createMagicMapperScroll(scene, cx, cy)
 
     scene.store("state", RunState.MainMenu)
 

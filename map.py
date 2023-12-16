@@ -49,6 +49,7 @@ class Map:
         self.bloodstains: set[Point] = set()
         self.depth = 0
 
+
     def clearMap(self) -> None:
         self.tiles.clear()
         self.visibleTiles.clear()
@@ -62,6 +63,7 @@ class Map:
             for col in range(0, self.width):
                 self.tiles[Point(col, row)] = TileType.Wall
     
+
     def populateBlocked(self):
         self.blocked.clear()
         for row in range(0, self.height):
@@ -70,36 +72,41 @@ class Map:
                 if self.tiles[point] == TileType.Wall:
                     self.blocked.add(point)
     
+
     def clearContentIndex(self):
         self.tileContent.clear()
+
 
     def applyRoomToMap(self, room:Rect) -> None:
         for y in range(room.y1 + 1, room.y2 + 1):
             for x in range(room.x1 + 1, room.x2 + 1):
                 self.tiles[Point(x,y)] = TileType.Floor
 
+
     def applyHorizontalTunnel(self, x1:int, x2:int, y:int) -> None:
         for x in range(min(x1, x2), max(x1,x2) + 1):
             self.tiles[Point(x, y)] = TileType.Floor
+
 
     def applyVerticalTunnel(self, y1:int, y2:int, x:int) -> None:
         for y in range(min(y1, y2), max(y1, y2) + 1):
             self.tiles[Point(x,y)] = TileType.Floor
 
+
     def newTestMap (self, depth:int) -> None:
         self.clearMap()
         self.depth = depth
-        room1 = Rect(10, 5, 10, 10)
-        room2 = Rect(25, 5, 10, 10)
-        room3 = Rect(40, 5, 10, 10)
+        room1 = Rect(5, 5, 6, 6)
+        room2 = Rect(15, 5, 6, 6)
+        room3 = Rect(25, 5, 6, 6)
         self.rooms.append(room1)
         self.rooms.append(room2)
         self.rooms.append(room3)
         self.applyRoomToMap(room1)
         self.applyRoomToMap(room2)
         self.applyRoomToMap(room3)
-        self.applyHorizontalTunnel(15, 30, 10)
-        self.applyHorizontalTunnel(30, 45, 10)
+        self.applyHorizontalTunnel(6, 16, 8)
+        self.applyHorizontalTunnel(16, 26, 8)
         center = room3.center()
         self.tiles[Point(center[0], center[1])] = TileType.DownStairs
 
@@ -177,7 +184,7 @@ def drawMap(screen: GlyphScreen):
 
 def isRevealedAndWall(x:int, y:int, map:Map) -> bool:
     point = Point(x,y)
-    return point in map.revealedTiles and map.tiles[point] == TileType.Wall
+    return point in map.tiles and point in map.revealedTiles and map.tiles[point] == TileType.Wall
 
 def getWallGlyph(x:int, y:int, map:Map) -> str:
     mask = 0

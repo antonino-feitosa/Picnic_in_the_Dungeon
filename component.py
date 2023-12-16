@@ -286,6 +286,13 @@ class ProvidesFood(Component):
         super().__init__(ProvidesFood.id)
 
 
+class MagicMapper(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(MagicMapper.id)
+
+
 def sufferDamage(victim: Entity, amount: int):
     if victim.has(SufferDamage.id):
         sufferDamage: SufferDamage = victim[SufferDamage.id]

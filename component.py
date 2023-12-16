@@ -265,7 +265,28 @@ class ParticleLifetime(Component):
         self.frames = frames
 
 
-def doDamage(victim: Entity, amount: int):
+class HungerClock(Component):
+    id = ECS.nextSignature()
+    WELL_FED = "well fed"
+    NORMAL = "normal"
+    HUNGRY = "hungry"
+    STARVING = "starving"
+    __slots__ = ["hungerState", "duration"]
+
+    def __init__(self, hungerState: str, duration:int):
+        super().__init__(HungerClock.id)
+        self.hungerState:str = hungerState
+        self.duration:int = duration
+
+
+class ProvidesFood(Component):
+    id = ECS.nextSignature()
+
+    def __init__(self):
+        super().__init__(ProvidesFood.id)
+
+
+def sufferDamage(victim: Entity, amount: int):
     if victim.has(SufferDamage.id):
         sufferDamage: SufferDamage = victim[SufferDamage.id]
         sufferDamage.amount += amount

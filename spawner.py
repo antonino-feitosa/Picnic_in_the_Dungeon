@@ -2,7 +2,7 @@
 from algorithms import Point
 from core import ECS, Entity, Scene
 from algorithms import Random
-from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, InflictsDamage, Item, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed
+from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, Equippable, GUIDescription, HungerClock, InflictsDamage, Item, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesFood, ProvidesHealing, Ranged, Renderable, Viewshed
 from device import Color, Font, Image
 from map import Rect
 from randomTable import RandomTable
@@ -25,6 +25,7 @@ def roomTable(depth:int) -> RandomTable:
     table.add("Shield", 3)
     table.add("Long Sword", depth)
     table.add("Tower Shield", depth)
+    table.add("Rations", 7)
     return table
 
 
@@ -59,6 +60,7 @@ def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
             case "Shield": createShield(scene, x, y)
             case "Long Sword": createLongSword(scene, x, y)
             case "Tower Shield": createTowerShield(scene, x, y)
+            case "Rations": createRations(scene, x, y)
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:
@@ -71,6 +73,7 @@ def createPlayer(scene: Scene, x: int, y: int) -> Entity:
     player.add(CombatStats(30, 2, 5))
     player.add(Name("Player"))
     player.add(GUIDescription())
+    player.add(HungerClock(HungerClock.WELL_FED, 20))
     return player
 
 
@@ -200,3 +203,15 @@ def createParticle(scene:Scene, x:int, y:int, glyph:str, foreground:Color = (255
     particle.add(Renderable(glyph, 100, foreground))
     particle.add(ParticleLifetime(lifetime))
     return particle
+
+
+def createRations(scene:Scene, x:int, y:int) -> Entity:
+    rations = scene.create()
+    rations.add(Position(x, y))
+    rations.add(Renderable("%", 2, (0, 255, 0, 255)))
+    rations.add(Name('Rations'))
+    rations.add(Item())
+    rations.add(ProvidesFood())
+    rations.add(GUIDescription())
+    rations.add(Consumable())
+    return rations

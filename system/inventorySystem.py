@@ -1,6 +1,6 @@
 
 from algorithms.point import Point
-from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, InBackpack, InflictsDamage, Name, Player, Position, ProvidesHealing, WantsToRemoveItem, WantsToUseItem, WantsToDropItem, WantsToPickupItem, doDamage
+from component import AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped, GUIDescription, HungerClock, InBackpack, InflictsDamage, Name, Player, Position, ProvidesFood, ProvidesHealing, WantsToRemoveItem, WantsToUseItem, WantsToDropItem, WantsToPickupItem, sufferDamage
 from core import ECS, Entity
 from map import Map
 from spawner import createParticle
@@ -31,6 +31,7 @@ def itemUseSystem() -> None:
         entityItem = wants.item
         stats: CombatStats = entity[CombatStats.id]
 
+
         targets: set[Entity] = set()
         if entityItem.has(AreaOfEffect.id):
             area: AreaOfEffect = entityItem[AreaOfEffect.id]
@@ -54,6 +55,7 @@ def itemUseSystem() -> None:
         else:
             targets.add(entity)
 
+
         if entityItem.has(ProvidesHealing.id):
             for target in targets:
                 potion: ProvidesHealing = wants.item[ProvidesHealing.id]
@@ -65,11 +67,12 @@ def itemUseSystem() -> None:
                     position:Position = target[Position.id]
                     createParticle(ECS.scene, position.x, position.y, '♥', (0, 255, 0, 255))
 
+
         if entityItem.has(InflictsDamage.id):
             for target in targets:
                 if target.has(CombatStats.id):
                     inflicts: InflictsDamage = entityItem[InflictsDamage.id]
-                    doDamage(target, inflicts.damage)
+                    sufferDamage(target, inflicts.damage)
                     if entity.has(Player.id):
                         itemName: Name = entityItem[Name.id]
                         targetName: Name = target[Name.id]
@@ -78,6 +81,7 @@ def itemUseSystem() -> None:
                     if target.has(Position.id):
                         position:Position = target[Position.id]
                         createParticle(ECS.scene, position.x, position.y, '!', (255, 0, 0, 255))
+
 
         if entityItem.has(Confusion.id):
             for target in targets:
@@ -93,6 +97,17 @@ def itemUseSystem() -> None:
                     position:Position = target[Position.id]
                     createParticle(ECS.scene, position.x, position.y, '?', (255, 0, 255, 255))
 
+        
+
+        if entityItem.has(ProvidesFood.id):
+            for target in targets:
+                if target.has(HungerClock.id):
+                    hunger:HungerClock = target[HungerClock.id]
+                    hunger.hungerState = HungerClock.WELL_FED
+                    hunger.duration = 20
+                    if entity.has(Player.id):
+                        logger.log(f"You eat the {entityItem[Name.id].name}.")
+
 
         if entityItem.has(Equippable.id):
             toEquip: Equippable = entityItem[Equippable.id]
@@ -105,6 +120,7 @@ def itemUseSystem() -> None:
                     if entity.has(Player.id):
                         unequipName: Name = unequipEntity[Name.id]
                         logger.log(f"You unequip {unequipName.name}.")
+
 
             toEquipName: Name = entityItem[Name.id]
             logger.log(f"You equipped {toEquipName.name}.")

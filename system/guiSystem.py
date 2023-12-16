@@ -54,14 +54,20 @@ def guiSystem(screen: GlyphScreen):
                 space = '  '
 
                 name = entity[Name.id]
-                statsMsg = ''
+                statsMsg = ""
                 if entity.has(CombatStats.id):
                     stats: CombatStats = entity[CombatStats.id]
                     offensiveBonus = getOffensiveBonus(entity)
                     defensiveBonus = getDefensiveBonus(entity)
                     statsMsg = f" HP:{stats.HP}/{stats.maxHP}"
                     statsMsg += f" P:{stats.power + offensiveBonus} D:{stats.defense + defensiveBonus}"
-                messages.append(name.name + statsMsg)
+                
+                hungerMsg = ""
+                if entity.has(HungerClock.id):
+                    hunger:HungerClock = entity[HungerClock.id]
+                    hungerMsg = f" ({hunger.hungerState}  {hunger.duration})"
+
+                messages.append(name.name + statsMsg + hungerMsg)
 
                 equips = ECS.scene.filter(Name.id | Equipped.id)
                 for equippedEntity in equips:

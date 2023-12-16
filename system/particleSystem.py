@@ -4,6 +4,8 @@ from algorithms import Point
 from component import ParticleLifetime, Position, Renderable
 from core import ECS
 from glyphScreen import GlyphScreen
+from device import Font
+from glyphScreen import GlyphScreen
 from map import Map
 
 

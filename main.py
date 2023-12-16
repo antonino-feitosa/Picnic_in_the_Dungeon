@@ -2,7 +2,6 @@
 import os
 import pickle
 
-from enum import Enum
 from algorithms import Random, Point
 from component import CombatStats, Equipped, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
@@ -10,7 +9,9 @@ from device import Device, Font, Image
 from glyphScreen import GlyphScreen
 from map import TileType, drawMap, Map
 from player import getItem, tryMovePlayer
-from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createHealthPotion, createOrc, createPlayer, spawnRoom
+from runState import RunState
+from spawner import MAP_HEIGHT, MAP_WIDTH, createDagger, createFireballScroll, createPlayer, spawnRoom
+from system.hungerSystem import hungerSystem
 from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
 from system.inventorySystem import itemCollectionSystem, itemDropSystem, itemRemoveSystem, itemUseSystem
@@ -22,18 +23,6 @@ from system.visibility import visibilitySystem
 from utils import Logger
 
 SAVE_DATA_FILE_NAME = "./save.data"
-
-class RunState(Enum):
-    MainMenu = 0
-    WaitingInput = 1
-    PlayerTurn = 2
-    MonsterTurn = 3
-    ShowInventory = 4
-    ShowDropItem = 5
-    ShowTargeting = 6
-    NextLevel = 7
-    GameOver = 8
-    ShowRemoveItem = 9
 
 
 def tryNextLevel() -> bool:
@@ -166,6 +155,7 @@ def runSystems():
     itemRemoveSystem()
     meleeCombatSystem()
     damageSystem()
+    hungerSystem()
     deleteTheDead()
 
 

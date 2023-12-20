@@ -1,16 +1,8 @@
 
-from algorithms import Point
-from core import ECS, Entity, Scene
-from algorithms import Random
+from core import Entity, Scene
 from component import AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, DefenseBonus, EntryTrigger, Equippable, GUIDescription, Hidden, HungerClock, InflictsDamage, Item, MagicMapper, MeleePowerBonus, Monster, Name, ParticleLifetime, Player, Position, ProvidesFood, ProvidesHealing, Ranged, Renderable, SingleActivation, Viewshed
-from device import Color, Font, Image
-from map import Rect
+from device import Color
 from randomTable import RandomTable
-
-
-MAP_WIDTH = 80
-MAP_HEIGHT = 30
-MAX_MONSTERS = 4
 
 
 def roomTable(depth:int) -> RandomTable:
@@ -29,42 +21,6 @@ def roomTable(depth:int) -> RandomTable:
     table.add("Magic Mapper Scroll", 2)
     table.add("Bear Trap", 2)
     return table
-
-
-def spawnRoom(scene: Scene, room: Rect, depth: int) -> None:
-    rand: Random = ECS.scene.retrieve('random')
-    numMonsters = rand.nextRange(1, MAX_MONSTERS + 3) + (depth - 1) - 3
-    positions: set[tuple[Point, str]] = set()
-    spawnTable = roomTable(depth)
-    errors = 10
-
-    while (len(positions) < numMonsters and errors > 0):
-        x = (room.x1 + 1) + rand.nextInt((room.x2 - room.x1) - 1)
-        y = (room.y1 + 1) + rand.nextInt((room.y2 - room.y1) - 1)
-        point = Point(x, y)
-        if point not in positions:
-            spawn = spawnTable.roll(rand)
-            positions.add((point, spawn))
-        else:
-            errors -= 1
-
-    for (point, name) in positions:
-        x = point.x
-        y = point.y
-        match name:
-            case "Goblin": createGoblin(scene, x, y)
-            case "Orc": createGoblin(scene, x, y)
-            case "Health Potion": createHealthPotion(scene, x, y)
-            case "Fireball Scroll": createMagicMissileScroll(scene, x, y)
-            case "Confusion Scroll": createFireballScroll(scene, x, y)
-            case "Magic Missile Scroll": createConfusionScroll(scene, x, y)
-            case "Dagger": createDagger(scene, x, y)
-            case "Shield": createShield(scene, x, y)
-            case "Long Sword": createLongSword(scene, x, y)
-            case "Tower Shield": createTowerShield(scene, x, y)
-            case "Rations": createRations(scene, x, y)
-            case "Magic Mapper Scroll": createMagicMapperScroll(scene, x, y)
-            case "Bear Trap": createBearTrap(scene, x, y)
 
 
 def createPlayer(scene: Scene, x: int, y: int) -> Entity:

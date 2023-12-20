@@ -11,6 +11,7 @@ RATE_PERCEPT_HIDDEN:float = 0.05
 
 def visibilitySystem():
     map: Map = ECS.scene.retrieve("map")
+    rand:Random = ECS.scene.retrieve("random")
     logger:Logger = ECS.scene.retrieve("logger")
     entities = ECS.scene.filter(Position.id | Viewshed.id)
 
@@ -29,8 +30,6 @@ def visibilitySystem():
                 map.visibleTiles.clear()
                 map.visibleTiles = viewshed.visibleTiles
                 map.revealedTiles.update(map.visibleTiles)
-
-                rand:Random = ECS.scene.retrieve("random")
 
                 for point in viewshed.visibleTiles:
                     if point in map.tileContent:

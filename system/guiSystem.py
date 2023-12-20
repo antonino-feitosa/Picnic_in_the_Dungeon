@@ -52,7 +52,8 @@ def guiSystem(screen: GlyphScreen):
             position: Position = entity[Position.id]
             viewshed: Viewshed = player[Viewshed.id]
             showing = Point(position.x, position.y) in viewshed.visibleTiles
-        if showing:
+        
+        if showing:    
             if entity.has(Name.id):
                 space = '  '
 

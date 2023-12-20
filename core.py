@@ -1,23 +1,26 @@
 from typing import TypeVar, Any
 from algorithms import Point
 
+
 class Component:
     __slots__ = "signature"
 
     def __init__(self, signature: int):
         self.signature = signature
 
+    def __repr__(self) -> str:
+        return self.__class__.__name__
+
 
 class Context:
     def __init__(self):
-        self.keys:set[str] = set()
-        self.mousePosition:Point = Point()
+        self.keys: set[str] = set()
+        self.mousePosition: Point = Point()
         self.mouseLeftPressed = False
-    
+
     def clear(self):
         self.keys.clear()
         self.mouseLeftPressed = False
-
 
 
 class EntityComponentSystem:
@@ -36,10 +39,9 @@ class EntityComponentSystem:
         self.id += 1
         return self.id
 
-    def run(self, scene:'Scene', context:Context) -> None:
+    def run(self, scene: 'Scene', context: Context) -> None:
         self.scene = scene
         self.context = context
-
 
 
 ECS = EntityComponentSystem()
@@ -73,9 +75,21 @@ class Entity:
 
     def __eq__(self, other: "Entity"):
         return other is not None and self.id == other.id
-    
+
     def __hash__(self) -> int:
         return self.id
+
+    def __repr__(self) -> str:
+        representation = '{'
+        first = True
+        for key in self.components:
+            if first:
+                first = False
+                representation += str(self.components[key])
+            else:
+                representation += ', ' + str(self.components[key])
+        representation += '}'
+        return representation
 
 
 class Scene:

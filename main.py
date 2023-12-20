@@ -5,12 +5,13 @@ import pickle
 from algorithms import Random, Point
 from component import CombatStats, Equipped, Hidden, HungerClock, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
-from device import Device, Font, Image
+from device import Device, Font
 from glyphScreen import GlyphScreen
 from map import TileType, drawMap, Map
+from map_builders.mapBuilder import MapBuilder
 from player import getItem, tryMovePlayer
 from runState import RunState
-from spawner import MAP_HEIGHT, MAP_WIDTH, createBearTrap, createDagger, createFireballScroll, createMagicMapperScroll, createPlayer, spawnRoom
+from spawner import createPlayer
 from system.hungerSystem import hungerSystem
 from system.damageSystem import damageSystem, deleteTheDead
 from system.guiSystem import GameOverResult, ItemMenuResult, MainMenuResult, dropItemMenu, guiSystem, rangedTarget, removeItemMenu, showGameOver, showInventory, showMenu
@@ -20,7 +21,7 @@ from system.meleeCombatSystem import meleeCombatSystem
 from system.monsterAI import monsterAISystem
 from system.particleSystem import cullDeadParticles, drawParticles
 from system.triggerSystem import triggerSystem
-from system.visibility import visibilitySystem
+from system.visibilitySystem import visibilitySystem
 from utils import Logger
 
 SAVE_DATA_FILE_NAME = "./save.data"
@@ -64,17 +65,15 @@ def gotoNextLevel() -> None:
     entities.update(equips)
     ECS.scene.entities = entities
 
-    currentMap: Map = ECS.scene.retrieve("map")
-    map = Map(MAP_WIDTH, MAP_HEIGHT)
-    map.newMapRoomsAndCorridors(currentMap.depth + 1, rand)
-    for room in map.rooms[1:]:
-        spawnRoom(ECS.scene, room, map.depth)
-    ECS.scene.store("map", map)
+    map:Map = ECS.scene.retrieve("map")
+    builder = MapBuilder()
+    builder.build(map.depth + 1)
+    builder.spawn()
+    ECS.scene.store("map", builder.map)
 
-    xplayer, yplayer = map.rooms[0].center()
     position: Position = player.get(Position.id)
-    position.x = xplayer
-    position.y = yplayer
+    position.x = builder.startPosition.x
+    position.y = builder.startPosition.y
     viewshed: Viewshed = player.get(Viewshed.id)
     viewshed.dirty = True
 
@@ -85,19 +84,21 @@ def gotoNextLevel() -> None:
 
 
 def cleanupGameOver():
-    ECS.scene.store("turn", 1)
     ECS.scene.entities.clear()
-    rand:Random = ECS.scene.retrieve("random")
-    map: Map = ECS.scene.retrieve("map")
-    map.newMapRoomsAndCorridors(1, rand)
+
+    builder = MapBuilder()
+    builder.build(1)
+    builder.spawn()
+    ECS.scene.store("map", builder.map)
+    player = createPlayer(ECS.scene, builder.startPosition.x, builder.startPosition.y)
+    ECS.scene.store("player", player)
+    
     logger: Logger = ECS.scene.retrieve("logger")
     logger.clear()
+
     os.remove(SAVE_DATA_FILE_NAME)
-    xplayer, yplayer = map.rooms[0].center()
-    player = createPlayer(ECS.scene, xplayer, yplayer)
-    ECS.scene.store("player", player)
-    for room in map.rooms[1:]:
-        spawnRoom(ECS.scene, room, 1)
+    ECS.scene.store("turn", 1)
+    
 
 
 def playerInput(keys: set[str]) -> RunState:
@@ -319,17 +320,13 @@ def main():
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/DejaVuSansMono-Bold.ttf", 16)
-
     logger = Logger(font, 10, 10, 300)
-
-    map = Map(MAP_WIDTH, MAP_HEIGHT)
 
     scene = Scene()
     scene.store("state", RunState.MainMenu)
     scene.store("background", background)
     scene.store("font", font)
     scene.store("random", rand)
-    scene.store("map", map)
     scene.store("camera", (40, 0))
     scene.store("logger", logger)
     scene.store("turn", 1)
@@ -337,20 +334,12 @@ def main():
     ECS.scene = scene
     ECS.context = Context()
 
-    map.newMapRoomsAndCorridors(1, rand)    
-    map.newTestMap(1)
-    cx, cy = map.rooms[1].center()
-
-    xplayer, yplayer = map.rooms[0].center()
-    player = createPlayer(scene, xplayer, yplayer)
+    builder = MapBuilder()
+    builder.build(1)
+    builder.spawn()
+    player = createPlayer(scene, builder.startPosition.x, builder.startPosition.y)
     scene.store("player", player)
-
-    #createOrc(scene, cx, cy)
-    createBearTrap(scene, cx, cy)
-
-    #for room in map.rooms[1:]:
-    #    spawnRoom(scene, room, 1)
-
+    scene.store("map", builder.map)
 
     device.onLoop.append(update)
     device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))

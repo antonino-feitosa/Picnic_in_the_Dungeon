@@ -56,6 +56,20 @@ def skipTurn() -> None:
         stats.HP = min(stats.maxHP, stats.HP + 1)
 
 
+def generateWorldMap(depth:int) -> None:
+    builder = MapBuilder()
+    builder.build(depth)
+    builder.spawn()
+    ECS.scene.store("map", builder.map)
+
+    player: Entity = ECS.scene.retrieve("player")
+    position: Position = player.get(Position.id)
+    position.x = builder.startPosition.x
+    position.y = builder.startPosition.y
+    viewshed: Viewshed = player.get(Viewshed.id)
+    viewshed.dirty = True
+
+
 def gotoNextLevel() -> None:
     player: Entity = ECS.scene.retrieve("player")
     equips = ECS.scene.filter(Equipped.id)
@@ -63,18 +77,8 @@ def gotoNextLevel() -> None:
     entities.add(player)
     entities.update(equips)
     ECS.scene.entities = entities
-
     map:Map = ECS.scene.retrieve("map")
-    builder = MapBuilder()
-    builder.build(map.depth + 1)
-    builder.spawn()
-    ECS.scene.store("map", builder.map)
-
-    position: Position = player.get(Position.id)
-    position.x = builder.startPosition.x
-    position.y = builder.startPosition.y
-    viewshed: Viewshed = player.get(Viewshed.id)
-    viewshed.dirty = True
+    generateWorldMap(map.depth + 1)
 
     logger: Logger = ECS.scene.retrieve("logger")
     logger.log("You descend to the next level, and take a moment to heal.")
@@ -84,13 +88,9 @@ def gotoNextLevel() -> None:
 
 def cleanupGameOver():
     ECS.scene.entities.clear()
-
-    builder = MapBuilder()
-    builder.build(1)
-    builder.spawn()
-    ECS.scene.store("map", builder.map)
-    player = createPlayer(ECS.scene, builder.startPosition.x, builder.startPosition.y)
+    player = createPlayer(ECS.scene, 0, 0)
     ECS.scene.store("player", player)
+    generateWorldMap(1)
     
     logger: Logger = ECS.scene.retrieve("logger")
     logger.clear()
@@ -333,12 +333,9 @@ def main():
     ECS.scene = scene
     ECS.context = Context()
 
-    builder = MapBuilder()
-    builder.build(1)
-    builder.spawn()
-    player = createPlayer(scene, builder.startPosition.x, builder.startPosition.y)
-    scene.store("player", player)
-    scene.store("map", builder.map)
+    player = createPlayer(ECS.scene, 0, 0)
+    ECS.scene.store("player", player)
+    generateWorldMap(1)
 
     device.onLoop.append(update)
     device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))

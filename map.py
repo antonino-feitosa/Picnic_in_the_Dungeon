@@ -42,20 +42,9 @@ class Map:
         self.tiles: dict[Point, TileType] = dict()
         self.visibleTiles: set[Point] = set()
         self.revealedTiles: set[Point] = set()
-        self.rooms: list[Rect] = list()
         self.blocked: set[Point] = set()
         self.tileContent: dict[Point, list[Entity]] = dict()
         self.bloodstains: set[Point] = set()
-        self.depth = 0
-
-    def clearMap(self) -> None:
-        self.tiles.clear()
-        self.visibleTiles.clear()
-        self.revealedTiles.clear()
-        self.rooms.clear()
-        self.blocked.clear()
-        self.tileContent.clear()
-        self.bloodstains.clear()
         self.depth = 0
         for row in range(0, self.height):
             for col in range(0, self.width):

@@ -20,8 +20,9 @@ class MapBuilder:
     def build(self, depth: int):
         rand: Random = ECS.scene.retrieve("random")
         self.depth = depth
-        self.map, self.startPosition = SimpleMapBuilder().build(MAP_WIDTH, MAP_HEIGHT, depth, rand)
+        self.builder = SimpleMapBuilder()
+        self.map, self.startPosition = self.builder.build(MAP_WIDTH, MAP_HEIGHT, depth, rand)
 
     def spawn(self):
         rand: Random = ECS.scene.retrieve("random")
-        SimpleMapBuilder().spawn(ECS.scene, self.map, self.depth, rand)
+        self.builder.spawn(ECS.scene, self.map, self.depth, rand)

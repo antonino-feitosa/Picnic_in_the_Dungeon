@@ -57,7 +57,6 @@ def skipTurn() -> None:
 
 
 def gotoNextLevel() -> None:
-    rand:Random = ECS.scene.retrieve("random")
     player: Entity = ECS.scene.retrieve("player")
     equips = ECS.scene.filter(Equipped.id)
     entities = ECS.scene.filter(InBackpack.id)

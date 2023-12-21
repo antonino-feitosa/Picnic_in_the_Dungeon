@@ -8,14 +8,18 @@ from spawner import createBearTrap, createConfusionScroll, createDagger, createF
 
 class SimpleMapBuilder:
 
+    def __init__(self):
+        self.rooms: list[Rect] = list()
+
     def build(self, width: int, height: int, depth: int, rand: Random) -> tuple[Map, Point]:
         map = Map(width, height)
+        self.rooms = list()
         self.newMapRoomsAndCorridors(map, depth, rand)
-        x, y = map.rooms[0].center()
+        x, y = self.rooms[0].center()
         return (map, Point(x, y))
 
     def spawn(self, scene: Scene, map: Map, depth: int, rand: Random) -> None:
-        for room in map.rooms[1:]:
+        for room in self.rooms[1:]:
             self.spawnRoom(scene, room, depth, rand, 4)
 
     def applyRoomToMap(self, tiles: dict[Point, TileType], room: Rect) -> None:
@@ -32,7 +36,6 @@ class SimpleMapBuilder:
             tiles[Point(x, y)] = TileType.Floor
 
     def newMapRoomsAndCorridors(self, map: Map, depth: int, rand: Random) -> None:
-        map.clearMap()
         map.depth = depth
 
         maxRooms = 30
@@ -45,22 +48,22 @@ class SimpleMapBuilder:
             y = rand.nextRange(1, map.height - (h + 1))
             newRoom = Rect(x, y, w, h)
             validLocation = True
-            for otherRoom in map.rooms:
+            for otherRoom in self.rooms:
                 if newRoom.intersect(otherRoom):
                     validLocation = False
             if validLocation:
                 self.applyRoomToMap(map.tiles, newRoom)
-                if map.rooms:
+                if self.rooms:
                     xnew, ynew = newRoom.center()
-                    xprev, yprev = map.rooms[-1].center()
+                    xprev, yprev = self.rooms[-1].center()
                     if rand.nextBool():
                         self.applyHorizontalTunnel(map.tiles, xprev, xnew, yprev)
                         self.applyVerticalTunnel(map.tiles, yprev, ynew, xnew)
                     else:
                         self.applyVerticalTunnel(map.tiles, yprev, ynew, xprev)
                         self.applyHorizontalTunnel(map.tiles, xprev, xnew, ynew)
-                map.rooms.append(newRoom)
-        lastRoom = map.rooms[-1]
+                self.rooms.append(newRoom)
+        lastRoom = self.rooms[-1]
         center = lastRoom.center()
         map.tiles[Point(center[0], center[1])] = TileType.DownStairs
 

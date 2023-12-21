@@ -1,5 +1,7 @@
 
 import os
+import sys
+import getopt
 import pickle
 
 from algorithms import Random, Point
@@ -24,7 +26,13 @@ from system.triggerSystem import triggerSystem
 from system.visibilitySystem import visibilitySystem
 from utils import Logger
 
+
+SHOW_MAP_GENERATION_VISUALIZER = False
 SAVE_DATA_FILE_NAME = "./save.data"
+
+mapGenerationState = 0
+mapGenerationTimer = 0
+SHOW_MAP_GENERATION_VISUALIZER_FRAMES = 10
 
 
 def tryNextLevel() -> bool:
@@ -46,8 +54,8 @@ def skipTurn() -> None:
             for entity in map.tileContent[pos]:
                 if not entity.has(Player.id) and entity.has(CombatStats.id):
                     canHeal = False
-    
-    hunger:HungerClock = player[HungerClock.id]
+
+    hunger: HungerClock = player[HungerClock.id]
     if hunger.hungerState == HungerClock.STARVING or hunger.hungerState == HungerClock.HUNGRY:
         canHeal = False
 
@@ -56,11 +64,12 @@ def skipTurn() -> None:
         stats.HP = min(stats.maxHP, stats.HP + 1)
 
 
-def generateWorldMap(depth:int) -> None:
+def generateWorldMap(depth: int) -> None:
     builder = MapBuilder()
     builder.build(depth)
     builder.spawn()
     ECS.scene.store("map", builder.map)
+    ECS.scene.store("builder", builder)
 
     player: Entity = ECS.scene.retrieve("player")
     position: Position = player.get(Position.id)
@@ -77,7 +86,7 @@ def gotoNextLevel() -> None:
     entities.add(player)
     entities.update(equips)
     ECS.scene.entities = entities
-    map:Map = ECS.scene.retrieve("map")
+    map: Map = ECS.scene.retrieve("map")
     generateWorldMap(map.depth + 1)
 
     logger: Logger = ECS.scene.retrieve("logger")
@@ -91,13 +100,12 @@ def cleanupGameOver():
     player = createPlayer(ECS.scene, 0, 0)
     ECS.scene.store("player", player)
     generateWorldMap(1)
-    
+
     logger: Logger = ECS.scene.retrieve("logger")
     logger.clear()
 
     os.remove(SAVE_DATA_FILE_NAME)
     ECS.scene.store("turn", 1)
-    
 
 
 def playerInput(keys: set[str]) -> RunState:
@@ -247,6 +255,20 @@ def processAfterDraw(screen: GlyphScreen):
         if showGameOver(ECS.context.keys) == GameOverResult.QuitToMenu:
             cleanupGameOver()
             runState = RunState.MainMenu
+    elif runState == RunState.MapGeneration:
+        global mapGenerationTimer
+        global mapGenerationState
+        screen.clear()
+        builder:MapBuilder = ECS.scene.retrieve("builder")
+        if mapGenerationTimer >= SHOW_MAP_GENERATION_VISUALIZER_FRAMES:
+            mapGenerationTimer = 0
+            if mapGenerationState + 1 < len(builder.snapshotHistory):
+                mapGenerationState += 1
+        else:
+            mapGenerationTimer += 1
+        map:Map = builder.snapshotHistory[mapGenerationState]
+        drawMap(screen, map)
+
     ECS.scene.store("state", runState)
 
 
@@ -255,17 +277,16 @@ def update():
     runState: RunState = ECS.scene.retrieve("state")
     if runState == RunState.MainMenu:
         return
-    
-    
+
     font: Font = ECS.scene.retrieve('font')
     cx, cy = ECS.scene.retrieve("camera")
-    screen = GlyphScreen(80,40, font)
+    screen = GlyphScreen(80, 40, font)
     screen.xoff = cx
     screen.yoff = cy
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Renderable.id)
 
-    drawMap(screen)
+    drawMap(screen, map)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         if not entity.has(Hidden.id):
             position: Position = entity[Position.id]
@@ -313,16 +334,18 @@ def loadState():
         viewshed.dirty = True
 
 
-def main():
-    rand = Random(0)
+def main(seed):
+    rand = Random(seed)
     device = Device("Picnic in the Dungeon", tick=32, width=1280, height=640)
 
     background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/DejaVuSansMono-Bold.ttf", 16)
     logger = Logger(font, 10, 10, 300)
 
+    initialState = RunState.MapGeneration if SHOW_MAP_GENERATION_VISUALIZER else RunState.MainMenu
+
     scene = Scene()
-    scene.store("state", RunState.MainMenu)
+    scene.store("state", initialState)
     scene.store("background", background)
     scene.store("font", font)
     scene.store("random", rand)
@@ -351,4 +374,21 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    seed = 0
+    helpMessage = "main.py -h | [-r <random seed>] [-s <show map generation>]"
+
+    try:
+        opts, _ = getopt.getopt(sys.argv[1:],"hr:s",["randomSeed="])
+    except getopt.GetoptError:
+      print (helpMessage)
+      sys.exit(2)
+    
+    for opt, arg in opts:
+        if opt == '-h':
+            print(helpMessage)
+            sys.exit(0)
+        if opt == '-r':
+            seed = int(arg)
+        if opt == '-s':
+            SHOW_MAP_GENERATION_VISUALIZER = True
+    main(seed)

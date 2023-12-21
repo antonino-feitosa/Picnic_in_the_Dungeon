@@ -60,6 +60,17 @@ class Map:
 
     def clearContentIndex(self):
         self.tileContent.clear()
+    
+    def clone(self) -> 'Map':
+        newMap = Map(self.width, self.height)
+        newMap.tiles = self.tiles.copy()
+        newMap.visibleTiles = self.visibleTiles.copy()
+        newMap.revealedTiles = self.revealedTiles.copy()
+        newMap.blocked = self.blocked.copy()
+        for pos in self.tileContent:
+            newMap.tileContent[pos] = self.tileContent[pos].copy()
+        newMap.bloodstains = self.bloodstains.copy()
+        return newMap
 
     # def newTestMap (self, depth:int) -> None:
     #     self.clearMap()
@@ -79,9 +90,7 @@ class Map:
     #     self.tiles[Point(center[0], center[1])] = TileType.DownStairs
 
 
-def drawMap(screen: GlyphScreen):
-    map: Map = ECS.scene.retrieve("map")
-
+def drawMap(screen: GlyphScreen, map:Map):
     for pos in map.revealedTiles:
         if pos not in map.visibleTiles:
             tile = map.tiles[Point(pos.x, pos.y)]

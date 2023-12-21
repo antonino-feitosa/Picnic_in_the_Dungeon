@@ -12,3 +12,4 @@ class RunState(Enum):
     NextLevel = 7
     GameOver = 8
     ShowRemoveItem = 9
+    MapGeneration = 10

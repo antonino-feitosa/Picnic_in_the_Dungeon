@@ -3,20 +3,18 @@ from algorithms.point import Point
 from algorithms.random import Random
 from core import Scene
 from map import Map, Rect, TileType
+from map_builders.mapBuilderBase import MapBuilderBase
 from spawner import createBearTrap, createConfusionScroll, createDagger, createFireballScroll, createGoblin, createHealthPotion, createLongSword, createMagicMapperScroll, createMagicMissileScroll, createOrc, createRations, createShield, createTowerShield, roomTable
 
 
-class SimpleMapBuilder:
-
-    def __init__(self):
-        self.rooms: list[Rect] = list()
+class SimpleMapBuilder(MapBuilderBase):
 
     def build(self, width: int, height: int, depth: int, rand: Random) -> tuple[Map, Point]:
-        map = Map(width, height)
-        self.rooms = list()
-        self.newMapRoomsAndCorridors(map, depth, rand)
+        self.map = Map(width, height)
+        self.rooms: list[Rect] = list()
+        self.newMapRoomsAndCorridors(self.map, depth, rand)
         x, y = self.rooms[0].center()
-        return (map, Point(x, y))
+        return (self.map, Point(x, y))
 
     def spawn(self, scene: Scene, map: Map, depth: int, rand: Random) -> None:
         for room in self.rooms[1:]:
@@ -53,6 +51,7 @@ class SimpleMapBuilder:
                     validLocation = False
             if validLocation:
                 self.applyRoomToMap(map.tiles, newRoom)
+                self.takeSnapshot()
                 if self.rooms:
                     xnew, ynew = newRoom.center()
                     xprev, yprev = self.rooms[-1].center()
@@ -63,6 +62,7 @@ class SimpleMapBuilder:
                         self.applyVerticalTunnel(map.tiles, yprev, ynew, xprev)
                         self.applyHorizontalTunnel(map.tiles, xprev, xnew, ynew)
                 self.rooms.append(newRoom)
+                self.takeSnapshot()
         lastRoom = self.rooms[-1]
         center = lastRoom.center()
         map.tiles[Point(center[0], center[1])] = TileType.DownStairs

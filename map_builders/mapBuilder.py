@@ -3,25 +3,18 @@ from algorithms.point import Point
 from algorithms.random import Random
 from core import ECS
 from map import Map
+from map_builders.mapBuilderBase import MAP_HEIGHT, MAP_WIDTH, MapBuilderBase
 from map_builders.simpleMap import SimpleMapBuilder
 
 
-MAP_WIDTH = 80
-MAP_HEIGHT = 30
-
-
-class MapBuilder:
-
-    def __init__(self):
-        self.map: Map
-        self.startPosition: Point
-        self.depth: int = 1
+class MapBuilder(MapBuilderBase):
 
     def build(self, depth: int):
         rand: Random = ECS.scene.retrieve("random")
         self.depth = depth
         self.builder = SimpleMapBuilder()
         self.map, self.startPosition = self.builder.build(MAP_WIDTH, MAP_HEIGHT, depth, rand)
+        self.snapshotHistory = self.builder.snapshotHistory
 
     def spawn(self):
         rand: Random = ECS.scene.retrieve("random")

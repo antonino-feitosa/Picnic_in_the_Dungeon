@@ -1,7 +1,9 @@
 
+import math
 import random
 
 from typing import Any, TypeVar, Sequence
+
 
 class Random:
     def __init__(self, seed: int | None = None):
@@ -19,7 +21,7 @@ class Random:
 
     def nextDouble(self) -> float:
         return self.rand.random()
-    
+
     def nextBool(self) -> bool:
         return self.nextDouble() >= 0.5
 
@@ -35,3 +37,20 @@ class Random:
             raise ValueError("The list can not be empty!")
         return self.rand.randint(0, size - 1)
 
+    def shuffle(self, elements: list) -> None:
+        for i in range(len(elements)-1, 1, -1):
+            j = self.nextRange(0, i+1)
+            aux = elements[i]
+            elements[i] = elements[j]
+            elements[j] = aux
+
+    def poissonSample(self, mean) -> int:
+        uniform = self.nextDouble()
+        prob = math.exp(-mean)
+        cumulative = prob
+        x = 0
+        while uniform > cumulative:
+            x += 1
+            prob *= mean/x
+            cumulative += prob
+        return x

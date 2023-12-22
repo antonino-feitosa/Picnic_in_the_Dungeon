@@ -14,7 +14,7 @@ class TileType(Enum):
 class Rect:
     __slots__ = ["x1", "y1", "x2", "y2"]
 
-    def __init__(self, x: int, y: int, w: int, h: int):
+    def __init__(self, x: int, y: int, w: int = 0, h: int = 0):
         self.x1 = x
         self.y1 = y
         self.x2 = x + w
@@ -32,7 +32,7 @@ class Rect:
         return ((self.x1 + self.x2) // 2, (self.y1 + self.y2) // 2)
 
     def __repr__(self) -> str:
-        return f"<({self.x1}, {self.y1}), ({self.x2}, {self.y2})>"
+        return f"<(x1={self.x1}, y1={self.y1}), (x2={self.x2}, y2={self.y2})>"
 
 
 class Map:

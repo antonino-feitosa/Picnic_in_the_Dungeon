@@ -20,19 +20,6 @@ class SimpleMapBuilder(MapBuilderBase):
         for room in self.rooms[1:]:
             self.spawnRoom(scene, room, depth, rand, 4)
 
-    def applyRoomToMap(self, tiles: dict[Point, TileType], room: Rect) -> None:
-        for y in range(room.y1 + 1, room.y2 + 1):
-            for x in range(room.x1 + 1, room.x2 + 1):
-                tiles[Point(x, y)] = TileType.Floor
-
-    def applyHorizontalTunnel(self, tiles: dict[Point, TileType], x1: int, x2: int, y: int) -> None:
-        for x in range(min(x1, x2), max(x1, x2) + 1):
-            tiles[Point(x, y)] = TileType.Floor
-
-    def applyVerticalTunnel(self, tiles: dict[Point, TileType], y1: int, y2: int, x: int) -> None:
-        for y in range(min(y1, y2), max(y1, y2) + 1):
-            tiles[Point(x, y)] = TileType.Floor
-
     def newMapRoomsAndCorridors(self, map: Map, depth: int, rand: Random) -> None:
         map.depth = depth
 

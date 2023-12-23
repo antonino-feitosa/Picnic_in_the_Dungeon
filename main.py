@@ -32,7 +32,7 @@ SAVE_DATA_FILE_NAME = "./save.data"
 
 mapGenerationState = 0
 mapGenerationTimer = 0
-SHOW_MAP_GENERATION_VISUALIZER_FRAMES = 10
+SHOW_MAP_GENERATION_VISUALIZER_FRAMES = 1
 
 
 def tryNextLevel() -> bool:
@@ -255,37 +255,36 @@ def processAfterDraw(screen: GlyphScreen):
         if showGameOver(ECS.context.keys) == GameOverResult.QuitToMenu:
             cleanupGameOver()
             runState = RunState.MainMenu
-    elif runState == RunState.MapGeneration:
-        global mapGenerationTimer
-        global mapGenerationState
-        screen.clear()
-        builder:MapBuilder = ECS.scene.retrieve("builder")
-        if mapGenerationTimer >= SHOW_MAP_GENERATION_VISUALIZER_FRAMES:
-            mapGenerationTimer = 0
-            if mapGenerationState + 1 < len(builder.snapshotHistory):
-                mapGenerationState += 1
-        else:
-            mapGenerationTimer += 1
-        map:Map = builder.snapshotHistory[mapGenerationState]
-        drawMap(screen, map)
-
     ECS.scene.store("state", runState)
 
+def showMapGeneration(screen: GlyphScreen) -> None:
+    global mapGenerationTimer
+    global mapGenerationState
+    screen.clear()
+    builder:MapBuilder = ECS.scene.retrieve("builder")
+    if mapGenerationTimer >= SHOW_MAP_GENERATION_VISUALIZER_FRAMES:
+        mapGenerationTimer = 0
+        if mapGenerationState + 1 < len(builder.snapshotHistory):
+            mapGenerationState += 1
+    else:
+        mapGenerationTimer += 1
+    map:Map = builder.snapshotHistory[mapGenerationState]
+    drawMap(screen, map)
 
 def update():
-    processBeforeDraw()
     runState: RunState = ECS.scene.retrieve("state")
+    screen.clear()
+    if runState == RunState.MapGeneration:
+        showMapGeneration(screen)
+        screen.draw()
+        return
+
+    processBeforeDraw()   
     if runState == RunState.MainMenu:
         return
 
-    font: Font = ECS.scene.retrieve('font')
-    cx, cy = ECS.scene.retrieve("camera")
-    screen = GlyphScreen(80, 40, font)
-    screen.xoff = cx
-    screen.yoff = cy
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Renderable.id)
-
     drawMap(screen, map)
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         if not entity.has(Hidden.id):
@@ -355,6 +354,10 @@ def main(seed):
 
     ECS.scene = scene
     ECS.context = Context()
+    
+    global screen
+    screen = GlyphScreen(80, 40, font)
+    screen.xoff = 40 # camera
 
     player = createPlayer(ECS.scene, 0, 0)
     ECS.scene.store("player", player)

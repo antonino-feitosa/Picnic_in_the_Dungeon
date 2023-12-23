@@ -13,8 +13,8 @@ class MapBuilder(MapBuilderBase):
     def build(self, depth: int):
         rand: Random = ECS.scene.retrieve("random")
         self.depth = depth
-        #self.builder = SimpleMapBuilder()
-        self.builder = BSPDungeonBuilder()
+        builders = [SimpleMapBuilder(), BSPDungeonBuilder()]
+        self.builder = rand.choice(builders)
         self.map, self.startPosition = self.builder.build(MAP_WIDTH, MAP_HEIGHT, depth, rand)
         self.snapshotHistory = self.builder.snapshotHistory
 

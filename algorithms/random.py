@@ -23,7 +23,7 @@ class Random:
         return self.rand.random()
 
     def nextBool(self) -> bool:
-        return self.nextDouble() >= 0.5
+        return self.nextDouble() < 0.5
 
     T = TypeVar("T")
 

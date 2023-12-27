@@ -12,15 +12,16 @@ MAP_HEIGHT = 30
 class MapBuilderBase:
 
     def __init__(self):
+        self.name: str
         self.map: Map
         self.startPosition: Point
         self.depth: int = 1
         self.snapshotHistory: list[Map] = list()
 
-    def build(self, depth: int):
-        pass
+    def build(self, width: int, height: int, depth: int, rand: Random) -> tuple[Map, Point]:
+        return (Map(width, height), Point())
 
-    def spawn(self):
+    def spawn(self, scene: Scene, map: Map, depth: int, rand: Random) -> None:
         pass
 
     def takeSnapshot(self):
@@ -41,7 +42,7 @@ class MapBuilderBase:
     def applyVerticalTunnel(self, tiles: dict[Point, TileType], y1: int, y2: int, x: int) -> None:
         for y in range(min(y1, y2), max(y1, y2) + 1):
             tiles[Point(x, y)] = TileType.Floor
-    
+
     def spawnRoom(self, scene: Scene, room: Rect, depth: int, rand: Random, startNumMonster: int = 4) -> None:
         numMonsters = rand.nextRange(1, startNumMonster + 3) + (depth - 1) - 3
         positions: set[tuple[Point, str]] = set()

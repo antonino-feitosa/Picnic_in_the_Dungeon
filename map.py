@@ -1,6 +1,7 @@
 from enum import Enum
 
 from algorithms import Point
+from algorithms.direction import Direction
 from component import Renderable
 from core import ECS, Entity
 from screen import Screen, ScreenLayer
@@ -38,6 +39,7 @@ class Rect:
 
 class Map:
     def __init__(self, width: int, height: int):
+        self.name = ''
         self.width = width
         self.height = height
         self.tiles: dict[Point, TileType] = dict()
@@ -75,27 +77,28 @@ class Map:
 
 
 def drawMapBackground(screen: Screen, map: Map):
+    wallTiles:set[Point] = set()
     for point in map.tiles:
         tile = map.tiles[point]
-        glyph = ''
         if tile == TileType.Floor:
-            glyph = '.'
-        if tile == TileType.DownStairs:
-            glyph = '>'
-        if tile == TileType.Wall:
-            glyph = getWallGlyph(point.x, point.y, map)
-        if glyph != '':
-            screen.setGlyph(ScreenLayer.BackgroundRevealed, point, Renderable(glyph, 0, (127, 127, 127, 255)))
+            for dir in Direction.All:
+                n = point + dir
+                if n in map.tiles and map.tiles[n] == TileType.Wall:
+                    wallTiles.add(n)
+    
+    for point in wallTiles:
+        glyph = getWallGlyph(point, wallTiles)
+        screen.setGlyph(ScreenLayer.BackgroundRevealed, point, Renderable(glyph, 0, (127, 127, 127, 255)))
+        screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable(glyph, 0, (0, 255, 0, 255)))
 
     for point in map.tiles:
         tile = map.tiles[point]
         if tile == TileType.Floor:
+            screen.setGlyph(ScreenLayer.BackgroundRevealed, point, Renderable('.', 0, (127, 127, 127, 255)))
             screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable('.', 0, (0, 127, 127, 255)))
         if tile == TileType.DownStairs:
+            screen.setGlyph(ScreenLayer.BackgroundRevealed, point, Renderable('>', 0, (127, 127, 127, 255)))
             screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable('>', 0, (0, 255, 255, 255)))
-        if tile == TileType.Wall:
-            glyph = getWallGlyph(point.x, point.y, map)
-            screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable(glyph, 0, (0, 255, 0, 255)))
 
 
 def drawMap(screen: Screen, map: Map):
@@ -106,20 +109,15 @@ def drawMap(screen: Screen, map: Map):
     screen.setVisible(map.visibleTiles)
 
 
-def isRevealedAndWall(x: int, y: int, map: Map) -> bool:
-    point = Point(x, y)
-    return point in map.tiles and map.tiles[point] == TileType.Wall
-
-
-def getWallGlyph(x: int, y: int, map: Map) -> str:
+def getWallGlyph(point:Point, walls:set[Point]) -> str:
     mask = 0
-    if isRevealedAndWall(x, y-1, map):
+    if point + Direction.Up in walls:
         mask += 1
-    if isRevealedAndWall(x, y+1, map):
+    if point + Direction.Down in walls:
         mask += 2
-    if isRevealedAndWall(x-1, y, map):
+    if point + Direction.Left in walls:
         mask += 4
-    if isRevealedAndWall(x+1, y, map):
+    if point + Direction.Right in walls:
         mask += 8
 
     match mask:

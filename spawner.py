@@ -198,5 +198,6 @@ def createBearTrap(scene:Scene, x:int, y:int) -> Entity:
     trap.add(EntryTrigger())
     trap.add(InflictsDamage(6))
     trap.add(SingleActivation())
+    trap.add(GUIDescription())
     return trap
 

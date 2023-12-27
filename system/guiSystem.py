@@ -41,7 +41,7 @@ def guiSystem(screen: Screen):
     font.background = (0, 0, 0, 255)
     font.foreground = (200, 200, 200, 255)
 
-    messages = [f"Depth: {map.depth}"]
+    messages = [f"Map: {map.name} (Depth: {map.depth})"]
     for entity in sorted(entities, key=lambda e: 0 if e.has(Player.id) else e.id):
         if entity.has(Hidden.id):
             continue

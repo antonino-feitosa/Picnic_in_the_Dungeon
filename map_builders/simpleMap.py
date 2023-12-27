@@ -8,10 +8,19 @@ from map_builders.mapBuilderBase import MapBuilderBase
 
 class SimpleMapBuilder(MapBuilderBase):
 
+    def __init__(self):
+        super().__init__()
+        self.name = 'Simple'
+        self.maxRooms = 30
+        self.minSize = 6
+        self.maxSize = 10
+
     def build(self, width: int, height: int, depth: int, rand: Random) -> tuple[Map, Point]:
         self.map = Map(width, height)
+        self.map.name = self.name
+        self.map.depth = depth
         self.rooms: list[Rect] = list()
-        self.newMapRoomsAndCorridors(self.map, depth, rand)
+        self.newMapRoomsAndCorridors(self.map, rand)
         x, y = self.rooms[0].center()
         return (self.map, Point(x, y))
 
@@ -19,15 +28,10 @@ class SimpleMapBuilder(MapBuilderBase):
         for room in self.rooms[1:]:
             self.spawnRoom(scene, room, depth, rand, 4)
 
-    def newMapRoomsAndCorridors(self, map: Map, depth: int, rand: Random) -> None:
-        map.depth = depth
-
-        maxRooms = 30
-        minSize = 6
-        maxSize = 10
-        for _ in range(0, maxRooms):
-            w = rand.nextRange(minSize, maxSize)
-            h = rand.nextRange(minSize, maxSize)
+    def newMapRoomsAndCorridors(self, map: Map, rand: Random) -> None:
+        for _ in range(0, self.maxRooms):
+            w = rand.nextRange(self.minSize, self.maxSize)
+            h = rand.nextRange(self.minSize, self.maxSize)
             x = rand.nextRange(1, map.width - (w + 1))
             y = rand.nextRange(1, map.height - (h + 1))
             newRoom = Rect(x, y, w, h)
@@ -52,4 +56,3 @@ class SimpleMapBuilder(MapBuilderBase):
         lastRoom = self.rooms[-1]
         center = lastRoom.center()
         map.tiles[Point(center[0], center[1])] = TileType.DownStairs
-

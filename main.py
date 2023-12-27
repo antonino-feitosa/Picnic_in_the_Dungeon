@@ -33,6 +33,8 @@ SAVE_DATA_FILE_NAME = "./save.data"
 mapGenerationState = 0
 mapGenerationTimer = 0
 SHOW_MAP_GENERATION_VISUALIZER_FRAMES = 1
+cleaningInput = False
+cleaningInputNextState = RunState.WaitingInput
 
 
 def tryNextLevel() -> bool:
@@ -112,6 +114,18 @@ def cleanupGameOver():
 
 
 def playerInput(keys: set[str]) -> RunState:
+    global cleaningInput
+    global cleaningInputNextState
+    if cleaningInput:
+        if len(ECS.context.keys) == 0:
+            cleaningInput = False
+            toReturn = cleaningInputNextState
+            cleaningInputNextState = RunState.WaitingInput
+            return toReturn
+        else:
+            return RunState.WaitingInput
+
+
     if "k" in keys or "[8]" in keys or "up" in keys:
         tryMovePlayer(0, -1)
     elif "j" in keys or "[2]" in keys or "down" in keys:
@@ -129,34 +143,40 @@ def playerInput(keys: set[str]) -> RunState:
     elif "b" in keys or "[1]" in keys:
         tryMovePlayer(-1, +1)
     elif "g" in keys or "[5]" in keys:
-        ECS.context.clear()
+        cleaningInput = True
         if not getItem():
             logger: Logger = ECS.scene.retrieve("logger")
             logger.log("There is nothing here to pick up.")
+        else:
+            cleaningInputNextState = RunState.PlayerTurn
     elif "i" in keys:
-        ECS.context.clear()
-        return RunState.ShowInventory
+        cleaningInput = True
+        cleaningInputNextState = RunState.ShowInventory
     elif "d" in keys:
-        ECS.context.clear()
-        return RunState.ShowDropItem
+        cleaningInput = True
+        cleaningInputNextState = RunState.ShowDropItem
     elif "r" in keys:
-        ECS.context.clear()
-        return RunState.ShowRemoveItem
+        cleaningInput = True
+        cleaningInputNextState = RunState.ShowRemoveItem
     elif '.' in keys:
-        ECS.context.clear()
+        cleaningInput = True
         if tryNextLevel():
-            return RunState.NextLevel
+            cleaningInputNextState = RunState.NextLevel
         else:
             logger: Logger = ECS.scene.retrieve("logger")
             logger.log("There is no way down from here.")
-            return RunState.WaitingInput
     elif 'space' in keys:
-        ECS.context.clear()
+        cleaningInput = True
         skipTurn()
         logger: Logger = ECS.scene.retrieve("logger")
         logger.log("Turn skipped.")
+        cleaningInputNextState = RunState.PlayerTurn
     else:
         return RunState.WaitingInput
+    
+    if cleaningInput:
+        return RunState.WaitingInput
+
     return RunState.PlayerTurn
 
 
@@ -244,7 +264,6 @@ def processAfterDraw(screen: Screen):
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToRemoveItem(entity))
             runState = RunState.PlayerTurn
-        pass
     elif runState == RunState.ShowTargeting:
         targeting: Entity = ECS.scene.retrieve("targeting element")
         result, point = rangedTarget(targeting, screen)
@@ -282,8 +301,8 @@ def update():
         showMapGeneration(screen)
         screen.draw()
         return
-        
-    processBeforeDraw()   
+    
+    processBeforeDraw()
     if runState == RunState.MainMenu:
         return
 
@@ -302,12 +321,12 @@ def update():
     cullDeadParticles()
     screen.draw()
 
+    logger: Logger = ECS.scene.retrieve("logger")
+    logger.print()
+
     processAfterDraw(screen)
     guiSystem(screen)
     screen.drawInterface()
-    
-    logger: Logger = ECS.scene.retrieve("logger")
-    logger.print()
 
 
 def saveState():
@@ -379,7 +398,7 @@ def main(seed):
         device.clear()
         device.loop()
         update()
-        device.draw()        
+        device.draw()
 
 
 if __name__ == "__main__":

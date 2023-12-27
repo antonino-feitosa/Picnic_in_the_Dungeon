@@ -6,8 +6,8 @@ from enum import Enum
 from algorithms.point import Point
 from component import AreaOfEffect, CombatStats, Equippable, Equipped, GUIDescription, Hidden, HungerClock, InBackpack, Item, Name, Player, Position, Ranged, Renderable, Viewshed
 from core import ECS, Entity
-from device import Color, Font
-from glyphScreen import GlyphScreen
+from device import Font
+from screen import Screen, ScreenLayer
 from map import Map
 from system.meleeCombatSystem import getDefensiveBonus, getOffensiveBonus
 from utils import Logger
@@ -32,7 +32,7 @@ class GameOverResult(Enum):
     QuitToMenu = 1
 
 
-def guiSystem(screen: GlyphScreen):
+def guiSystem(screen: Screen):
     entities = ECS.scene.filter(GUIDescription.id | Position.id)
     player: Entity = ECS.scene.retrieve("player")
     font: Font = ECS.scene.retrieve("font")
@@ -52,8 +52,8 @@ def guiSystem(screen: GlyphScreen):
             position: Position = entity[Position.id]
             viewshed: Viewshed = player[Viewshed.id]
             showing = Point(position.x, position.y) in viewshed.visibleTiles
-        
-        if showing:    
+
+        if showing:
             if entity.has(Name.id):
                 space = '  '
 
@@ -65,10 +65,10 @@ def guiSystem(screen: GlyphScreen):
                     defensiveBonus = getDefensiveBonus(entity)
                     statsMsg = f" HP:{stats.HP}/{stats.maxHP}"
                     statsMsg += f" P:{stats.power + offensiveBonus} D:{stats.defense + defensiveBonus}"
-                
+
                 hungerMsg = ""
                 if entity.has(HungerClock.id):
-                    hunger:HungerClock = entity[HungerClock.id]
+                    hunger: HungerClock = entity[HungerClock.id]
                     hungerMsg = f" ({hunger.hungerState}  {hunger.duration})"
 
                 messages.append(name.name + statsMsg + hungerMsg)
@@ -92,21 +92,28 @@ def guiSystem(screen: GlyphScreen):
 
 
 # TODO item and monster at same position
-def drawTooltips(screen: GlyphScreen):
+def drawTooltips(screen: Screen):
     map: Map = ECS.scene.retrieve("map")
+    font: Font = ECS.scene.retrieve('font')
     entities = ECS.scene.filter(Position.id | Name.id | Renderable.id)
     position = ECS.context.mousePosition
     x, y = screen.screenPositionToGrid(position.x, position.y)
     point = Point(x, y)
+
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         if entity.has(Hidden.id):
             continue
-        
+
         entityPosition: Position = entity[Position.id]
         if point in map.visibleTiles and point.x == entityPosition.x and point.y == entityPosition.y:
             component: Name = entity[Name.id]
             name = ' ' + component.name + ' '
-            screen.setGlyph(point.x + 1, point.y, name, bgColor= (100, 100, 100, 155))
+            render = Renderable(name, 0)
+            render.background = (100, 100, 100, 155)
+            x, y = screen.gridPositionToScreen(point.x + 1, point.y)
+            font.background = (100, 100, 100, 155)
+            font.foreground = (255, 0, 255, 255)
+            font.drawAtScreen(name, x, y)
 
 
 def showInventory(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
@@ -198,8 +205,8 @@ def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     return (ItemMenuResult.NoResponse, None)
 
 
-def rangedTarget(targetingEntity: Entity, screen: GlyphScreen) -> tuple[ItemMenuResult, Point | None]:
-    ranged:Ranged = targetingEntity[Ranged.id]
+def rangedTarget(targetingEntity: Entity, screen: Screen) -> tuple[ItemMenuResult, Point | None]:
+    ranged: Ranged = targetingEntity[Ranged.id]
     itemRange: int = ranged.range
     player = ECS.scene.retrieve("player")
     playerPosition: Position = player[Position.id]
@@ -211,22 +218,33 @@ def rangedTarget(targetingEntity: Entity, screen: GlyphScreen) -> tuple[ItemMenu
     if mousePoint in viewshed.visibleTiles and mousePoint.distanceSquare(playerPoint) <= itemRange:
         for x in range(playerPoint.x - itemRange, playerPoint.x + itemRange + 1):
             for y in range(playerPoint.y - itemRange, playerPoint.y + itemRange + 1):
-                if Point(x,y) in viewshed.visibleTiles:
-                    screen.setBackground(x, y, (20, 50, 20, 10))
-        
+                point = Point(x, y)
+                if point in viewshed.visibleTiles:
+                    render = Renderable('')
+                    render.background = (20, 50, 20, 10)
+                    screen.setGlyph(ScreenLayer.Interface, point, render)
+
         if targetingEntity.has(AreaOfEffect.id):
-            areaOfEffect:AreaOfEffect = targetingEntity[AreaOfEffect.id]
+            areaOfEffect: AreaOfEffect = targetingEntity[AreaOfEffect.id]
             area = areaOfEffect.radius
             for x in range(mousePoint.x - area, mousePoint.x + area + 1):
                 for y in range(mousePoint.y - area, mousePoint.y + area + 1):
-                    if Point(x,y) in viewshed.visibleTiles:
-                        screen.setBackground(x, y, (30, 0, 0, 10))
+                    point = Point(x, y)
+                    if Point(x, y) in viewshed.visibleTiles:
+                        render = Renderable('')
+                        render.background = (30, 0, 0, 10)
+                        screen.setGlyph(ScreenLayer.Interface, point, render)
 
-        screen.setGlyph(mousePoint.x, mousePoint.y, '⊙', (176, 255, 55, 200), (20, 50, 20, 10))
+        render = Renderable('⊙')
+        render.foreground = (176, 255, 55, 200)
+        render.background = (20, 50, 20, 10)
+        screen.setGlyph(ScreenLayer.Interface, mousePoint, render)
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Selected, mousePoint)
     else:
-        screen.setGlyph(mousePoint.x, mousePoint.y, '⊗', (255, 0, 0, 255))
+        render = Renderable('⊗')
+        render.foreground = (255, 0, 0, 255)
+        screen.setGlyph(ScreenLayer.Interface, mousePoint, render)
 
         if ECS.context.mouseLeftPressed:
             return (ItemMenuResult.Cancel, None)

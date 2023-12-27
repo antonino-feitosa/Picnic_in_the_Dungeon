@@ -145,7 +145,7 @@ class Music:
 
 class Device:
     # TODO context
-    def __init__(self, title: str = "", tick=60, width=800, height=600):
+    def __init__(self, title: str = "", tick=32, width=800, height=600):
         pygame.init()
         pygame.display.set_caption(title)
         self.width = width
@@ -155,12 +155,10 @@ class Device:
         self.running = True
         self.tick = tick
         self.clock = pygame.time.Clock()
-        self.onClick: list[Callable[[bool, int, int], None]] = []
-        self.onClickRight: list[Callable[[bool, int, int], None]] = []
-        self.onMove: list[Callable[[int, int], None]] = []
-        self.onKeyPressed: list[Callable[[set[str]], None]] = []
-        self.onLoop: list[Callable[[], None]] = []
-        self._keys: set[str] = set()
+        self.keys: set[str] = set()
+        self.mouseX:int = 0
+        self.mouseY:int = 0
+        self.mousePressed:bool = False
 
     def loadImage(self, path: str) -> Image:
         try:
@@ -205,50 +203,25 @@ class Device:
         self.screen.fill(color, pygame.Rect((0, 0), dim))
 
     def loop(self) -> None:
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
 
-            if event.type == pygame.MOUSEMOTION:
-                x, y = pygame.mouse.get_pos()
-                for callback in self.onMove:
-                    callback(x, y)
+            self.mouseX, self.mouseY = pygame.mouse.get_pos()
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                x, y = pygame.mouse.get_pos()
-                for callback in self.onClick:
-                    callback(True, x, y)
-
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                x, y = pygame.mouse.get_pos()
-                for callback in self.onClickRight:
-                    callback(True, x, y)
+                self.mousePressed = True
 
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                x, y = pygame.mouse.get_pos()
-                for callback in self.onClick:
-                    callback(False, x, y)
-
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-                x, y = pygame.mouse.get_pos()
-                for callback in self.onClickRight:
-                    callback(False, x, y)
+                self.mousePressed = False
 
             if event.type == pygame.KEYDOWN and event.key:
                 keyName = pygame.key.name(event.key)
-                self._keys.add(keyName)
+                self.keys.add(keyName)
 
             if event.type == pygame.KEYUP and event.key:
                 keyName = pygame.key.name(event.key)
-                if keyName in self._keys:
-                    self._keys.remove(keyName)
-
-        if self._keys:
-            for callback in self.onKeyPressed:
-                callback(self._keys)
-
-        for callback in self.onLoop:
-            callback()
+                if keyName in self.keys:
+                    self.keys.remove(keyName)
 
         self.clock.tick(self.tick)

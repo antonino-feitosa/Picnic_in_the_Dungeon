@@ -1,8 +1,9 @@
 from enum import Enum
 
 from algorithms import Point
+from component import Renderable
 from core import ECS, Entity
-from glyphScreen import GlyphScreen
+from screen import Screen, ScreenLayer
 
 
 class TileType(Enum):
@@ -60,7 +61,7 @@ class Map:
 
     def clearContentIndex(self):
         self.tileContent.clear()
-    
+
     def clone(self) -> 'Map':
         newMap = Map(self.width, self.height)
         newMap.tiles = self.tiles.copy()
@@ -72,55 +73,42 @@ class Map:
         newMap.bloodstains = self.bloodstains.copy()
         return newMap
 
-    # def newTestMap (self, depth:int) -> None:
-    #     self.clearMap()
-    #     self.depth = depth
-    #     room1 = Rect(5, 5, 6, 6)
-    #     room2 = Rect(15, 5, 6, 6)
-    #     room3 = Rect(25, 5, 6, 6)
-    #     self.rooms.append(room1)
-    #     self.rooms.append(room2)
-    #     self.rooms.append(room3)
-    #     self.applyRoomToMap(self.tiles, room1)
-    #     self.applyRoomToMap(self.tiles, room2)
-    #     self.applyRoomToMap(self.tiles, room3)
-    #     self.applyHorizontalTunnel(self.tiles, 6, 16, 8)
-    #     self.applyHorizontalTunnel(self.tiles, 16, 26, 8)
-    #     center = room3.center()
-    #     self.tiles[Point(center[0], center[1])] = TileType.DownStairs
 
-
-def drawMap(screen: GlyphScreen, map:Map):
-    for pos in map.revealedTiles:
-        if pos not in map.visibleTiles:
-            tile = map.tiles[Point(pos.x, pos.y)]
-            glyph = ''
-            if tile == TileType.Floor:
-                glyph = '.'
-            if tile == TileType.DownStairs:
-                glyph = '>'
-            if tile == TileType.Wall:
-                glyph = getWallGlyph(pos.x, pos.y, map)
-            if glyph != '':
-                screen.setGlyph(pos.x, pos.y, glyph, (127, 127, 127, 255))
-
-    for pos in map.visibleTiles:
-        if pos in map.bloodstains:
-            screen.setBackground(pos.x, pos.y, (100, 0, 0, 255))
-
-        tile = map.tiles[Point(pos.x, pos.y)]
+def drawMapBackground(screen: Screen, map: Map):
+    for point in map.tiles:
+        tile = map.tiles[point]
+        glyph = ''
         if tile == TileType.Floor:
-            screen.setGlyph(pos.x, pos.y, '.', (0, 127, 127, 255))
+            glyph = '.'
         if tile == TileType.DownStairs:
-            screen.setGlyph(pos.x, pos.y, '>', (0, 255, 255, 255))
+            glyph = '>'
         if tile == TileType.Wall:
-            glyph = getWallGlyph(pos.x, pos.y, map)
-            screen.setGlyph(pos.x, pos.y, glyph, (0, 255, 0, 255))
+            glyph = getWallGlyph(point.x, point.y, map)
+        if glyph != '':
+            screen.setGlyph(ScreenLayer.BackgroundRevealed, point, Renderable(glyph, 0, (127, 127, 127, 255)))
+
+    for point in map.tiles:
+        tile = map.tiles[point]
+        if tile == TileType.Floor:
+            screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable('.', 0, (0, 127, 127, 255)))
+        if tile == TileType.DownStairs:
+            screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable('>', 0, (0, 255, 255, 255)))
+        if tile == TileType.Wall:
+            glyph = getWallGlyph(point.x, point.y, map)
+            screen.setGlyph(ScreenLayer.BackgroundVisible, point, Renderable(glyph, 0, (0, 255, 0, 255)))
+
+
+def drawMap(screen: Screen, map: Map):
+    bloodstain = Renderable(' ', 0, (255, 255, 255, 0))
+    bloodstain.background = (100, 0, 0, 255)
+    for point in map.bloodstains:
+        screen.setGlyph(ScreenLayer.BackgroundEffects, point, bloodstain)
+    screen.setVisible(map.visibleTiles)
 
 
 def isRevealedAndWall(x: int, y: int, map: Map) -> bool:
     point = Point(x, y)
-    return point in map.tiles and point in map.revealedTiles and map.tiles[point] == TileType.Wall
+    return point in map.tiles and map.tiles[point] == TileType.Wall
 
 
 def getWallGlyph(x: int, y: int, map: Map) -> str:

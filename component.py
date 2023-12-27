@@ -24,7 +24,7 @@ class Renderable(Component):
     id = ECS.nextSignature()
     __slots__ = ["render_order", "glyph", "foreground", "background"]
 
-    def __init__(self, glyph: str, render_order: int, foreground: Color = (255, 255, 255, 255)):
+    def __init__(self, glyph: str, render_order: int = 0, foreground: Color = (255, 255, 255, 255)):
         super().__init__(Renderable.id)
         self.glyph: str = glyph
         self.render_order: int = render_order

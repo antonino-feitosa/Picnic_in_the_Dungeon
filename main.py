@@ -8,8 +8,8 @@ from algorithms import Random, Point
 from component import CombatStats, Equipped, Hidden, HungerClock, InBackpack, Player, Position, Ranged, Renderable, Name, Viewshed, WantsToRemoveItem, WantsToUseItem, WantsToDropItem
 from core import ECS, Context, Entity, Scene
 from device import Device, Font
-from glyphScreen import GlyphScreen
-from map import TileType, drawMap, Map
+from screen import Screen, ScreenLayer
+from map import TileType, drawMap, Map, drawMapBackground
 from map_builders.mapBuilder import MapBuilder
 from player import getItem, tryMovePlayer
 from runState import RunState
@@ -69,7 +69,10 @@ def generateWorldMap(depth: int) -> None:
     builder.build(depth)
     builder.spawn()
     ECS.scene.store("map", builder.map)
-    ECS.scene.store("builder", builder)
+    screen.reset()
+    drawMapBackground(screen, builder.map)
+    if SHOW_MAP_GENERATION_VISUALIZER:
+        ECS.scene.store("builder", builder)
 
     player: Entity = ECS.scene.retrieve("player")
     position: Position = player.get(Position.id)
@@ -210,7 +213,7 @@ def processBeforeDraw():
     ECS.scene.store("state", runState)
 
 
-def processAfterDraw(screen: GlyphScreen):
+def processAfterDraw(screen: Screen):
     runState: RunState = ECS.scene.retrieve("state")
 
     if runState == RunState.ShowInventory:
@@ -257,7 +260,7 @@ def processAfterDraw(screen: GlyphScreen):
             runState = RunState.MainMenu
     ECS.scene.store("state", runState)
 
-def showMapGeneration(screen: GlyphScreen) -> None:
+def showMapGeneration(screen: Screen) -> None:
     global mapGenerationTimer
     global mapGenerationState
     screen.clear()
@@ -269,6 +272,7 @@ def showMapGeneration(screen: GlyphScreen) -> None:
     else:
         mapGenerationTimer += 1
     map:Map = builder.snapshotHistory[mapGenerationState]
+    drawMapBackground(screen, map)
     drawMap(screen, map)
 
 def update():
@@ -278,29 +282,30 @@ def update():
         showMapGeneration(screen)
         screen.draw()
         return
-
+        
     processBeforeDraw()   
     if runState == RunState.MainMenu:
         return
 
     map: Map = ECS.scene.retrieve("map")
     entities = ECS.scene.filter(Position.id | Renderable.id)
-    drawMap(screen, map)
+    drawMap(screen, map)    
     for entity in sorted(entities, key=lambda entity: entity[Renderable.id].render_order, reverse=True):
         if not entity.has(Hidden.id):
             position: Position = entity[Position.id]
             if Point(position.x, position.y) in map.visibleTiles:
                 render: Renderable = entity[Renderable.id]
-                screen.setGlyph(position.x, position.y, render.glyph, render.foreground, render.background)
-    drawParticles(screen)
-    screen.draw()
-    screen.clear()
-    processAfterDraw(screen)
-    guiSystem(screen)
+                layer = ScreenLayer.Entities if render.render_order <= 1 else ScreenLayer.Items
+                screen.setGlyph(layer, Point(position.x, position.y), render)
+    
     drawParticles(screen)
     cullDeadParticles()
     screen.draw()
 
+    processAfterDraw(screen)
+    guiSystem(screen)
+    screen.drawInterface()
+    
     logger: Logger = ECS.scene.retrieve("logger")
     logger.print()
 
@@ -324,20 +329,24 @@ def loadState():
         logger.messages = data["logger messages"]
         ECS.scene.store("state", data["state"])
         ECS.scene.store("turn", data["turn"])
-        ECS.scene.store("map", data["map"])
+        map:Map = data["map"]
+        ECS.scene.store("map", map)
         ECS.scene.entities = data["entitities"]
         player = ECS.scene.filter(Player.id)
         player = list(player)[0]
         ECS.scene.store("player", player)
         viewshed: Viewshed = player[Viewshed.id]
         viewshed.dirty = True
+        screen.reset()
+        drawMapBackground(screen, map)
+        screen.setVisible(map.revealedTiles)
+        screen.setVisible(map.visibleTiles)
 
 
 def main(seed):
     rand = Random(seed)
     device = Device("Picnic in the Dungeon", tick=32, width=1280, height=640)
 
-    background = device.loadImage("./_resources/_roguelike/background.png")
     font = device.loadFont("./art/DejaVuSansMono-Bold.ttf", 16)
     logger = Logger(font, 10, 10, 300)
 
@@ -345,7 +354,6 @@ def main(seed):
 
     scene = Scene()
     scene.store("state", initialState)
-    scene.store("background", background)
     scene.store("font", font)
     scene.store("random", rand)
     scene.store("camera", (40, 0))
@@ -356,24 +364,22 @@ def main(seed):
     ECS.context = Context()
     
     global screen
-    screen = GlyphScreen(80, 40, font)
-    screen.xoff = 40 # camera
+    screen = Screen(80, 40, font)
+    screen.camera.x = 40 # camera
 
     player = createPlayer(ECS.scene, 0, 0)
     ECS.scene.store("player", player)
     generateWorldMap(1)
 
-    device.onLoop.append(update)
-    device.onKeyPressed.append(lambda keys: setattr(ECS.context, 'keys', keys))
-    device.onMove.append(lambda x, y: setattr(
-        ECS.context, 'mousePosition', Point(x, y)))
-    device.onClick.append(lambda pressed, x, y: setattr(
-        ECS.context, 'mouseLeftPressed', pressed))
-
     while device.running:
+        ECS.context.keys.clear()
+        ECS.context.keys.update(device.keys)
+        ECS.context.mouseLeftPressed = device.mousePressed
+        ECS.context.mousePosition = Point(device.mouseX, device.mouseY)
         device.clear()
         device.loop()
-        device.draw()
+        update()
+        device.draw()        
 
 
 if __name__ == "__main__":
@@ -394,4 +400,6 @@ if __name__ == "__main__":
             seed = int(arg)
         if opt == '-s':
             SHOW_MAP_GENERATION_VISUALIZER = True
+    
+    import cProfile
     main(seed)

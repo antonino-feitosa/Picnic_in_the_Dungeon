@@ -109,8 +109,7 @@ def itemUseSystem() -> None:
         
 
         if entityItem.has(MagicMapper.id):
-            for pos in map.tiles:
-                map.revealedTiles.add(pos)
+            map.revealedTiles.update(map.tiles)
             logger.log("The map is revealed to you!")
 
 

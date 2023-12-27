@@ -82,6 +82,14 @@ class Screen:
                 if not self.revealed[p.y][p.x]:
                     self.revealed[p.y][p.x] = True
                     self.layers[ScreenLayer.FogRevealed].fill(TRANSPARENT, area)
+    
+    def setRevealed(self, points: set[Point]) -> None:
+        if self.enableFOG:
+            for p in points:
+                if not self.revealed[p.y][p.x]:
+                    self.revealed[p.y][p.x] = True
+                    area = pygame.rect.Rect(p.x * self.dx, p.y * self.dy, self.dx, self.dy)
+                    self.layers[ScreenLayer.FogRevealed].fill(TRANSPARENT, area)
 
     def draw(self):
         screen = self.font.device.screen

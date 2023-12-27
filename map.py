@@ -77,7 +77,7 @@ class Map:
 
 
 def drawMapBackground(screen: Screen, map: Map):
-    wallTiles:set[Point] = set()
+    wallTiles: set[Point] = set()
     for point in map.tiles:
         tile = map.tiles[point]
         if tile == TileType.Floor:
@@ -85,7 +85,7 @@ def drawMapBackground(screen: Screen, map: Map):
                 n = point + dir
                 if n in map.tiles and map.tiles[n] == TileType.Wall:
                     wallTiles.add(n)
-    
+
     for point in wallTiles:
         glyph = getWallGlyph(point, wallTiles)
         screen.setGlyph(ScreenLayer.BackgroundRevealed, point, Renderable(glyph, 0, (127, 127, 127, 255)))
@@ -106,10 +106,11 @@ def drawMap(screen: Screen, map: Map):
     bloodstain.background = (100, 0, 0, 255)
     for point in map.bloodstains:
         screen.setGlyph(ScreenLayer.BackgroundEffects, point, bloodstain)
+    screen.setRevealed(map.revealedTiles)
     screen.setVisible(map.visibleTiles)
 
 
-def getWallGlyph(point:Point, walls:set[Point]) -> str:
+def getWallGlyph(point: Point, walls: set[Point]) -> str:
     mask = 0
     if point + Direction.Up in walls:
         mask += 1

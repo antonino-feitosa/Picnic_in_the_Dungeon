@@ -224,12 +224,21 @@ def processBeforeDraw():
             runState = RunState.WaitingInput
         ECS.scene.store("state", runState)
         saveState()
-    elif runState == RunState.WaitingInput:
-        runState = playerInput(ECS.context.keys)
     elif runState == RunState.NextLevel:
         gotoNextLevel()
         runSystems()
+        ECS.scene.store("state", runState)
         runState = RunState.WaitingInput
+        saveState()
+    elif runState == RunState.WaitingInput:
+        runState = playerInput(ECS.context.keys)
+    elif runState == RunState.CloseGUI:
+        global cleaningInput
+        global cleaningInputNextState
+        cleaningInput = True
+        cleaningInputNextState = RunState.WaitingInput
+        runState = RunState.PlayerTurn
+
     ECS.scene.store("state", runState)
 
 
@@ -247,7 +256,7 @@ def processAfterDraw(screen: Screen):
             else:
                 player: Entity = ECS.scene.retrieve('player')
                 player.add(WantsToUseItem(entity))
-                runState = RunState.PlayerTurn
+                runState = RunState.CloseGUI
     elif runState == RunState.ShowDropItem:
         result, entity = dropItemMenu(ECS.context.keys)
         if result == ItemMenuResult.Cancel:
@@ -255,7 +264,7 @@ def processAfterDraw(screen: Screen):
         elif result == ItemMenuResult.Selected and entity is not None:
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToDropItem(entity))
-            runState = RunState.PlayerTurn
+            runState = RunState.CloseGUI
     elif runState == RunState.ShowRemoveItem:
         result, entity = removeItemMenu(ECS.context.keys)
         if result == ItemMenuResult.Cancel:
@@ -263,7 +272,7 @@ def processAfterDraw(screen: Screen):
         elif result == ItemMenuResult.Selected and entity is not None:
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToRemoveItem(entity))
-            runState = RunState.PlayerTurn
+            runState = RunState.CloseGUI
     elif runState == RunState.ShowTargeting:
         targeting: Entity = ECS.scene.retrieve("targeting element")
         result, point = rangedTarget(targeting, screen)
@@ -272,7 +281,7 @@ def processAfterDraw(screen: Screen):
         elif result == ItemMenuResult.Selected and point is not None:
             player: Entity = ECS.scene.retrieve('player')
             player.add(WantsToUseItem(targeting, point))
-            runState = RunState.PlayerTurn
+            runState = RunState.CloseGUI
     elif runState == RunState.GameOver:
         if showGameOver(ECS.context.keys) == GameOverResult.QuitToMenu:
             cleanupGameOver()
@@ -335,8 +344,10 @@ def saveState():
     data["state"] = ECS.scene.retrieve("state")
     data["turn"] = ECS.scene.retrieve("turn")
     data["map"] = ECS.scene.retrieve("map")
+    data["random"] = ECS.scene.retrieve("random")
     data["logger messages"] = logger.messages
     data["entitities"] = ECS.scene.entities
+    
     with open(SAVE_DATA_FILE_NAME, "wb") as outfile:
         pickle.dump(data, outfile)
 
@@ -348,6 +359,7 @@ def loadState():
         logger.messages = data["logger messages"]
         ECS.scene.store("state", data["state"])
         ECS.scene.store("turn", data["turn"])
+        ECS.scene.store("random", data["random"])
         map:Map = data["map"]
         ECS.scene.store("map", map)
         ECS.scene.entities = data["entitities"]

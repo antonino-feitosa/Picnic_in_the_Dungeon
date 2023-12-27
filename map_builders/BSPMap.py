@@ -19,6 +19,7 @@ class BSPDungeonBuilder(MapBuilderBase):
 
     def build(self, width: int, height: int, depth: int, rand: Random) -> tuple[Map, Point]:
         self.map = Map(width, height)
+        self.map.depth = depth
         self.rooms: list[Rect] = list()
 
         bounds = Rect(1, 1, width - 2, height - 2)

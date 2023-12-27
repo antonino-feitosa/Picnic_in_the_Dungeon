@@ -172,6 +172,7 @@ def dropItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     for item in items:
         if chr(index) in keys:
             return (ItemMenuResult.Selected, item)
+        index += 1
 
     return (ItemMenuResult.NoResponse, None)
 
@@ -201,6 +202,7 @@ def removeItemMenu(keys: set[str]) -> tuple[ItemMenuResult, Entity | None]:
     for item in items:
         if chr(index) in keys:
             return (ItemMenuResult.Selected, item)
+        index += 1
 
     return (ItemMenuResult.NoResponse, None)
 
@@ -270,7 +272,9 @@ def showMenu(keys: set[str]) -> MainMenuResult:
                     global countFrames
                     countFrames = 100
                     return MainMenuResult.NewGame
-                case 1: return MainMenuResult.Continue
+                case 1:
+                    menuState = 0
+                    return MainMenuResult.Continue
                 case 3: return MainMenuResult.Quit
 
         existsSave = os.path.exists('./save.data')

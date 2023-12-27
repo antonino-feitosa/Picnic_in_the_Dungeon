@@ -1,7 +1,7 @@
 
 from algorithms import Point
 from core import ECS, Component, Entity
-from device import Color, Font, Image
+from device import Color
 
 
 class Position(Component):
@@ -151,7 +151,7 @@ class WantsToUseItem(Component):
     id = ECS.nextSignature()
     __slots__ = ['item', 'target']
 
-    def __init__(self, potion: Entity, target:Point|None = None):
+    def __init__(self, potion: Entity, target: Point | None = None):
         super().__init__(WantsToUseItem.id)
         self.item = potion
         self.target = target
@@ -199,6 +199,7 @@ class AreaOfEffect(Component):
         super().__init__(AreaOfEffect.id)
         self.radius = radius
 
+
 class Confusion(Component):
     id = ECS.nextSignature()
     __slots__ = ['turns']
@@ -213,7 +214,7 @@ class Equippable(Component):
     MELEE = "weapon"
     SHIELD = "shield"
     __slots__ = ['slot']
-    
+
     def __init__(self, slot: str):
         super().__init__(Equippable.id)
         self.slot = slot
@@ -223,10 +224,10 @@ class Equipped(Component):
     id = ECS.nextSignature()
     __slots__ = ['owner', 'slot']
 
-    def __init__(self, owner: Entity, slot:str):
+    def __init__(self, owner: Entity, slot: str):
         super().__init__(Equipped.id)
         self.owner = owner
-        self.slot:str = slot
+        self.slot: str = slot
 
 
 class MeleePowerBonus(Component):
@@ -273,10 +274,10 @@ class HungerClock(Component):
     STARVING = "starving"
     __slots__ = ["hungerState", "duration"]
 
-    def __init__(self, hungerState: str, duration:int):
+    def __init__(self, hungerState: str, duration: int):
         super().__init__(HungerClock.id)
-        self.hungerState:str = hungerState
-        self.duration:int = duration
+        self.hungerState: str = hungerState
+        self.duration: int = duration
 
 
 class ProvidesFood(Component):
@@ -327,4 +328,3 @@ def sufferDamage(victim: Entity, amount: int):
         sufferDamage.amount += amount
     else:
         victim.add(SufferDamage(amount))
-

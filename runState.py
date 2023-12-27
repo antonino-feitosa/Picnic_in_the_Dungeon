@@ -13,3 +13,4 @@ class RunState(Enum):
     GameOver = 8
     ShowRemoveItem = 9
     MapGeneration = 10
+    CloseGUI = 11
